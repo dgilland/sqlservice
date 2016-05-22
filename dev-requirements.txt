@@ -1,0 +1,10 @@
+flake8
+invoke
+pytest-cov
+pytest
+Sphinx
+sphinx_rtd_theme
+tox
+twine
+wheel
+-r requirements.txt
