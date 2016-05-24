@@ -230,10 +230,13 @@ class SQLClient(object):
         """Proxy property to :meth:`session.delete`."""
         return self.session.delete
 
-    @property
-    def delete_all(self):
-        """Proxy property to :meth:`session.delete_all`."""
-        return self.session.delete_all
+    def delete_all(self, instances):
+        """Mark multiple instances for deletion."""
+        if not isinstance(instances, (list, tuple)):
+            instances = [instances]
+
+        for instance in instances:
+            self.delete(instance)
 
     @property
     def merge(self):
