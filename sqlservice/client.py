@@ -211,7 +211,7 @@ class SQLClient(object):
         return self.engine.url
 
     @property
-    def name(self):
+    def database(self):
         """Proxy property to database engine's database name."""
         return self.engine.url.database
 
