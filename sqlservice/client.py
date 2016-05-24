@@ -70,23 +70,8 @@ class SQLClient(object):
 
         self.config.update(config or {})
 
-        def make_options(key_mapping):
-            return {opt_key: self.config[cfg_key]
-                    for cfg_key, opt_key in key_mapping
-                    if self.config.get(cfg_key) is not None}
-
-        engine_options = make_options((
-            ('SQL_ECHO', 'echo'),
-            ('SQL_POOL_SIZE', 'pool_size'),
-            ('SQL_POOL_TIMEOUT', 'pool_timeout'),
-            ('SQL_POOL_RECYCLE', 'pool_recycle'),
-            ('SQL_MAX_OVERFLOW', 'max_overflow')
-        ))
-
-        session_options = make_options((
-            ('SQL_AUTOCOMMIT', 'autocommit'),
-            ('SQL_AUTOFLUSH', 'autoflush')
-        ))
+        engine_options = self.make_engine_options()
+        session_options = self.make_session_options()
 
         self.engine = self.create_engine(config['SQL_DATABASE_URI'],
                                          engine_options)
@@ -135,6 +120,37 @@ class SQLClient(object):
                                            **options)
 
         return orm.scoped_session(session_factory)
+
+    def make_engine_options(self):
+        """Return engine options from :attr:`config` for use in
+        ``sqlalchemy.create_engine``.
+        """
+        return self._make_options((
+            ('SQL_ECHO', 'echo'),
+            ('SQL_POOL_SIZE', 'pool_size'),
+            ('SQL_POOL_TIMEOUT', 'pool_timeout'),
+            ('SQL_POOL_RECYCLE', 'pool_recycle'),
+            ('SQL_MAX_OVERFLOW', 'max_overflow')
+        ))
+
+    def make_session_options(self):
+        """Return session options from :attr:`config` for use in
+        ``sqlalchemy.orm.sessionmaker``.
+        """
+        return self._make_options((
+            ('SQL_AUTOCOMMIT', 'autocommit'),
+            ('SQL_AUTOFLUSH', 'autoflush')
+        ))
+
+    def _make_options(self, key_mapping):
+        """Return mapped :attr:`config` options using `key_mapping` which is a
+        tuple having the form ``((<config_key>, <sqlalchemy_key>), ...)``.
+        Where ``<sqlalchemy_key>`` is the corresponding option keyword for a
+        SQLAlchemy function.
+        """
+        return {opt_key: self.config[cfg_key]
+                for cfg_key, opt_key in key_mapping
+                if self.config.get(cfg_key) is not None}
 
     def get_metadata(self):
         """Return `MetaData` from :attr:`model` or raise an exception if
