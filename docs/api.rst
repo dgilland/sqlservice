@@ -7,5 +7,29 @@ API Reference
 
     from sqlservice import *
 
+The sqlservice package imports commonly used objects into it's top-level namespace:
 
-.. automodule:: sqlservice
+.. code-block:: python
+
+    from sqlservice import (
+        ModelBase,
+        SQLClient,
+        SQLService,
+        declarative_base,
+        event)
+
+
+.. automodule:: sqlservice.model
+    :members:
+
+.. automodule:: sqlservice.event
+    :members:
+
+.. automodule:: sqlservice.query
+    :members:
+
+.. automodule:: sqlservice.client
+    :members:
+
+.. automodule:: sqlservice.service
+    :members:

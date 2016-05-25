@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Query module.
+"""
+Query
+-----
+
+The query module.
 """
 
 from sqlalchemy import orm

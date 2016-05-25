@@ -1,4 +1,9 @@
-"""Declarative ORM event decorators and event registration.
+# -*- coding: utf-8 -*-
+"""
+Event
+-----
+
+The event module with declarative ORM event decorators and event registration.
 
 SQLAlchemy features an ORM event API but one thing that is lacking is a way to
 register event handlers in a declarative way inside the Model's class

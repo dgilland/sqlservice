@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Database manager module.
+"""
+Client
+------
+
+The database client module.
 """
 
 from contextlib import contextmanager

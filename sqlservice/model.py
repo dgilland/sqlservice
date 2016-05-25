@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Declarative base model class for SQLAlchemy ORM.
+"""
+Model
+-----
+
+The declarative base model class for SQLAlchemy ORM.
 """
 from collections import deque
 

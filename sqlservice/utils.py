@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Utility module.
+"""
+Utilities
+---------
+
+The utilities module.
 """
 
 from collections import Iterable

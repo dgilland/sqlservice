@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-"""The base service class module.
+"""
+Service
+-------
+
+The service class module.
 """
 
 from functools import wraps
@@ -13,8 +17,8 @@ def transaction(_func=None, *, readonly=False):
     :class:`SQLClient` transaction.
 
     Warning:
-        This decorator can only be used on a class has a :class:`SQLClient`
-        instance set at ``self.db``.
+        This decorator can only be used on a class that has a
+        :class:`SQLClient` instance set at ``self.db``.
     """
     def decorator(func):
         @wraps(func)
