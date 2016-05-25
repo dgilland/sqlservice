@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-v0.0.0 (XXXX-XX-XX)
+v0.1.0 (2016-05-24)
 -------------------
 
 - First release.
