@@ -331,15 +331,15 @@ class SQLService(ServiceBase):
         primary_keys = self.model_class.pk_columns()
 
         if isinstance(ident, dict):
-            criteria = {col.name: ident.get(col.name)
-                        for col in primary_keys}
+            criteria = [col == ident.get(col.name)
+                        for col in primary_keys]
         elif isinstance(ident, (tuple, list)):
-            criteria = {col.name: pyd.get(ident, idx)
-                        for idx, col in enumerate(primary_keys)}
+            criteria = [col == pyd.get(ident, idx)
+                        for idx, col in enumerate(primary_keys)]
         else:
-            criteria = {primary_keys[0].name: ident}
+            criteria = [primary_keys[0] == ident]
 
-        return criteria
+        return and_(*criteria)
 
     def _filter_on_primary_key(self, models):
         """Given a set of `models` that have their primary key(s) set and that
