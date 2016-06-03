@@ -33,20 +33,21 @@ setup(
     long_description=readme + '\n\n' + changelog,
     packages=find_packages(exclude=['tests', 'tasks']),
     install_requires=requirements,
-    keywords='sqlservice',
+    keywords='sqlservice sqlalchemy orm database',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'License :: OSI Approved :: MIT License',
-        'Topic :: Software Development :: Libraries',
-        'Topic :: Software Development :: Libraries :: Python Modules',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3 :: Only',
         'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5'
+        'Programming Language :: Python :: 3.5',
+        'Topic :: Database',
+        'Topic :: Database :: Front-Ends',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Software Development :: Libraries :: Python Modules'
     ]
 )
