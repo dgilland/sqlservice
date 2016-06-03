@@ -105,11 +105,12 @@ class SQLService(ServiceBase):
 
     @transaction(readonly=True)
     def find_one(self, *criterion, **criterion_kargs):
-        """Return a single model or ``None`` given `filter_by` ``dict``.
+        """Return a single model or ``None`` given `criterion` ``dict`` or
+        keyword arguments.
 
         Args:
-            filter_by (dict, optional): Filter-by dict.
-            **filter_by_kargs (optional): Mapping of filter-by arguments.
+            criterion (dict, optional): Filter-by dict.
+            **criterion_kargs (optional): Mapping of filter-by arguments.
 
         Returns:
             :attr:`model_class`: When filtered record exists.
