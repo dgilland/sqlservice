@@ -14,6 +14,7 @@ from sqlalchemy.orm.exc import UnmappedError
 from sqlalchemy.orm.session import Session
 from sqlalchemy.engine.url import make_url
 
+from . import core
 from .model import declarative_base
 from .query import Query
 
@@ -156,6 +157,16 @@ class SQLClient(object):
                 for cfg_key, opt_key in key_mapping
                 if self.config.get(cfg_key) is not None}
 
+    @property
+    def url(self):
+        """Proxy property to database engine's database URL."""
+        return self.engine.url
+
+    @property
+    def database(self):
+        """Proxy property to database engine's database name."""
+        return self.engine.url.database
+
     def get_metadata(self):
         """Return `MetaData` from :attr:`model` or raise an exception if
         :attr:`model` was never given.
@@ -163,6 +174,18 @@ class SQLClient(object):
         if self.metadata is None:  # pragma: no cover
             raise UnmappedError('Missing declarative base model')
         return self.metadata
+
+    @property
+    def metadata(self):
+        """Return `MetaData` from :attr:`model` or ``None``."""
+        return getattr(self.Model, 'metadata', None)
+
+    @property
+    def tables(self):
+        """Return ``dict`` of table instances found in :attr:`metadata` with
+        table names as keys and corresponding table objects as values.
+        """
+        return self.metadata.tables
 
     def create_all(self):
         """Create all metadata (tables, etc) contained within :attr:`metadata`.
@@ -198,26 +221,6 @@ class SQLClient(object):
     def session(self, Session):
         """Set private :attr:`_Session`."""
         self._Session = Session
-
-    @property
-    def metadata(self):
-        """Return `MetaData` from :attr:`model` or ``None``."""
-        return getattr(self.Model, 'metadata', None)
-
-    @property
-    def tables(self):
-        """Proxy property or ORM metadata's tables ``dict``."""
-        return self.metadata.tables
-
-    @property
-    def url(self):
-        """Proxy property to database engine's database URL."""
-        return self.engine.url
-
-    @property
-    def database(self):
-        """Proxy property to database engine's database name."""
-        return self.engine.url.database
 
     @property
     def add(self):
@@ -313,46 +316,8 @@ class SQLClient(object):
         Yields:
             :attr:`session`
         """
-        # Keep track of nested calls to this context manager using this
-        # "trans_count" counter. Data stored in session.info will be local to
-        # that session and persist through its lifetime.
-        self.session.info.setdefault('trans_count', 0)
-
-        # Bump count every time context is entered.
-        self.session.info['trans_count'] += 1
-
-        if not readonly:
-            # Disable autoflush during write transactions. Autoflush can cause
-            # issues when setting ORM relationship values in cases where
-            # consistency is only maintained at commit time but would fail if
-            # an autoflush occurred beforehand.
-            self.session.autoflush = False
-
-        try:
+        with core.transaction(self.session, readonly=readonly):
             yield self.session
-        except Exception:
-            # Only rollback if we haven't rolled back yet (i.e. one
-            # rollback only per nested transaction set).
-            if self.session.info['trans_count'] > 0:
-                self.rollback()
 
-            # Reset trans_count to zero to prevent other rollbacks as the
-            # exception bubbles up the call stack.
-            self.session.info['trans_count'] = 0
 
-            raise
         else:
-            self.session.info['trans_count'] -= 1
-
-            # Paranoia dictates that we compare with "<=" instead of "==".
-            # Only commit once our trans counter reaches zero.
-            if not readonly and self.session.info['trans_count'] <= 0:
-                self.commit()
-        finally:
-            # Restore autoflush setting once transaction is over.
-            if self.session.info['trans_count'] <= 0:
-                self.session.autoflush = self.config['SQL_AUTOFLUSH']
-
-            # Reset counter in case we some how got below 0.
-            if self.session.info['trans_count'] < 0:
-                self.session.info['trans_count'] = 0
