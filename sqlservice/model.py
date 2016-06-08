@@ -5,30 +5,28 @@ Model
 
 The declarative base model class for SQLAlchemy ORM.
 """
+
 from collections import deque
 
 import pydash as pyd
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import (
-    DeclarativeMeta,
-    declarative_base as _declarative_base
-)
+from sqlalchemy.ext import declarative
 from sqlalchemy.util._collections import ImmutableProperties
 
 from . import event
 from .utils import classonce, is_sequence
 
 
-class ModelMeta(DeclarativeMeta):
+class ModelMeta(declarative.DeclarativeMeta):
     """Model metaclass that prepares model classes for event registration
     hooks.
     """
     def __new__(mcs, name, bases, dct):
-        cls = DeclarativeMeta.__new__(mcs, name, bases, dct)
+        cls = declarative.DeclarativeMeta.__new__(mcs, name, bases, dct)
         return cls
 
     def __init__(cls, name, bases, dct):
-        DeclarativeMeta.__init__(cls, name, bases, dct)
+        declarative.DeclarativeMeta.__init__(cls, name, bases, dct)
 
         if hasattr(cls, '__table__'):
             event.register(cls, dct)
@@ -60,8 +58,8 @@ class ModelBase(object):
             data = {}
 
         if not isinstance(data, dict):
-            raise TypeError(('Positional argument must be a dict for {0}'
-                             .format(self.__class__.__name__)))
+            raise TypeError('Positional argument must be a dict for {0}'
+                            .format(self.__class__.__name__))
 
         data = pyd.extend({}, data, kargs)
 
@@ -265,4 +263,4 @@ def declarative_base(cls=ModelBase):
     if hasattr(cls, '__metaclass__'):
         options['metaclass'] = cls.__metaclass__
 
-    return _declarative_base(**options)
+    return declarative.declarative_base(**options)
