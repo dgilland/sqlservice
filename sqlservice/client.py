@@ -17,6 +17,7 @@ from sqlalchemy.engine.url import make_url
 from . import core
 from .model import declarative_base
 from .query import Query
+from .service import SQLService
 
 
 class SQLClient(object):
@@ -55,12 +56,17 @@ class SQLClient(object):
     Args:
         config (dict): Database engine configuration options.
         Model (object): A SQLAlchemy ORM declarative base model.
+        service_class (object, optional): Service class used to register model
+            service instances. If provided, it should be have the same
+            initialization signature as :class:`.SQLService`. Defaults to
+            :class:`.SQLService`.
     """
-    def __init__(self, config=None, Model=None):
+    def __init__(self, config=None, Model=None, service_class=SQLService):
         if Model is None:
             Model = declarative_base()
 
         self.Model = Model
+        self.service_class = service_class
 
         self.config = {
             'SQL_DATABASE_URI': 'sqlite://',
@@ -81,6 +87,9 @@ class SQLClient(object):
         self.engine = self.create_engine(config['SQL_DATABASE_URI'],
                                          engine_options)
         self.session = self.create_session(self.engine, session_options)
+
+        self._service_registry = {}
+        self._register_all_services()
 
     def create_engine(self, uri, options=None):
         """Factory function to create a database engine using `config` options.
@@ -186,6 +195,20 @@ class SQLClient(object):
         table names as keys and corresponding table objects as values.
         """
         return self.metadata.tables
+
+    @property
+    def model_registry(self):
+        """Return model registry ``dict`` with model names as keys and
+        corresponding model classes as values.
+        """
+        return getattr(self.Model, '_decl_class_registry', None)
+
+    @property
+    def service_registry(self):
+        """Return service registry ``dict`` with model names as keys and
+        corresponding model service classes as values.
+        """
+        return self._service_registry
 
     def create_all(self):
         """Create all metadata (tables, etc) contained within :attr:`metadata`.
@@ -321,3 +344,48 @@ class SQLClient(object):
 
 
         else:
+
+    def _register_all_services(self):
+        """Register all model services using model names/classes from
+        :attr:`model_registry`.
+        """
+        if not self.metadata or not self.model_registry:
+            return
+
+        for model_name, model_class in self.model_registry.items():
+            self._register_service(model_name, model_class)
+
+    def _register_service(self, model_name, model_class):
+        """Register model service using `model_name` as the key and
+        `model_class` as the argument to :attr:`service_class`. Once a service
+        is registered, it won't be created again.
+        """
+        if model_name not in self._service_registry:
+            self._service_registry[model_name] = (
+                self.service_class(self, model_class))
+
+        return self._service_registry[model_name]
+
+    def __getattr__(self, model_name):
+        """Return :attr:`service_class` instance corresponding to `model_name`.
+
+        Args:
+            model_name (str): Attribute corresponding to string name of model
+                class.
+
+        Returns:
+            :attr:`service_class`: Instance of :attr:`service_class`
+                initialized with model class.
+
+        Raises:
+            AttributeError: When `model_name` doesn't correspond to model class
+                name found in :attr:`metadata`.
+        """
+        if model_name not in self.model_registry:
+            raise AttributeError('Model name, "{0}", not valid. '
+                                 'Valid names are: {1}'
+                                 .format(model_name,
+                                         ', '.join(self.model_registry)))
+
+        return self._register_service(model_name,
+                                      self.model_registry[model_name])

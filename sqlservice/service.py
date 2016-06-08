@@ -14,22 +14,12 @@ from sqlalchemy import and_, or_, orm
 from . import core
 
 
-
-class ServiceBase(object):
-    """Base service class."""
-    def __init__(self, db):
-        self._db = db
-
-    @property
-    def db(self):
-        """Proxy property to database client."""
-        return self._db
-
-
-class SQLService(ServiceBase):
+class SQLService(object):
     """SQL service class for an ORM model."""
-    #: ORM model class. **MUST BE SET BY SUBCLASS**
-    model_class = None
+
+    def __init__(self, db, model_class):
+        self.db = db
+        self.model_class = model_class
 
     def query(self):
         """Return a session query object using :attr:`model_class`."""
@@ -85,6 +75,7 @@ class SQLService(ServiceBase):
             return (self.query()
                     .search(*criterion)
                     .top())
+
     def find(self, *criterion, per_page=None, page=None, order_by=None):
         """Return list of models matching `criterion`.
 
