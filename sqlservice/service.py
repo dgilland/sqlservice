@@ -8,7 +8,6 @@ The service class module.
 
 from functools import wraps
 
-import pydash as pyd
 from sqlalchemy import and_, or_, orm
 
 from . import core
