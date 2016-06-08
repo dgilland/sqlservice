@@ -84,7 +84,7 @@ class SQLClient(object):
         engine_options = self.make_engine_options()
         session_options = self.make_session_options()
 
-        self.engine = self.create_engine(config['SQL_DATABASE_URI'],
+        self.engine = self.create_engine(self.config['SQL_DATABASE_URI'],
                                          engine_options)
         self.session = self.create_session(self.engine, session_options)
 
