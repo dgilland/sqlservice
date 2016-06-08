@@ -342,8 +342,58 @@ class SQLClient(object):
         with core.transaction(self.session, readonly=readonly):
             yield self.session
 
+    def save(self, models):
+        """Save `models` into the database using insert, update, or
+        upsert-on-primary-key.
 
+        The `models` argument can be any of the following:
+
+        - Model instance
+        - ``list``/``tuple`` of Model instances
+
+        Args:
+            models (mixed): Models to save to database.
+
+        Returns:
+            Model: If a single item passed in.
+            list: A ``list`` of Model instaces if multiple items passed in.
+        """
+        if not isinstance(models, (list, tuple)):
+            _models = [models]
         else:
+            _models = models
+
+        for model in _models:
+            if type(model) not in self.model_registry.values():
+                raise TypeError('Type of value given to save() method is not '
+                                'a valid SQLALchemy declarative class. '
+                                'Value {0} is type {1}.'
+                                .format(model, type(model)))
+
+        return core.save(self.session, models)
+
+    def destroy(self, data, model_class=None, synchronize_session=False):
+        """Delete bulk records from `data`.
+
+        The `data` argument can be any of the following:
+
+        - ``dict``
+        - :attr:`model_class` instance
+        - ``list``/``tuple`` of ``dict``s
+        - ``list``/``tuple`` of :attr:`model_class` instances
+
+        If a ``dict`` or ``list`` of ``dict`` is passed in, then `model_class`
+        must be provided
+
+        Args:
+            data (mixed): Data to delete from database.
+            synchronize_session (bool|str): Argument passed to
+                ``Query.delete``.
+
+        Returns:
+            int: Number of deleted records.
+        """
+        return core.destroy(self.session, data, model_class=model_class)
 
     def _register_all_services(self):
         """Register all model services using model names/classes from
