@@ -31,7 +31,7 @@ def getattr_path(obj, path):
     ('url', 'engine.url'),
     ('database', 'engine.url.database'),
 ])
-def test_database_manager_proxy_property(db, proxy, attr):
+def test_sql_client_proxy_property(db, proxy, attr):
     """Test that database manager's proxy attributes map to expected
     real attribute.
     """
@@ -52,7 +52,7 @@ def test_database_manager_proxy_property(db, proxy, attr):
     'rollback',
     'transaction',
 ])
-def test_database_manager_property(db, attr):
+def test_sql_client_property(db, attr):
     """Test that database manager's proxy attributes map to expected
     real attribute.
     """
