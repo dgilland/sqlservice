@@ -112,6 +112,9 @@ class Query(orm.Query):
             Query: New :class:`Query` instance with criteria and parameters
                 applied.
         """
+        if order_by is None and self.model_classes:
+            order_by = core.mapper_primary_key(self.model_classes[0])
+
         query = self
 
         for criteria in criterion:

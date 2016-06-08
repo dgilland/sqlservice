@@ -35,22 +35,6 @@ class SQLService(ServiceBase):
         """Return a session query object using :attr:`model_class`."""
         return self.db.query(self.model_class)
 
-    def query_one(self):
-        """Return a session query object to use with :meth:`get` and
-        :meth:`find_one` methods which both return a maximum of one record.
-        """
-        return self.query()
-
-    def query_many(self):
-        """Return a session query object to use with :meth:`find` which can
-        return many records.
-        """
-        return self.query()
-
-    def default_order_by(self):
-        """Return default order by expression to be used as a default."""
-        return self.model_class.pk_columns()
-
     def new(self, data=None):
         """Return a new model instance from a ``dict`` using
         :attr:`model_class` to create it.
@@ -63,7 +47,6 @@ class SQLService(ServiceBase):
         """
         return self.model_class(data)
 
-    @transaction(readonly=True)
     def get(self, ident):
         """Return a single model or ``None`` given `ident` value.
 
@@ -84,7 +67,6 @@ class SQLService(ServiceBase):
         """
         return self.find_one(core.identity_filter(ident, self.model_class))
 
-    @transaction(readonly=True)
     def find_one(self, *criterion, **criterion_kargs):
         """Return a single model or ``None`` given `criterion` ``dict`` or
         keyword arguments.
@@ -98,12 +80,11 @@ class SQLService(ServiceBase):
             None: When filtered record does not exist.
         """
         criterion = list(criterion) + [criterion_kargs]
-        order_by = self.default_order_by()
-        return (self.query_one()
-                .search(*criterion, order_by=order_by)
-                .top())
 
-    @transaction(readonly=True)
+        with self.db.transaction(readonly=True):
+            return (self.query()
+                    .search(*criterion)
+                    .top())
     def find(self, *criterion, per_page=None, page=None, order_by=None):
         """Return list of models matching `criterion`.
 
@@ -120,15 +101,13 @@ class SQLService(ServiceBase):
         Returns:
             list: List of :attr:`model_class`
         """
-        if order_by is None:
-            order_by = self.default_order_by()
-
-        return (self.query_many()
-                .search(*criterion,
-                        per_page=per_page,
-                        page=page,
-                        order_by=order_by)
-                .all())
+        with self.db.transaction(readonly=True):
+            return (self.query()
+                    .search(*criterion,
+                            per_page=per_page,
+                            page=page,
+                            order_by=order_by)
+                    .all())
 
     def save(self, data):
         """Save `data` into the database using insert, update, or
