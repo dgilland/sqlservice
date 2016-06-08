@@ -1,5 +1,6 @@
 flake8
 invoke
+pylint
 pytest-cov
 pytest
 Sphinx

@@ -8,6 +8,13 @@ FLAKE8_IGNORE = ','.join([
     'F401',  # `module` imported but unused
     'F811',  # redefinition of unused `name` from line `N`
 ])
+PYLINT_IGNORE = ','.join([
+    'not-callable',
+    'no-self-argument',
+    'no-member',
+    'no-value-for-parameter',
+    'method-hidden'
+])
 TEST_TARGETS = ' '.join([PACKAGE_NAME, 'tests'])
 COV_TARGET = PACKAGE_NAME
 
@@ -27,9 +34,21 @@ def install():
 
 
 @task
-def lint():
-    """Run lint check."""
+def flake8():
+    """Run flake8 checker."""
     run('flake8 --ignore={0} {1}'.format(FLAKE8_IGNORE, TEST_TARGETS))
+
+
+@task
+def pylint():
+    """Run pylint checker."""
+    run('pylint -E -d {0} {1}'.format(PYLINT_IGNORE, TEST_TARGETS))
+
+
+@task(pre=[flake8, pylint])
+def lint():
+    """Run static linter."""
+    pass
 
 
 @task
