@@ -5,7 +5,7 @@ sqlservice
 |version| |travis| |coveralls| |license|
 
 
-The missing SQLAlchemy ORM service layer.
+The missing SQLAlchemy ORM interface.
 
 
 Links
@@ -20,8 +20,7 @@ Links
 Introduction
 ============
 
-So what exactly is ``sqlservice`` and what does "the missing SQLAlchemy ORM service layer" even mean? The "service layer" in this context is that part of your application that forms your core domain logic. This is where your ORM models meet your database session and all the magic happens.
-
+So what exactly is ``sqlservice`` and what does "the missing SQLAlchemy ORM interface" even mean? SQLAlchemy is a fantastic library and features a superb ORM layer. However, one thing SQLAlchemy lacks is a unified interface for easily interacting with your database through your ORM models. This is where ``sqlservice`` comes in. It's interface layer on top of SQLAlchemy's session manager and ORM layer that provides a single point to manage your database connection/session, create/reflect/drop your database objects, and easily persist/destroy model objects.
 
 Features
 --------
@@ -29,10 +28,10 @@ Features
 This library is meant to enhanced your usage of SQLAlchemy. SQLAlchemy is great and this library tries to build upon that by providing useful abstractions on top of it.
 
 - Database client similar to `Flask-SQLAlchemy <http://flask-sqlalchemy.pocoo.org/>`_ and `alchy.DatabaseManager <http://alchy.readthedocs.io/en/latest/api.html#alchy.manager.Manager>`_ that helps manage an ORM scoped session.
-- Base class for a declarative ORM Model that makes updating model columns and relationships easier and convert to a dictionary a breeze.
+- A model service interface that enhances model access and serialization.
+- Base class for a declarative ORM Model that makes updating model columns and relationships easier and converting to a dictionary a breeze.
 - A decorator based event registration for SQLAlchemy ORM events that can be used at the model class level. No need to register the event handler outside of the class definition.
-- A base service class that provides a unified way to save database records as either ORM models or plain dictionaries.
-- An application-side nestable transaction context-manager that helps implement pseudo-subtransactions for those that want implicit transaction demarcation, i.e. ``autocommit=False``, without the use of ``subtransactions=True``.
+- An application-side nestable transaction context-manager that helps implement pseudo-subtransactions for those that want implicit transaction demarcation, i.e. session autocommit, without using session subtransactions.
 - And more!
 
 
@@ -69,10 +68,10 @@ Then, define some ORM models:
 
     from sqlalchemy import Column, ForeignKey, orm, types
 
-    from sqlservice import ModelBase, declarative_base, event
+    from sqlservice import declarative_base, event
 
 
-    Model = declarative_base(ModelBase)
+    Model = declarative_base()
 
     class User(Model):
         __tablename__ = 'user'
@@ -97,7 +96,7 @@ Then, define some ORM models:
         role = Column(types.String(25), nullable=False)
 
 
-Next, configure a database client:
+Next, configure the database client:
 
 .. code-block:: python
 
@@ -117,17 +116,6 @@ Next, configure a database client:
     db = SQLClient(config, Model=Model)
 
 
-Create a service class for our models:
-
-.. code-block:: python
-
-    from sqlservice import SQLService
-
-
-    class UserService(SQLService):
-        model_class = User
-
-
 Prepare the database by creating all tables:
 
 .. code-block:: python
@@ -139,17 +127,15 @@ Finally (whew!), start interacting with the database:
 
 .. code-block:: python
 
-    user_service = UserService(db)
-
     # Insert a new record in the database.
     data = {'name': 'Jenny', 'email': 'jenny@example.com', 'phone': '555-867-5309'}
-    user = user_service.save(data)
+    user = db.User.save(data)
 
 
     # Fetch records.
-    assert user is user_service.get(data.id)
-    assert user is user_service.find_one(id=user.id)
-    assert user is user_service.find(User.id == user.id)[0]
+    assert user is db.User.get(data.id)
+    assert user is db.User.find_one(id=user.id)
+    assert user is db.User.find(User.id == user.id)[0]
 
     # Serialize to a dict.
     assert user.to_dict() == {'id': 1,
@@ -161,22 +147,22 @@ Finally (whew!), start interacting with the database:
 
     # Update the record and save.
     user.phone = '222-867-5309'
-    user_service.save(user)
+    db.User.save(user)
 
     # Upsert on primary key automatically.
-    assert user is user_service({'id': 1,
-                                 'name': 'Jenny',
-                                 'email': 'jenny@example.com',
-                                 'phone': '5558675309'})
+    assert user is db.User({'id': 1,
+                            'name': 'Jenny',
+                            'email': 'jenny@example.com',
+                            'phone': '5558675309'})
 
     # Delete the model.
-    user_service.delete(user)
-    # OR user_service.delete([user])
-    # OR user_service.delete(user.id)
-    # OR user_service.delete(dict(user))
+    db.User.delete(user)
+    # OR db.User.delete([user])
+    # OR db.User.delete(user.id)
+    # OR db.User.delete(dict(user))
 
 
-For more details, please see the full documentation at http://sqlservice.readthedocs.org.
+For more details, please see the full documentation at http://sqlservice.readthedocs.io.
 
 
 

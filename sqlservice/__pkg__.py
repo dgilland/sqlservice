@@ -3,7 +3,7 @@
 """
 
 __package_name__ = 'sqlservice'
-__description__ = 'The missing SQLAlchemy ORM service layer'
+__description__ = 'The missing SQLAlchemy ORM interface'
 __url__ = 'https://github.com/dgilland/sqlservice'
 __version__ = '0.2.0-dev'
 __author__ = 'Derrick Gilland'

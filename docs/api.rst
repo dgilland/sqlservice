@@ -19,17 +19,20 @@ The sqlservice package imports commonly used objects into it's top-level namespa
         event)
 
 
+.. automodule:: sqlservice.client
+    :members:
+
+.. automodule:: sqlservice.service
+    :members:
+
+.. automodule:: sqlservice.query
+    :members:
+
 .. automodule:: sqlservice.model
     :members:
 
 .. automodule:: sqlservice.event
     :members:
 
-.. automodule:: sqlservice.query
-    :members:
-
-.. automodule:: sqlservice.client
-    :members:
-
-.. automodule:: sqlservice.service
+.. automodule:: sqlservice.core
     :members:
