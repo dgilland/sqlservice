@@ -58,24 +58,6 @@ For details on each event type's expected function signature, see
 from sqlalchemy.event import listen
 
 
-__all__ = [
-    'on_set',
-    'on_append',
-    'on_remove',
-    'before_delete',
-    'before_insert',
-    'before_update',
-    'before_save',
-    'after_delete',
-    'after_insert',
-    'after_update',
-    'after_save',
-    'on_expire',
-    'on_load',
-    'on_refresh'
-]
-
-
 class Event(object):
     """Universal event class used when registering events."""
     def __init__(self, name, attribute, listener, kargs):
@@ -89,7 +71,7 @@ class EventDecorator(object):
     """Base class for event decorators that attaches metadata to function
     object so that :func:`register` can find the event definition.
     """
-    event_names = None
+    event_names = ()
 
     def __init__(self, **event_kargs):
         self.attribute = None
