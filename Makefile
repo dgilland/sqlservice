@@ -5,7 +5,7 @@
 
 .PHONY: travisci-install
 travisci-install:
-	pip install -r requirements-dev.txt --use-mirrors
+	pip install -r requirements-dev.txt
 
 .PHONY: travisci-test
 travisci-test:
