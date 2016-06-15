@@ -20,7 +20,7 @@ Project Info
 
     license
     versioning
-    changes
+    changelog
     authors
     contributing
 
