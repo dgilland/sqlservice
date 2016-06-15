@@ -4,6 +4,7 @@ import pytest
 import sqlalchemy as sa
 
 from sqlservice import event
+from sqlservice._compat import PY2
 
 from .fixtures import Model, parametrize
 
@@ -70,7 +71,7 @@ class EventModel(Model):
         pass
 
 
-@parametrize('target,event,handler', [
+@parametrize('target,event,listener', [
     (EventModel.id, 'set', EventModel.on_set),
     (EventModel.id, 'append', EventModel.on_append),
     (EventModel.id, 'remove', EventModel.on_remove),
@@ -88,6 +89,13 @@ class EventModel(Model):
     (EventModel, 'load', EventModel.on_load),
     (EventModel, 'refresh', EventModel.on_refresh),
 ])
-def test_events(target, event, handler):
-    """Test that event handlers are properly registered."""
-    assert sa.event.contains(target, event, handler)
+def test_events(target, event, listener):
+    """Test that event listeners are properly registered."""
+    if PY2:
+        for evt_cls in sa.event.base._registrars[event]:
+            tgt = evt_cls._accept_with(target)
+            if tgt is not None:
+                break
+        assert tgt
+    else:
+        assert sa.event.contains(target, event, listener)

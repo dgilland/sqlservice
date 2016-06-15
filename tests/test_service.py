@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from unittest import mock
-
 import pytest
 import sqlalchemy as sa
 
@@ -67,7 +65,6 @@ def models_pool(request, db):
                                 for _ in range(count)]
         db.add_all(_models[model_class])
     db.commit()
-
     return _models
 
 

@@ -8,6 +8,8 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
+from ._compat import iteritems
+
 
 @contextmanager
 def transaction(session, readonly=False):
@@ -125,7 +127,7 @@ def save(session, models):
         # Doing so will put those models into the session registry which
         # means that when we later call `merge()`, there won't be a
         # database fetch since we've pre-loaded them.
-        for model_class, mrgs in mergeable.items():
+        for model_class, mrgs in iteritems(mergeable):
             pk_criteria = primary_key_filter([model for _, model in mrgs],
                                              model_class)
             existing = session.query(model_class).filter(pk_criteria).all()
@@ -194,7 +196,7 @@ def destroy(session, data, model_class=None, synchronize_session=False):
     delete_count = 0
 
     with transaction(session):
-        for model_class, data in mapped_data.items():
+        for model_class, data in iteritems(mapped_data):
             count = (session.query(model_class)
                      .filter(primary_key_filter(data, model_class))
                      .options(orm.lazyload('*'))

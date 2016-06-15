@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from unittest.mock import MagicMock
+from collections import deque
 import random
 import string
+import sys
 
 import pydash as pyd
 import pytest
+import mock
 
 import sqlalchemy as sa
 
@@ -84,7 +86,7 @@ def commit_event(db):
     session commits. Useful for counting commit events using
     ``commit_event.call_count``.
     """
-    counter = MagicMock()
+    counter = mock.MagicMock()
     sa.event.listen(db.session, 'after_commit', counter)
     return counter
 
@@ -95,7 +97,7 @@ def rollback_event(db):
     session rollbacks. Useful for counting rollback events using
     ``rollback_event.call_count``.
     """
-    counter = MagicMock()
+    counter = mock.MagicMock()
     sa.event.listen(db.session, 'after_rollback', counter)
     return counter
 

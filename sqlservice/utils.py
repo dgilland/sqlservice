@@ -9,6 +9,8 @@ The utilities module.
 from collections import Iterable
 from functools import wraps
 
+from ._compat import string_types
+
 
 def classonce(meth):
     """Decorator that executes a class method once, stores the results at the
@@ -30,5 +32,5 @@ def is_sequence(obj):
     determine if `obj` can be treated like a ``list`` for iteration purposes.
     """
     return (isinstance(obj, Iterable) and
-            not isinstance(obj, str) and
+            not isinstance(obj, string_types) and
             not isinstance(obj, dict))

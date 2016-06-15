@@ -95,16 +95,17 @@ class Query(orm.Query):
 
         return query
 
-    def search(self, *criterion, per_page=None, page=None, order_by=None):
+    def search(self, *criterion, **kargs):
         """Return search query object.
 
         Args:
             *criterion (sqlaexpr, optional): SQLA expression to filter against.
 
         Keyword Args:
-            paginate (tuple(per_page, page), optional): Tuple contain
-                ``(per_page, page)`` arguments for pagination. Defaults to
-                ``None``.
+            per_page (int, optional): Number of results to return per page.
+                Defaults to ``None`` (i.e. no limit).
+            page (int, optional): Which page offset of results to return.
+                Defaults to ``1``.
             order_by (sqlaexpr, optional): Order by expression. Defaults to
                 ``None``.
 
@@ -112,6 +113,10 @@ class Query(orm.Query):
             Query: New :class:`Query` instance with criteria and parameters
                 applied.
         """
+        order_by = kargs.get('order_by')
+        page = kargs.get('page')
+        per_page = kargs.get('per_page')
+
         if order_by is None and self.model_classes:
             order_by = core.mapper_primary_key(self.model_classes[0])
 

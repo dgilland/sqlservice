@@ -18,6 +18,7 @@ from . import core
 from .model import declarative_base
 from .query import Query
 from .service import SQLService
+from ._compat import iteritems
 
 
 class SQLClient(object):
@@ -402,7 +403,7 @@ class SQLClient(object):
         if not self.metadata or not self.model_registry:
             return
 
-        for model_name, model_class in self.model_registry.items():
+        for model_name, model_class in iteritems(self.model_registry):
             self._register_service(model_name, model_class)
 
     def _register_service(self, model_name, model_class):

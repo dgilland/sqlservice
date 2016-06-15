@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from contextlib import ExitStack
-
 import pytest
 import sqlalchemy as sa
 
@@ -81,57 +79,49 @@ def test_nonnested_trans_rollback(db):
             db.add(AModel(id=model.id, name=model.name))
 
 
-@parametrize('depth', [
-    1, 2, 3, 4, 5,
-])
-def test_nested_trans_single_commit(db, commit_event, depth):
+def test_nested_trans_single_commit(db, commit_event):
     """Test that a nested transaction results in a single commit."""
-    with ExitStack() as stack:
-        for _ in range(depth):
-            stack.enter_context(db.transaction())
+    with db.transaction():
+        db.add(AModel(name=random_alpha()))
+        with db.transaction():
             db.add(AModel(name=random_alpha()))
+            with db.transaction():
+                db.add(AModel(name=random_alpha()))
 
-    assert db.query(AModel).count() == depth
+    assert db.query(AModel).count() == 3
     assert commit_event.call_count == 1
 
 
-@parametrize('depth', [
-    1, 2, 3, 4, 5,
-])
-def test_nested_trans_single_rollback_on_rollback(db, rollback_event, depth):
+def test_nested_trans_single_rollback_on_rollback(db, rollback_event):
     """Test that a nested transaction results in a single rollback when
     database error encountered.
     """
     with pytest.raises(sa.exc.IntegrityError):
-        with ExitStack() as stack:
-            for i in range(depth):
-                idx = i + 1
-                stack.enter_context(db.transaction())
-                db.add(AModel(id=idx, name=random_alpha()))
+        with db.transaction():
+            db.add(AModel(id=3, name=random_alpha()))
+            with db.transaction():
+                db.add(AModel(id=2, name=random_alpha()))
+                with db.transaction():
+                    db.add(AModel(id=1, name=random_alpha()))
 
             # Intentionally add duplicate primary key to cause IntegrityError.
-            db.add(AModel(id=idx, name=random_alpha()))
+            db.add(AModel(id=1, name=random_alpha()))
 
     assert db.query(AModel).count() == 0
     assert rollback_event.call_count == 1
 
 
-@parametrize('depth', [
-    1, 2, 3, 4, 5,
-])
-def test_nested_trans_single_rollback_before_commit(db, rollback_event, depth):
+def test_nested_trans_single_rollback_before_commit(db, rollback_event):
     """Test that a nested transaction results in a single rollback when an
     exception occurs before commit is issued.
     """
     with pytest.raises(MyTestError):
-        with ExitStack() as stack:
-            for i in range(depth):
-                stack.enter_context(db.transaction())
+        with db.transaction():
+            with db.transaction():
+                with db.transaction():
+                    raise MyTestError(('Exception occurs at the bottom-most '
+                                       'context before commit issued.'))
 
-            raise MyTestError(('Exception occurs at the bottom-most context '
-                               'before commit issued.'))
-
-    assert db.query(AModel).count() == 0
     assert rollback_event.call_count == 1
 
 

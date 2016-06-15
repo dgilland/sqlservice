@@ -15,6 +15,7 @@ from sqlalchemy.util._collections import ImmutableProperties
 
 from . import event
 from .utils import classonce, is_sequence
+from ._compat import iteritems
 
 
 class ModelMeta(declarative.DeclarativeMeta):
@@ -34,7 +35,7 @@ class ModelMeta(declarative.DeclarativeMeta):
 
 class ModelBase(object):
     """Declarative base for all ORM model classes."""
-    __metaclass__ = ModelMeta
+    Meta = ModelMeta
 
     def __init__(self, data=None, **kargs):
         self.update(data, **kargs)
@@ -69,7 +70,7 @@ class ModelBase(object):
         # Collect and order data fields in a pseudo-deterministic order where
         # column updates occur before relationship updates but order within
         # those types is indeterministic.
-        for field, value in data.items():
+        for field, value in iteritems(data):
             if field in relations:
                 # Set relationships last.
                 field_order.append((field, value))
@@ -163,7 +164,7 @@ class ModelBase(object):
             dict
         """
         descriptors = self.descriptors()
-        return {key: value for key, value in self.__dict__.items()
+        return {key: value for key, value in iteritems(self.__dict__)
                 if key in descriptors}
 
     def to_dict(self):
@@ -183,7 +184,7 @@ class ModelBase(object):
             session.refresh(self)
             data = self.descriptors_to_dict()
 
-        for key, value in data.items():
+        for key, value in iteritems(data):
             relationships = self.relationships()
 
             if hasattr(value, 'to_dict'):
@@ -196,7 +197,7 @@ class ModelBase(object):
             elif isinstance(value, dict):
                 # Nest class to child to_dict methods for dict values.
                 value = {ky: val.to_dict() if hasattr(val, 'to_dict') else val
-                         for ky, val in value.items()}
+                         for ky, val in iteritems(value)}
             elif key in relationships and value is None:
                 # Instead of returning a null relationship value as ``None``,
                 # return it as an empty dict. This gives a more consistent
@@ -234,7 +235,7 @@ class ModelBase(object):
 
     def __iter__(self):
         """Iterator that yields table columns as strings."""
-        return iter(self.to_dict().items())
+        return iteritems(self.to_dict())
 
     def __contains__(self, key):
         """Return whether `key` is a model descriptor."""
@@ -260,7 +261,7 @@ def declarative_base(cls=ModelBase):
     if hasattr(cls, '__init__'):
         options['constructor'] = cls.__init__
 
-    if hasattr(cls, '__metaclass__'):
-        options['metaclass'] = cls.__metaclass__
+    if hasattr(cls, 'Meta'):
+        options['metaclass'] = cls.Meta
 
     return declarative.declarative_base(**options)

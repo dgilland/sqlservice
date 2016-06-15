@@ -75,16 +75,17 @@ class SQLService(object):
                     .search(*criterion)
                     .top())
 
-    def find(self, *criterion, per_page=None, page=None, order_by=None):
+    def find(self, *criterion, **kargs):
         """Return list of models matching `criterion`.
 
         Args:
             *criterion (sqlaexpr, optional): SQLA expression to filter against.
 
         Keyword Args:
-            paginate (tuple(per_page, page), optional): Tuple containing
-                ``(per_page, page)`` arguments for pagination. Defaults to
-                ``None``.
+            per_page (int, optional): Number of results to return per page.
+                Defaults to ``None`` (i.e. no limit).
+            page (int, optional): Which page offset of results to return.
+                Defaults to ``1``.
             order_by (sqlaexpr, optional): Order by expression. Defaults to
                 ``None``.
 
@@ -92,12 +93,7 @@ class SQLService(object):
             list: List of :attr:`model_class`
         """
         with self.db.transaction(readonly=True):
-            return (self.query()
-                    .search(*criterion,
-                            per_page=per_page,
-                            page=page,
-                            order_by=order_by)
-                    .all())
+            return self.query().search(*criterion, **kargs).all()
 
     def save(self, data):
         """Save `data` into the database using insert, update, or
