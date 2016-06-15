@@ -3,6 +3,7 @@
 from invoke import run, task
 
 
+REQUIREMENTS = 'requirements-dev.txt'
 PACKAGE_NAME = 'sqlservice'
 FLAKE8_IGNORE = ','.join([
     'F401',  # `module` imported but unused
@@ -30,7 +31,7 @@ def clean():
 @task
 def install():
     """Install package development dependencies."""
-    run('pip install -r dev-requirements.txt')
+    run('pip install -r {0}'.format(REQUIREMENTS))
 
 
 @task
