@@ -1,5 +1,4 @@
 flake8
-invoke
 pylint
 pytest-cov
 pytest
@@ -8,4 +7,5 @@ sphinx_rtd_theme
 tox
 twine
 wheel
+invoke==0.13.0
 -r requirements.txt
