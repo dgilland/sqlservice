@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.2.0 (2016-06-15)
+-------------------
+
 - Add Python 2.7 compatibility.
 - Add concept of ``model_registry`` and ``service_registry`` to ``SQLClient`` class:
 
