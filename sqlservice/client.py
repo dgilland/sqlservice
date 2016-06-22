@@ -252,14 +252,16 @@ class SQLClient(object):
     def create_all(self):
         """Create all metadata (tables, etc) contained within :attr:`metadata`.
         """
-        metadata = self.get_metadata()
-        metadata.create_all(self.engine)
+        self.get_metadata().create_all(self.engine)
 
     def drop_all(self):
         """Drop all metadata (tables, etc) contained within :attr:`metadata`.
         """
-        metadata = self.get_metadata()
-        metadata.drop_all(self.engine)
+        self.get_metadata().drop_all(self.engine)
+
+    def reflect(self):
+        """Reflect tables from database into :attr:`metadata`."""
+        self.get_metadata().reflect(self.engine)
 
     @property
     def session(self):
