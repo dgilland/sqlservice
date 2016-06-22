@@ -27,32 +27,60 @@ class SQLClient(object):
     The following configuration values can be passed into a new
     :class:`SQLClient` instance as a ``dict``.
 
-    ====================  =====================================================
-    **SQL_DATABASE_URI**  URI used to connect to the database. Defaults
-                          to ``sqlite://``.
-    **SQL_ECHO**          When ``True`` have SQLAlchemy echo all SQL
-                          statements. Defaults to ``False``.
-    **SQL_POOL_SIZE**     The size of the database pool. Defaults to the
-                          engine's default (usually ``5``).
-    **SQL_POOL_TIMEOUT**  Specifies the connection timeout for the pool.
-                          Defaults to ``10``.
-    **SQL_POOL_RECYCLE**  Number of seconds after which a connection is
-                          automatically recycled.
-    **SQL_MAX_OVERFLOW**  Controls the number of connections that can be
-                          created after the pool reached its maximum size. When
-                          those additional connections are returned to the
-                          pool, they are disconnected and discarded.
-    **SQL_AUTOCOMMIT**    When ``True``, the ``Session`` does not keep a
-                          persistent transaction running, and will acquire
-                          connections from the engine on an as-needed basis,
-                          returning them immediately after their use. Defaults
-                          to ``False``.
-    **SQL_AUTOFLUSH**     When ``True``, all query operations will issue a
-                          ``flush()`` call to the ``Session`` before
-                          proceeding. This is a convenience feature so that
-                          ``flush()`` need not be called repeatedly in order
-                          for database queries to retrieve results.
-    ====================  =====================================================
+    ========================  =================================================
+    **SQL_DATABASE_URI**      URI used to connect to the database. Defaults
+                              to ``sqlite://``.
+    **SQL_ECHO**              When ``True`` have SQLAlchemy log all SQL
+                              statements. Defaults to ``False``.
+    **SQL_ECHO_POOL**         When ``True`` have SQLAlchemy log all log all
+                              checkouts/checkins of the connection pool.
+                              Defaults to ``False``.
+    **SQL_ENCODING**          The string encoding used by SQLAlchemy for string
+                              encode/decode operations which occur within
+                              SQLAlchemy, outside of the DBAPI. Defaults to
+                              `utf-8`.
+    **SQL_CONVERT_UNICODE**   When ``True`` it sets the default behavior of
+                              ``convert_unicode`` on the ``String`` type to
+                              ``True``, regardless of a setting of ``False`` on
+                              an individual ``String`` type, thus causing all
+                              ``String`` -based columns to accommodate Python
+                              unicode objects.
+    **SQL_ISOLATION_LEVEL**   String parameter interpreted by various dialects
+                              in order to affect the transaction isolation
+                              level of the database connection. The parameter
+                              essentially accepts some subset of these string
+                              arguments: ``"SERIALIZABLE"``,
+                              ``"REPEATABLE_READ"``, ``"READ_COMMITTED"``,
+                              ``"READ_UNCOMMITTED"`` and ``"AUTOCOMMIT"``.
+                              Behavior here varies per backend, and individual
+                              dialects should be consulted directly. Defaults
+                              to ``None``.
+    **SQL_POOL_SIZE**         The size of the database pool. Defaults to the
+                              engine's default (usually ``5``).
+    **SQL_POOL_TIMEOUT**      Specifies the connection timeout for the pool.
+                              Defaults to ``10``.
+    **SQL_POOL_RECYCLE**      Number of seconds after which a connection is
+                              automatically recycled.
+    **SQL_MAX_OVERFLOW**      Controls the number of connections that can be
+                              created after the pool reached its maximum size.
+                              When those additional connections are returned to
+                              the pool, they are disconnected and discarded.
+    **SQL_AUTOCOMMIT**        When ``True``, the ``Session`` does not keep a
+                              persistent transaction running, and will acquire
+                              connections from the engine on an as-needed
+                              basis, returning them immediately after their
+                              use. Defaults to ``False``.
+    **SQL_AUTOFLUSH**         When ``True``, all query operations will issue a
+                              ``flush()`` call to the ``Session`` before
+                              proceeding. This is a convenience feature so that
+                              ``flush()`` need not be called repeatedly in
+                              order for database queries to retrieve results.
+    **SQL_EXPIRE_ON_COMMIT**  When ``True`` all instances will be fully expired
+                              after each ``commit()``, so that all
+                              attribute/object access subsequent to a completed
+                              transaction will load from the most recent
+                              database state. Defaults to ``True``.
+    ========================  =================================================
 
     Args:
         config (dict): Database engine configuration options.
@@ -72,12 +100,17 @@ class SQLClient(object):
         self.config = {
             'SQL_DATABASE_URI': 'sqlite://',
             'SQL_ECHO': False,
+            'SQL_ECHO_POOL': False,
+            'SQL_ENCODING': None,
+            'SQL_CONVERT_UNICODE': None,
+            'SQL_ISOLATION_LEVEL': None,
             'SQL_POOL_SIZE': None,
             'SQL_POOL_TIMEOUT': None,
             'SQL_POOL_RECYCLE': None,
             'SQL_MAX_OVERFLOW': None,
             'SQL_AUTOCOMMIT': False,
-            'SQL_AUTOFLUSH': True
+            'SQL_AUTOFLUSH': True,
+            'SQL_EXPIRE_ON_COMMIT': True
         }
 
         self.config.update(config or {})
@@ -142,6 +175,10 @@ class SQLClient(object):
         """
         return self._make_options((
             ('SQL_ECHO', 'echo'),
+            ('SQL_ECHO_POOL', 'echo_pool'),
+            ('SQL_ENCODING', 'ecoding'),
+            ('SQL_CONVERT_UNICODE', 'convert_unicode'),
+            ('SQL_ISOLATION_LEVEL', 'isolation_level'),
             ('SQL_POOL_SIZE', 'pool_size'),
             ('SQL_POOL_TIMEOUT', 'pool_timeout'),
             ('SQL_POOL_RECYCLE', 'pool_recycle'),
@@ -154,7 +191,8 @@ class SQLClient(object):
         """
         return self._make_options((
             ('SQL_AUTOCOMMIT', 'autocommit'),
-            ('SQL_AUTOFLUSH', 'autoflush')
+            ('SQL_AUTOFLUSH', 'autoflush'),
+            ('SQL_EXPIRE_ON_COMMIT', 'expire_on_commit')
         ))
 
     def _make_options(self, key_mapping):
