@@ -6,6 +6,7 @@ Query
 The query module.
 """
 
+import pydash as pyd
 import sqlalchemy as sa
 from sqlalchemy import orm
 
@@ -137,3 +138,39 @@ class Query(orm.Query):
             query = query.paginate((per_page, page))
 
         return query
+
+    def chain(self):
+        """Return pydash chaining instance with items returned by
+        :meth:`all`.
+
+        See Also:
+            `pydash's <http://pydash.readthedocs.org/>`_ documentation on
+            `chaining <http://pydash.readthedocs.org/en/latest/chaining.html>`_
+        """
+        return pyd.chain(self.all())
+
+    def index_by(self, callback=None):
+        """Index items returned by :meth:`all` using `callback`."""
+        return pyd.index_by(self.all(), callback)
+
+    def stack_by(self, callback=None):
+        """Group items returned by :meth:`all` using `callback`."""
+        return pyd.group_by(self.all(), callback)
+
+    def map(self, callback=None):
+        """Map `callback` to each item returned by :meth:`all`."""
+        return pyd.map_(self.all(), callback)
+
+    def reduce(self, callback=None, initial=None):
+        """Reduce :meth:`all` using `callback`."""
+        return pyd.reduce_(self.all(), callback, initial)
+
+    def reduce_right(self, callback=None, initial=None):
+        """Reduce reversed :meth:`all` using `callback`."""
+        return pyd.reduce_right(self.all(), callback, initial)
+
+    def pluck(self, column):
+        """Pluck `column` attribute values from :meth:`all` results and
+        return as list.
+        """
+        return pyd.pluck(self.all(), column)
