@@ -104,13 +104,17 @@ Next, configure the database client:
 
     config = {
         'SQL_DATABASE_URI': 'sqlite:///db.sql',
+        'SQL_ISOLATION_LEVEL': 'SERIALIZABLE',
         'SQL_ECHO': True,
+        'SQL_ECHO_POOL': False,
+        'SQL_CONVERT_UNICODE': True,
         'SQL_POOL_SIZE': 5,
         'SQL_POOL_TIMEOUT': 30,
         'SQL_POOL_RECYCLE': 3600,
         'SQL_MAX_OVERFLOW': 10,
         'SQL_AUTOCOMMIT': False,
-        'SQL_AUTOFLUSH': True
+        'SQL_AUTOFLUSH': True,
+        'SQL_EXPIRE_ON_COMMIT': True
     }
 
     db = SQLClient(config, Model=Model)
@@ -123,21 +127,29 @@ Prepare the database by creating all tables:
     db.create_all()
 
 
-Finally (whew!), start interacting with the database:
+Finally (whew!), start interacting with the database.
+
+Insert a new record in the database:
 
 .. code-block:: python
 
-    # Insert a new record in the database.
     data = {'name': 'Jenny', 'email': 'jenny@example.com', 'phone': '555-867-5309'}
     user = db.User.save(data)
 
 
-    # Fetch records.
+Fetch records:
+
+.. code-block:: python
+
     assert user is db.User.get(data.id)
     assert user is db.User.find_one(id=user.id)
     assert user is db.User.find(User.id == user.id)[0]
 
-    # Serialize to a dict.
+
+Serialize to a ``dict``:
+
+.. code-block:: python
+
     assert user.to_dict() == {'id': 1,
                               'name': 'Jenny',
                               'email': 'jenny@example.com',
@@ -145,21 +157,35 @@ Finally (whew!), start interacting with the database:
 
     assert dict(user) == user.to_dict()
 
-    # Update the record and save.
+
+Update the record and save:
+
+.. code-block:: python
+
     user.phone = '222-867-5309'
     db.User.save(user)
 
-    # Upsert on primary key automatically.
+
+Upsert on primary key automatically:
+
+.. code-block:: python
+
     assert user is db.User({'id': 1,
                             'name': 'Jenny',
                             'email': 'jenny@example.com',
                             'phone': '5558675309'})
 
-    # Delete the model.
-    db.User.delete(user)
-    # OR db.User.delete([user])
-    # OR db.User.delete(user.id)
-    # OR db.User.delete(dict(user))
+
+Destroy the model record:
+
+.. code-block:: python
+
+    db.User.destroy(user)
+    # OR db.User.destroy([user])
+    # OR db.User.destroy(user.id)
+    # OR db.User.destroy([user.id])
+    # OR db.User.destroy(dict(user))
+    # OR db.User.destroy([dict(user)])
 
 
 For more details, please see the full documentation at http://sqlservice.readthedocs.io.
