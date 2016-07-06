@@ -2,6 +2,7 @@
 
 from collections import deque
 import random
+import os
 import string
 import sys
 
@@ -78,6 +79,22 @@ def db():
 
     _db.shutdown()
     _db.drop_all()
+
+
+@pytest.yield_fixture
+def filedb(tmpdir):
+    dbpath = str(tmpdir.mkdir(random_alpha()).join('file.db'))
+    config = {
+        'SQL_DATABASE_URI': 'sqlite:///{0}'.format(dbpath)
+    }
+
+    _filedb = SQLClient(config, Model=Model)
+    _filedb.create_all()
+
+    yield _filedb
+
+    _filedb.shutdown()
+    os.remove(dbpath)
 
 
 @pytest.fixture

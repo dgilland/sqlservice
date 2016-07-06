@@ -156,18 +156,18 @@ def test_nested_trans_inner_readonly(db, commit_event):
     assert commit_event.call_count == 1
 
 
-@parametrize('pagination,limit,offset', [
-    (15, 15, None),
-    ((15,), 15, None),
-    ((15, 1), 15, None),
-    ((15, 2), 15, 15),
-    ((15, 3), 15, 30),
-    ((15, -1), 15, None),
-    ((15, -2), 15, None),
-    ((15, -3), 15, None),
-])
-def test_query_paginate(db, pagination, limit, offset):
-    query = db.query(AModel).paginate(pagination)
+def test_reflect(filedb):
+    """Test that table metadata can be reflected with an explicit declarative
+    base model.
+    """
+    rdb = SQLClient(filedb.config)
 
-    assert query._limit == limit
-    assert query._offset == offset
+    assert len(rdb.tables) == 0
+
+    rdb.reflect()
+
+    assert len(rdb.tables) > 0
+    assert set(rdb.tables.keys()) == set(filedb.tables.keys())
+
+    for tablename, table in filedb.tables.items():
+        assert rdb.tables[tablename].name == table.name
