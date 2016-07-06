@@ -36,6 +36,10 @@ class SQLService(object):
         """
         return self.model_class(data)
 
+    def count(self):
+        """Return total count of records in database."""
+        return self.query().count()
+
     def get(self, ident):
         """Return a single model or ``None`` given `ident` value.
 

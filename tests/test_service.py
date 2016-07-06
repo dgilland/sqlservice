@@ -364,3 +364,9 @@ def test_destroy_many_models(db, service, models_pool):
 
     assert service.query().count() == 0
     assert count == len(models)
+
+
+def test_count(service, models_pool):
+    """Test that SQLService.count returns total count from database."""
+    models = models_pool[service.model_class]
+    assert service.count() == len(models)
