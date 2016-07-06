@@ -16,19 +16,19 @@ class Query(orm.Query):
     """Extended SQLAlchemy query class."""
 
     @property
-    def model_classes(self):
+    def entities(self):
         """Return list of entity classes present in query."""
         return [e.mapper.class_ for e in self._entities]
 
     @property
-    def joined_model_classes(self):
+    def join_entities(self):
         """Return list of the joined entity classes present in query."""
         return [e.mapper.class_ for e in self._join_entities]
 
     @property
-    def all_model_classes(self):
+    def all_entities(self):
         """Return list of models + join_models present in query."""
-        return self.model_classes + self.joined_model_classes
+        return self.entities + self.join_entities
 
     def top(self, count=1):
         """Return top query results up to `count` records. If ``count == 1``,
@@ -117,8 +117,8 @@ class Query(orm.Query):
         page = kargs.get('page')
         per_page = kargs.get('per_page')
 
-        if order_by is None and self.model_classes:
-            order_by = core.mapper_primary_key(self.model_classes[0])
+        if order_by is None and self.entities:
+            order_by = core.mapper_primary_key(self.entities[0])
 
         query = self
 
