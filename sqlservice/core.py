@@ -176,7 +176,7 @@ def destroy(session, data, model_class=None, synchronize_session=False):
     valid_model_class = isinstance(model_class, DeclarativeMeta)
 
     mapped_data = defaultdict(list)
-    for item in data:
+    for idx, item in enumerate(data):
         item_class = type(item)
 
         if not isinstance(item_class, DeclarativeMeta) and valid_model_class:
@@ -185,11 +185,12 @@ def destroy(session, data, model_class=None, synchronize_session=False):
             class_ = item_class
 
         if not isinstance(class_, DeclarativeMeta):
-            raise TypeError('Type of Value given to destory() function is '
-                            'not a valid SQLALchemy declarative class and/or '
+            raise TypeError('Type of value given to destory() function is not '
+                            'a valid SQLALchemy declarative class and/or '
                             'model class argument is not valid. '
-                            'Value {0} is of type {1} and model class is {2}.'
-                            .format(item, type(item), model_class))
+                            'Item with index {0} and with value "{1}" is '
+                            'an instance of "{2}" and model class is {3}.'
+                            .format(idx, item, type(item), model_class))
 
         mapped_data[class_].append(item)
 
