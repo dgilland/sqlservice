@@ -28,6 +28,7 @@ def getattr_path(obj, path):
     ('tables', 'Model.metadata.tables'),
     ('url', 'engine.url'),
     ('database', 'engine.url.database'),
+    ('services', '_services'),
 ])
 def test_sql_client_proxy_property(db, proxy, attr):
     """Test that database manager's proxy attributes map to expected

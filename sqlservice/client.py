@@ -91,7 +91,7 @@ class SQLClient(object):
             :class:`.SQLService`.
     """
     def __init__(self, config=None, Model=None, service_class=SQLService):
-        if Model is None:
+        if Model is None:  # pragma: no cover
             Model = declarative_base()
 
         self.Model = Model
@@ -122,7 +122,7 @@ class SQLClient(object):
                                          engine_options)
         self.session = self.create_session(self.engine, session_options)
 
-        self._service_registry = {}
+        self._services = {}
         self._register_all_services()
 
     def create_engine(self, uri, options=None):
@@ -134,7 +134,7 @@ class SQLClient(object):
         Returns:
             Engine: SQLAlchemy engine instance.
         """
-        if options is None:
+        if options is None:  # pragma: no cover
             options = {}
 
         return sa.create_engine(make_url(uri), **options)
@@ -236,18 +236,18 @@ class SQLClient(object):
         return self.metadata.tables
 
     @property
-    def model_registry(self):
+    def models(self):
         """Return model registry ``dict`` with model names as keys and
         corresponding model classes as values.
         """
         return getattr(self.Model, '_decl_class_registry', None)
 
     @property
-    def service_registry(self):
+    def services(self):
         """Return service registry ``dict`` with model names as keys and
         corresponding model service classes as values.
         """
-        return self._service_registry
+        return self._services
 
     def create_all(self):
         """Create all metadata (tables, etc) contained within :attr:`metadata`.
@@ -346,7 +346,7 @@ class SQLClient(object):
         """
         try:
             self.session.commit()
-        except Exception:
+        except Exception:  # pragma: no cover
             self.session.rollback()
             raise
 
@@ -404,8 +404,8 @@ class SQLClient(object):
         else:
             _models = models
 
-        for model in _models:
-            if type(model) not in self.model_registry.values():
+        for idx, model in enumerate(_models):
+            if type(model) not in self.models.values():
                 raise TypeError('Type of value given to save() method is not '
                                 'a valid SQLALchemy declarative class. '
                                 'Value {0} is type {1}.'
@@ -438,12 +438,12 @@ class SQLClient(object):
 
     def _register_all_services(self):
         """Register all model services using model names/classes from
-        :attr:`model_registry`.
+        :attr:`models`.
         """
-        if not self.metadata or not self.model_registry:
+        if not self.metadata or not self.models:  # pragma: no cover
             return
 
-        for model_name, model_class in iteritems(self.model_registry):
+        for model_name, model_class in iteritems(self.models):
             self._register_service(model_name, model_class)
 
     def _register_service(self, model_name, model_class):
@@ -451,11 +451,11 @@ class SQLClient(object):
         `model_class` as the argument to :attr:`service_class`. Once a service
         is registered, it won't be created again.
         """
-        if model_name not in self._service_registry:
-            self._service_registry[model_name] = (
+        if model_name not in self._services:
+            self._services[model_name] = (
                 self.service_class(self, model_class))
 
-        return self._service_registry[model_name]
+        return self._services[model_name]
 
     def __getattr__(self, model_name):
         """Return :attr:`service_class` instance corresponding to `model_name`.
