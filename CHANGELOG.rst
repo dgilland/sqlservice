@@ -2,6 +2,40 @@ Changelog
 =========
 
 
+- Support additional engine and session configuration values for ``SQLClient``.
+
+  - New engine config options:
+
+    - ``SQL_ECHO_POOL``
+    - ``SQL_ENCODING``
+    - ``SQL_CONVERT_UNICODE``
+    - ``SQL_ISOLATION_LEVEL``
+
+  - New session config options:
+
+    - ``SQL_EXPIRE_ON_COMMIT``
+
+- Add ``SQLClient.reflect`` method.
+- Rename ``SQLClient.service_registry`` and ``SQLClient.model_registry`` to ``services`` and ``models``. (**breaking change**)
+- Support ``SQLClient.__getitem__`` as proxy to ``SQLClient.__getattr__`` where both ``db[User]`` and ``db['User']`` both map to ``db.User``.
+- Add ``SQLService.count`` method.
+- Add ``Query`` methods:
+
+  - ``index_by``: Converts ``Query.all()`` to a ``dict`` of models indexed by ``callback`` (`pydash.index_by <http://pydash.readthedocs.io/en/latest/api.html#pydash.collections.index_by>`_)
+  - ``stack_by``: Converts ``Query.all()`` to a ``dict`` of lists of models indexed by ``callback`` (`pydash.group_by <http://pydash.readthedocs.io/en/latest/api.html#pydash.collections.group_by>`_)
+  - ``map``: Maps ``Query.all()`` to a ``callback`` (`pydash.map_ <http://pydash.readthedocs.io/en/latest/api.html#pydash.collections.map_>`_)
+  - ``reduce``: Reduces ``Query.all()`` through ``callback`` (`pydash.reduce_ <http://pydash.readthedocs.io/en/latest/api.html#pydash.collections.reduce_>`_)
+  - ``reduce_right``: Reduces ``Query.all()`` through ``callback`` from right (`pydash.reduce_right <http://pydash.readthedocs.io/en/latest/api.html#pydash.collections.reduce_right>`_)
+  - ``pluck``: Retrieves value of of specified property from all elements of ``Query.all()`` (`pydash.pluck <http://pydash.readthedocs.io/en/latest/api.html#pydash.collections.pluck>`_)
+  - ``chain``: Initializes a chain object with ``Query.all()`` (`pydash.chain <http://pydash.readthedocs.io/en/latest/api.html#pydash.chaining.chain>`_)
+
+- Rename ``Query`` properties: (**breaking change**)
+
+  - ``model_classes`` to ``entities``
+  - ``joined_model_classes`` to ``join_entities``
+  - ``all_model_classes`` to ``all_entities``
+
+
 v0.2.0 (2016-06-15)
 -------------------
 
