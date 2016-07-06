@@ -3,6 +3,8 @@
 import pytest
 import sqlalchemy as sa
 
+from sqlservice import SQLClient, Query
+
 from .fixtures import (
     AModel,
     MyTestError,
