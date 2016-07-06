@@ -18,7 +18,7 @@ from . import core
 from .model import declarative_base
 from .query import Query
 from .service import SQLService
-from ._compat import iteritems
+from ._compat import iteritems, string_types
 
 
 class SQLClient(object):
@@ -301,14 +301,6 @@ class SQLClient(object):
         """Proxy property to :meth:`session.delete`."""
         return self.session.delete
 
-    def delete_all(self, instances):
-        """Mark multiple instances for deletion."""
-        if not isinstance(instances, (list, tuple)):
-            instances = [instances]
-
-        for instance in instances:
-            self.delete(instance)
-
     @property
     def merge(self):
         """Proxy property to :meth:`session.merge`."""
@@ -408,8 +400,9 @@ class SQLClient(object):
             if type(model) not in self.models.values():
                 raise TypeError('Type of value given to save() method is not '
                                 'a valid SQLALchemy declarative class. '
-                                'Value {0} is type {1}.'
-                                .format(model, type(model)))
+                                'Item with index {0} and with value "{1}" is '
+                                'an instance of "{2}".'
+                                .format(idx, model, type(model)))
 
         return core.save(self.session, models)
 
@@ -457,26 +450,43 @@ class SQLClient(object):
 
         return self._services[model_name]
 
-    def __getattr__(self, model_name):
-        """Return :attr:`service_class` instance corresponding to `model_name`.
+    def __getitem__(self, item):
+        """Return :attr:`service_class` instance corresponding to `item`.
 
         Args:
-            model_name (str): Attribute corresponding to string name of model
-                class.
+            item (str): Attribute corresponding to string name of model class.
 
         Returns:
             :attr:`service_class`: Instance of :attr:`service_class`
                 initialized with model class.
 
         Raises:
-            AttributeError: When `model_name` doesn't correspond to model class
+            AttributeError: When item doesn't correspond to model class
                 name found in :attr:`metadata`.
         """
-        if model_name not in self.model_registry:
-            raise AttributeError('Model name, "{0}", not valid. '
-                                 'Valid names are: {1}'
-                                 .format(model_name,
-                                         ', '.join(self.model_registry)))
+        if not isinstance(item, string_types):
+            # If anything other than a string is supplied, use the item's
+            # __name__ as the model name to index to.
+            item = getattr(item, '__name__', item)
+        return getattr(self, item)
 
-        return self._register_service(model_name,
-                                      self.model_registry[model_name])
+    def __getattr__(self, attr):
+        """Return :attr:`service_class` instance corresponding to `attr`.
+
+        Args:
+            attr (str): Attribute corresponding to string name of model class.
+
+        Returns:
+            :attr:`service_class`: Instance of :attr:`service_class`
+                initialized with model class.
+
+        Raises:
+            AttributeError: When attribute doesn't correspond to model class
+                name found in :attr:`metadata`.
+        """
+        if attr not in self.models:  # pragma: no cover
+            raise AttributeError('Model name, "{0}", is not a recognized '
+                                 'model. Valid names are: {1}'
+                                 .format(attr, ', '.join(self.models)))
+
+        return self._register_service(attr, self.models[attr])

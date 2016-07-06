@@ -20,14 +20,14 @@ DATASET = [
 
 
 @pytest.fixture(params=[
-    'AModel',
-    'BModel'
+    AModel,
+    BModel
 ])
 def service(request, db):
     """Test fixture that parametrizes service class instances for model
     classes.
     """
-    return getattr(db, request.param)
+    return db[request.param]
 
 
 @pytest.fixture(params=DATASET)
