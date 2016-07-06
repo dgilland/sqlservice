@@ -200,10 +200,7 @@ def test_find_order_by(service, models_pool, order_by):
 def test_insert_model(db, service, data_pool):
     """Test service insert."""
     data = data_pool[service.model_class]
-    model = service.new(data)
-
-    service.save(model)
-
+    model = service.save(data)
     dbmodels = db.query(service.model_class).all()
 
     assert len(dbmodels) == 1
@@ -221,10 +218,7 @@ def test_insert_all_models(db, service, data_pool):
         if col.name in data:
             del data[col.name]
 
-    models = [service.new(item) for item in [data] * 5]
-
-    service.save(models)
-
+    models = service.save([data] * 5)
     dbmodels = db.query(service.model_class).all()
 
     assert len(models) == len(dbmodels)
@@ -272,7 +266,7 @@ def test_update_all_models(db, service, models_pool):
 
 
 def test_save(db, service, models_pool, data_pool):
-    """Test service add method."""
+    """Test service save method."""
     data = models_pool[service.model_class] + [data_pool[service.model_class]]
 
     service.save(data)
@@ -370,3 +364,15 @@ def test_count(service, models_pool):
     """Test that SQLService.count returns total count from database."""
     models = models_pool[service.model_class]
     assert service.count() == len(models)
+
+
+@parametrize('value', [{}, [], False, None, 0])
+def test_empty_save(service, value):
+    """Test that an empty saving an empty value returns None."""
+    assert service.save(value) is None
+
+
+def test_save_invalid_type(db):
+    """Test that save raise with an invalid type raises an exception."""
+    with pytest.raises(TypeError):
+        db.save({})
