@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.3.0 (2016-07-06)
+-------------------
+
 - Support additional engine and session configuration values for ``SQLClient``.
 
   - New engine config options:
