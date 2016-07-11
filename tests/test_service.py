@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import mock
 import pytest
 import sqlalchemy as sa
 
@@ -291,7 +292,7 @@ def test_save_duplicate_primary_key_error(db, service, data):
 
 
 def test_save_upsert_dict(db, service, models_pool):
-    """Test that service add upserts existing records."""
+    """Test that service save upserts existing records."""
     models = models_pool[service.model_class]
     data = [dict(model) for model in models]
 
@@ -300,6 +301,42 @@ def test_save_upsert_dict(db, service, models_pool):
 
     assert len(ret) == len(models) == len(dbmodels)
     assert set(ret) == set(models) == set(dbmodels)
+
+
+def test_before_save_model(db, service, model_pool):
+    """Test that service save has before method hook."""
+    before = mock.MagicMock()
+
+    model = service.save(model_pool[service.model_class], before=before)
+
+    before.assert_called_once_with(model, False)
+
+
+def test_before_save_data(db, service, data_pool):
+    """Test that service save has before method hook."""
+    before = mock.MagicMock()
+
+    model = service.save(data_pool[service.model_class], before=before)
+
+    before.assert_called_once_with(model, True)
+
+
+def test_after_save_model(db, service, model_pool):
+    """Test that service save has after method hook."""
+    after = mock.MagicMock()
+
+    model = service.save(model_pool[service.model_class], after=after)
+
+    after.assert_called_once_with(model, False)
+
+
+def test_after_save_data(db, service, data_pool):
+    """Test that service save has after method hook."""
+    after = mock.MagicMock()
+
+    model = service.save(data_pool[service.model_class], after=after)
+
+    after.assert_called_once_with(model, True)
 
 
 def test_destroy_primary_key(db, service, model_pool):

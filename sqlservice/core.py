@@ -153,8 +153,8 @@ def save(session, models, before=None, after=None):
                     insertable.append(model)
 
     with transaction(session):
-        _add(session, insertable, is_new=True)
-        _add(session, updatable, is_new=False)
+        _add(session, insertable, is_new=True, before=before, after=after)
+        _add(session, updatable, is_new=False, before=before, after=after)
 
     return models if as_list else models[0]
 
