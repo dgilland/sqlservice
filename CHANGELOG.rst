@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.4.2 (2016-07-11)
+-------------------
+
 - Fix missing ``before`` and ``after`` callback argument passing from ``core.save`` to ``core._add``.
 
 
