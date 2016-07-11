@@ -116,6 +116,12 @@ class SQLService(object):
 
         Args:
             data (mixed): Data to save to database.
+            before (function, optional): Function to call before each model is
+                saved via ``session.add``. Function should have signature
+                ``before(model, is_new)``.
+            after (function, optional): Function to call after each model is
+                saved via ``session.add``. Function should have signature
+                ``after(model, is_new)``.
 
         Returns:
             :attr:`model_class`: If a single item passed in.
@@ -134,7 +140,7 @@ class SQLService(object):
         else:
             models = data
 
-        return self.db.save(models)
+        return self.db.save(models, before, after)
 
     def destroy(self, data, synchronize_session=False):
         """Delete bulk records from `data`.

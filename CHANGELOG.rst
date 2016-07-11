@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Fix missing ``before`` and ``after`` callback argument passing from ``SQLService.save`` to ``SQLClient.save``.
+
+
 v0.4.0 (2016-07-11)
 -------------------
 
