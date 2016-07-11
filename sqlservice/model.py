@@ -8,7 +8,6 @@ The declarative base model class for SQLAlchemy ORM.
 
 from collections import deque
 
-import pydash as pyd
 import sqlalchemy as sa
 from sqlalchemy.ext import declarative
 from sqlalchemy.util._collections import ImmutableProperties
@@ -62,7 +61,8 @@ class ModelBase(object):
             raise TypeError('Positional argument must be a dict for {0}'
                             .format(self.__class__.__name__))
 
-        data = pyd.extend({}, data, kargs)
+        data = data.copy()
+        data.update(kargs)
 
         relations = self.relationships().keys()
         field_order = deque()

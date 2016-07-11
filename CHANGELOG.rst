@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Fix issue where updating nested relationship values can lead to conflicting state assertion error in SQLAlchemy's identity map.
+
+
 v0.4.2 (2016-07-11)
 -------------------
 
