@@ -58,7 +58,7 @@ class ModelBase(object):
         if data is None:
             data = {}
 
-        if not isinstance(data, dict):
+        if not isinstance(data, dict):  # pragma: no cover
             raise TypeError('Positional argument must be a dict for {0}'
                             .format(self.__class__.__name__))
 

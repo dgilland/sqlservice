@@ -99,7 +99,7 @@ class SQLService(object):
         with self.db.transaction(readonly=True):
             return self.query().search(*criterion, **kargs).all()
 
-    def save(self, data):
+    def save(self, data, before=None, after=None):
         """Save `data` into the database using insert, update, or
         upsert-on-primary-key.
 

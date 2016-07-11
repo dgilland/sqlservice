@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Add support for ``before`` and ``after`` callbacks in ``core.save``, ``SQLClient.save``, and ``SQLService.save`` which are invoked before/after ``session.add`` is called for each model instance.
+
+
 v0.3.0 (2016-07-06)
 -------------------
 

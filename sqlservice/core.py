@@ -75,7 +75,7 @@ def transaction(session, readonly=False):
             session.info['trans_count'] = 0
 
 
-def save(session, models):
+def save(session, models, before=None, after=None):
     """Save `models` into the database using insert, update, or
     upsert-on-primary-key.
 
@@ -87,6 +87,12 @@ def save(session, models):
     Args:
         session (Session): SQLAlchemy session object.
         models (mixed): Models to save to database.
+        before (function, optional): Function to call before each model is
+            saved via ``session.add``. Function should have signature
+            ``before(model, is_new)``.
+        after (function, optional): Function to call after each model is
+            saved via ``session.add``. Function should have signature
+            ``after(model, is_new)``.
 
     Returns:
         Model: If a single item passed in.
@@ -100,7 +106,11 @@ def save(session, models):
     else:
         as_list = True
 
-    addable = []
+    # Model instances that should follow the "insert" path.
+    insertable = []
+
+    # Model instances that should follow the "update" path.
+    updatable = []
 
     # Model instances that have their primary key(s) set which may already
     # exist in the database. These models will either be inserted or
@@ -119,7 +129,7 @@ def save(session, models):
             mergeable[model_class].append((idx, model))
         else:
             # No primary key set so add to the insert list.
-            addable.append(model)
+            insertable.append(model)
 
     if mergeable:
         # Before we attempt to merge models with existing database records,
@@ -134,15 +144,53 @@ def save(session, models):
             existing_index = {model.identity(): model for model in existing}
 
             for idx, model in mrgs:
-                if model not in session and model.identity() in existing_index:
+                if model in session:
+                    updatable.append(model)
+                elif model.identity() in existing_index:
                     models[idx] = model = session.merge(model)
-
-                addable.append(model)
+                    updatable.append(model)
+                else:
+                    insertable.append(model)
 
     with transaction(session):
-        session.add_all(addable)
+        _add(session, insertable, is_new=True)
+        _add(session, updatable, is_new=False)
 
     return models if as_list else models[0]
+
+
+def _add(session, models, is_new=None, before=None, after=None):
+    """Add `model` into database using `session`.
+
+    .. note::
+
+        Function is primarily used by :func:`save` to make support for
+        `before` and `after` handlers easier.
+
+    Args:
+        models (list): Model instances.
+        is_new (bool): Indicates whether `models` are new or existing
+            records in database. Value is strictly used to indicate to
+            `before` and `after` functions whether models are new or
+            not.
+        before (function, optional): Function to call before each model is
+            saved via ``session.add``. Function should have signature
+            ``before(model, is_new)``.
+        after (function, optional): Function to call after each model is
+            saved via ``session.add``. Function should have signature
+            ``after(model, is_new)``.
+    """
+    if not isinstance(models, (list, tuple)):  # pragma: no cover
+        models = [models]
+
+    for model in models:
+        if before:
+            before(model, is_new)
+
+        session.add(model)
+
+        if after:
+            after(model, is_new)
 
 
 def destroy(session, data, model_class=None, synchronize_session=False):
@@ -220,7 +268,7 @@ def primary_key_filter(data, model_class):
     Returns:
         sqlalchemy.sql.elements.BinaryExpression
     """
-    if not isinstance(data, list):
+    if not isinstance(data, list):  # pragma: no cover
         data = [data]
 
     pk_columns = model_class.pk_columns()
@@ -311,5 +359,5 @@ def mapper_primary_key(model_class):
     """Return primary keys of `model_class`."""
     if hasattr(model_class, 'pk_columns'):
         return model_class.pk_columns()
-    else:
+    else:  # pragma: no cover
         return sa.inspect(model_class).primary_key

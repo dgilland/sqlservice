@@ -375,7 +375,7 @@ class SQLClient(object):
         with core.transaction(self.session, readonly=readonly):
             yield self.session
 
-    def save(self, models):
+    def save(self, models, before=None, after=None):
         """Save `models` into the database using insert, update, or
         upsert-on-primary-key.
 
@@ -386,6 +386,12 @@ class SQLClient(object):
 
         Args:
             models (mixed): Models to save to database.
+            before (function, optional): Function to call before each model is
+                saved via ``session.add``. Function should have signature
+                ``before(model, is_new)``.
+            after (function, optional): Function to call after each model is
+                saved via ``session.add``. Function should have signature
+                ``after(model, is_new)``.
 
         Returns:
             Model: If a single item passed in.
@@ -404,7 +410,7 @@ class SQLClient(object):
                                 'an instance of "{2}".'
                                 .format(idx, model, type(model)))
 
-        return core.save(self.session, models)
+        return core.save(self.session, models, before, after)
 
     def destroy(self, data, model_class=None, synchronize_session=False):
         """Delete bulk records from `data`.
