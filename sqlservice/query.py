@@ -123,7 +123,7 @@ class Query(orm.Query):
 
         query = self
 
-        for criteria in criterion:
+        for criteria in pyd.flatten(criterion):
             if isinstance(criteria, dict):
                 query = query.filter_by(**criteria)
             else:

@@ -159,6 +159,26 @@ def test_find_criteria_as_filter_and_filter_by(service, models_pool):
         assert ret[0] is model
 
 
+def test_find_criteria_as_list_of_lists(service, models_pool):
+    """Test that find criteria can be passed as both filter expression and
+    filter-by dict.
+    """
+    models = models_pool[service.model_class]
+
+    for model in models:
+        ret = service.find([{'name': model.name},
+                            service.model_class.name == model.name])
+
+        assert len(ret) == 1
+        assert ret[0] is model
+
+        ret = service.find([{'name': model.name}],
+                           [service.model_class.name == model.name])
+
+        assert len(ret) == 1
+        assert ret[0] is model
+
+
 @parametrize('per_page,page,index', [
     (3, 0, slice(0, 3)),
     (3, None, slice(0, 3)),

@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Allow ``Service.find_one``, ``Service.find``, and ``Query.search`` to accept a list of lists as the criterion argument.
+
+
 v0.4.3 (2016-07-11)
 -------------------
 
