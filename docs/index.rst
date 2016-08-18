@@ -9,6 +9,7 @@ Guide
     :maxdepth: 3
 
     installation
+    model
     api
 
 
