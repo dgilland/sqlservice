@@ -64,7 +64,7 @@ Ready to contribute? Here's how to set up ``sqlservice`` for local development.
 3. Install your local copy into a virtualenv. Assuming you have virtualenv installed, this is how you set up your fork for local development::
 
     $ cd sqlservice
-    $ make build
+    $ pip install -r requirements-dev.txt
 
 4. Create a branch for local development::
 
@@ -72,16 +72,16 @@ Ready to contribute? Here's how to set up ``sqlservice`` for local development.
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass linting (`PEP8`_ and pylint) and the tests, including testing other Python versions with tox::
+5. When you're done making changes, check that your changes pass linting and all unit tests by testing with tox across all supported Python versions::
 
-    $ make test-full
+    $ invoke tox
 
 6. Add yourself to ``AUTHORS.rst``.
 
 7. Commit your changes and push your branch to GitHub::
 
     $ git add .
-    $ git commit -m "Your detailed description of your changes."
+    $ git commit -m "Detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
 8. Submit a pull request through the GitHub website.
@@ -94,7 +94,7 @@ Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
 2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the README.rst.
-3. The pull request should work for Python 3.4, and 3.5. Check https://travis-ci.org/dgilland/sqlservice/pull_requests and make sure that the tests pass for all supported Python versions.
+3. The pull request should work for Python 2.7, 3.4, and 3.5. Check https://travis-ci.org/dgilland/sqlservice/pull_requests and make sure that the tests pass for all supported Python versions.
 
 
 .. _Dead Snakes PPA: https://launchpad.net/~fkrull/+archive/deadsnakes
