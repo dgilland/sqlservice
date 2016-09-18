@@ -66,7 +66,7 @@ class DModel(Model):
     a_id = sa.Column(sa.types.Integer(), sa.ForeignKey('test_a.id'))
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def db():
     config = {
         'SQL_DATABASE_URI': 'sqlite://',
@@ -81,7 +81,7 @@ def db():
     _db.drop_all()
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def filedb(tmpdir):
     dbpath = str(tmpdir.mkdir(random_alpha()).join('file.db'))
     config = {
