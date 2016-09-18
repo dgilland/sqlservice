@@ -451,3 +451,9 @@ def test_save_invalid_type(db):
     """Test that save with an invalid type raises an exception."""
     with pytest.raises(TypeError):
         db.save({})
+
+
+def test_destroy_invalid_type(db):
+    """Test that destroy with an invalid type raises an exception."""
+    with pytest.raises(TypeError):
+        db.destroy({})
