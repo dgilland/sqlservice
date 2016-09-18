@@ -69,9 +69,6 @@ def transaction(session, readonly=False):
         # Restore autoflush setting once transaction is over.
         if session.info['trans_count'] <= 0:
             session.autoflush = session.info['autoflush']
-
-        # Reset counter in case we some how got below 0.
-        if session.info['trans_count'] < 0:
             session.info['trans_count'] = 0
 
 
