@@ -423,6 +423,17 @@ def test_count(service, models_pool):
     assert service.count() == len(models)
 
 
+def test_model_contains():
+    """Test that model contains columns."""
+    model = AModel()
+    columns = model.columns()
+
+    assert len(columns) > 0
+
+    for col in columns:
+        assert col.name in model
+
+
 @parametrize('value', [{}, [], False, None, 0])
 def test_empty_save(service, value):
     """Test that an empty saving an empty value returns None."""
@@ -430,6 +441,6 @@ def test_empty_save(service, value):
 
 
 def test_save_invalid_type(db):
-    """Test that save raise with an invalid type raises an exception."""
+    """Test that save with an invalid type raises an exception."""
     with pytest.raises(TypeError):
         db.save({})
