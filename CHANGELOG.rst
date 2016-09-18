@@ -3,6 +3,9 @@ Changelog
 
 
 - Allow ``Service.find_one``, ``Service.find``, and ``Query.search`` to accept a list of lists as the criterion argument.
+- Rename ModelBase metaclass class attribute from ``ModelBase.Meta`` to ``ModelBase.metaclass``. (**breaking change**)
+- Add support for defining the ``metadata`` object on ``ModelBase.metadata`` and having it used when calling ``declarative_base``.
+- Add ``metadata`` and ``metaclass`` arguments to ``declarative_base`` that taken precedence over the corresponding class attributes set on the passed in declarative base type.
 
 
 v0.4.3 (2016-07-11)

@@ -34,7 +34,8 @@ class ModelMeta(declarative.DeclarativeMeta):
 
 class ModelBase(object):
     """Declarative base for all ORM model classes."""
-    Meta = ModelMeta
+    metaclass = ModelMeta
+    metadata = None
 
     def __init__(self, data=None, **kargs):
         self.update(data, **kargs)
@@ -249,19 +250,48 @@ class ModelBase(object):
         return '<{0}({1})>'.format(self.__class__.__name__, values)
 
 
-def declarative_base(cls=ModelBase):
-    """Decorator that converts a normal class into a SQLAlchemy declarative
-    base class.
+def declarative_base(cls=ModelBase, metadata=None, metaclass=None):
+    """Function and decorator that converts a normal class into a SQLAlchemy
+    declarative base class.
+
+    Args:
+        cls (type): A type to use as the base for the generated declarative
+            base class. May be a class or tuple of classes. Defaults to
+            :class:`ModelBase`.
+        metadata (MetaData, optional): An optional MetaData instance. All
+            Table objects implicitly declared by subclasses of the base will
+            share this MetaData. A MetaData instance will be created if none is
+            provided. If not passed in, `cls.metadata` will be used if set.
+            Defaults to ``None``.
+        metaclass (DeclarativeMeta, optional): A metaclass or ``__metaclass__``
+            compatible callable to use as the meta type of the generated
+            declarative base class. If not passed in, `cls.metaclass` will be
+            used if set. Defaults to ``None``.
+
+    Returns:
+        class: Declarative base class
     """
-    options = {
-        'cls': cls,
-        'name': cls.__name__
-    }
+    if metadata is None:
+        metadata = getattr(cls, 'metadata', None)
+
+    if metaclass is None:
+        metaclass = getattr(cls, 'metaclass', None)
+
+    options = {'cls': cls,
+               'name': cls.__name__}
 
     if hasattr(cls, '__init__'):
         options['constructor'] = cls.__init__
 
-    if hasattr(cls, 'Meta'):
-        options['metaclass'] = cls.Meta
+    if metadata:
+        options['metadata'] = metadata
 
-    return declarative.declarative_base(**options)
+    if metaclass:
+        options['metaclass'] = metaclass
+
+    Base = declarative.declarative_base(**options)
+
+    if metaclass:
+        Base.metaclass = metaclass
+
+    return Base
