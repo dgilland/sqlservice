@@ -434,6 +434,13 @@ def test_model_contains():
         assert col.name in model
 
 
+def test_model_get_set_item():
+    """Test that models can be modified using get/set item syntax."""
+    model = AModel()
+    model['name'] = 'foo'
+    assert model['name'] == 'foo'
+
+
 @parametrize('value', [{}, [], False, None, 0])
 def test_empty_save(service, value):
     """Test that an empty saving an empty value returns None."""
