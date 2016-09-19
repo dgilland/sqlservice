@@ -49,7 +49,7 @@ class Query(orm.Query):
             relationship records fully populated.
 
         Args:
-            count (int, optional): Return this maximum number of records.
+            count (int, optional): Maximum number of records to return.
                 Defaults to ``1``.
 
         Returns:
