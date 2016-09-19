@@ -243,7 +243,13 @@ class SQLClient(object):
         """Return model registry ``dict`` with model names as keys and
         corresponding model classes as values.
         """
-        return getattr(self.Model, '_decl_class_registry', None)
+        models = getattr(self.model_class, '_decl_class_registry', None)
+
+        if models:
+            models = {name: model for name, model in iteritems(models)
+                      if not name.startswith('_sa_')}
+
+        return models
 
     @property
     def services(self):
