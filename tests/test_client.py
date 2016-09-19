@@ -26,8 +26,8 @@ def getattr_path(obj, path):
 
 
 @parametrize('proxy,attr', [
-    ('metadata', 'Model.metadata'),
-    ('tables', 'Model.metadata.tables'),
+    ('metadata', 'model_class.metadata'),
+    ('tables', 'model_class.metadata.tables'),
     ('url', 'engine.url'),
     ('database', 'engine.url.database'),
     ('services', '_services'),

@@ -84,17 +84,20 @@ class SQLClient(object):
 
     Args:
         config (dict): Database engine configuration options.
-        Model (object): A SQLAlchemy ORM declarative base model.
+        model_class (object): A SQLAlchemy ORM declarative base model.
         service_class (object, optional): Service class used to register model
             service instances. If provided, it should be have the same
             initialization signature as :class:`.SQLService`. Defaults to
             :class:`.SQLService`.
     """
-    def __init__(self, config=None, Model=None, service_class=SQLService):
-        if Model is None:  # pragma: no cover
-            Model = declarative_base()
+    def __init__(self,
+                 config=None,
+                 model_class=None,
+                 service_class=SQLService):
+        if model_class is None:  # pragma: no cover
+            model_class = declarative_base()
 
-        self.Model = Model
+        self.model_class = model_class
         self.service_class = service_class
 
         self.config = {
@@ -226,7 +229,7 @@ class SQLClient(object):
     @property
     def metadata(self):
         """Return `MetaData` from :attr:`model` or ``None``."""
-        return getattr(self.Model, 'metadata', None)
+        return getattr(self.model_class, 'metadata', None)
 
     @property
     def tables(self):

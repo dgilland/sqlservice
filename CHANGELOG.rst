@@ -6,6 +6,7 @@ Changelog
 - Rename ModelBase metaclass class attribute from ``ModelBase.Meta`` to ``ModelBase.metaclass``. (**breaking change**)
 - Add support for defining the ``metadata`` object on ``ModelBase.metadata`` and having it used when calling ``declarative_base``.
 - Add ``metadata`` and ``metaclass`` arguments to ``declarative_base`` that taken precedence over the corresponding class attributes set on the passed in declarative base type.
+- Rename Model argument/attribute in ``SQLClient`` to ``__init__`` to ``model_class``. (**breaking change**)
 
 
 v0.4.3 (2016-07-11)

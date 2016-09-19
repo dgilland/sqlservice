@@ -117,7 +117,7 @@ Next, configure the database client:
         'SQL_EXPIRE_ON_COMMIT': True
     }
 
-    db = SQLClient(config, Model=Model)
+    db = SQLClient(config, model_class=Model)
 
 
 Prepare the database by creating all tables:

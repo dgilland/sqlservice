@@ -72,7 +72,7 @@ def db():
         'SQL_DATABASE_URI': 'sqlite://',
         'SQL_ECHO': False
     }
-    _db = SQLClient(config, Model=Model)
+    _db = SQLClient(config, model_class=Model)
     _db.create_all()
 
     yield _db
@@ -88,7 +88,7 @@ def filedb(tmpdir):
         'SQL_DATABASE_URI': 'sqlite:///{0}'.format(dbpath)
     }
 
-    _filedb = SQLClient(config, Model=Model)
+    _filedb = SQLClient(config, model_class=Model)
     _filedb.create_all()
 
     yield _filedb
