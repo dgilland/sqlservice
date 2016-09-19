@@ -127,22 +127,6 @@ def test_query_stack_by(db, model_class, data, callback, expected):
         assert items == expected[key]
 
 
-@parametrize('model_class,data,count', [
-    (AModel, [{'name': 'a'}, {'name': 'b'}, {'name': 'c'}], 1),
-    (AModel, [{'name': 'a'}, {'name': 'b'}, {'name': 'c'}], 2),
-    (AModel, [{'name': 'a'}, {'name': 'b'}, {'name': 'c'}], 3),
-    (AModel, [{'name': 'a'}, {'name': 'b'}, {'name': 'c'}], 50),
-])
-def test_query_top(db, model_class, data, count):
-    """Test Query.top."""
-    models = db.save([model_class(item) for item in data])
-
-    if count == 1:
-        assert db.query(model_class).top(count) == models[0]
-    else:
-        assert db.query(model_class).top(count) == models[:count]
-
-
 @parametrize('pagination,limit,offset', [
     (15, 15, None),
     ((15,), 15, None),

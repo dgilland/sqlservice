@@ -77,7 +77,7 @@ class SQLService(object):
         with self.db.transaction(readonly=True):
             return (self.query()
                     .search(*criterion)
-                    .top())
+                    .first())
 
     def find(self, *criterion, **kargs):
         """Return list of models matching `criterion`.

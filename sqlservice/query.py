@@ -31,42 +31,6 @@ class Query(orm.Query):
         """Return list of models + join_models present in query."""
         return self.entities + self.join_entities
 
-    def top(self, count=1):
-        """Return top query results up to `count` records. If ``count == 1``,
-        then return a single record or ``None``, otherwise, return a ``list``
-        of records.
-
-        Warning:
-            This method **does not** apply a ``LIMIT`` to the query. It is
-            generally meant to be used when it's expected that the query result
-            will return a single record or very few records but where the query
-            contains one-to-many type joins. Depending on the loading strategy
-            used in the query, setting a ``LIMIT`` on one-to-many type joins
-            can result in the query not returning the full set of records for
-            the "many" side of the join. By not applying a ``LIMIT``, we can
-            rely on SQLAlchemy to map the joined records properly so that when
-            we return a subset of the records, those records will have their
-            relationship records fully populated.
-
-        Args:
-            count (int, optional): Maximum number of records to return.
-                Defaults to ``1``.
-
-        Returns:
-            object: When ``count == 1``.
-            list: When ``count != 1``.
-        """
-        results = self.all()
-
-        if results and count == 1:
-            results = results[0]
-        elif count == 1:
-            results = None
-        else:
-            results = results[:count]
-
-        return results
-
     def paginate(self, pagination):
         """Return paginated query.
 
