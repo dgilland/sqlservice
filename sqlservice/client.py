@@ -428,7 +428,7 @@ class SQLClient(object):
 
         - ``dict``
         - :attr:`model_class` instance
-        - ``list``/``tuple`` of ``dict``s
+        - ``list``/``tuple`` of ``dict`` objects
         - ``list``/``tuple`` of :attr:`model_class` instances
 
         If a ``dict`` or ``list`` of ``dict`` is passed in, then `model_class`

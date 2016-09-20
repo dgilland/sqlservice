@@ -168,11 +168,11 @@ In addition, when you update the model with relationship data, it will nest call
         user.update({'devices': [{'name': 'device3'}]})
         db.save(user)
 
-        sqlalchemy.exc.IntegrityError: (raised as a result of Query-invoked autoflush;
-        consider using a session.no_autoflush block if this flush is occurring
-        prematurely) (sqlite3.IntegrityError) NOT NULL constraint failed:
-        user_device.user_id [SQL: 'UPDATE user_device SET user_id=? WHERE
-        user_device.id = ?'] [parameters: ((None, 1), (None, 2))]
+        # sqlalchemy.exc.IntegrityError: (raised as a result of Query-invoked autoflush;
+        # consider using a session.no_autoflush block if this flush is occurring
+        # prematurely) (sqlite3.IntegrityError) NOT NULL constraint failed:
+        # user_device.user_id [SQL: 'UPDATE user_device SET user_id=? WHERE
+        # user_device.id = ?'] [parameters: ((None, 1), (None, 2))]
 
 
 Dictionary Serialization

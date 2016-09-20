@@ -10,6 +10,8 @@ Guide
 
     installation
     model
+    event
+    client
     api
 
 

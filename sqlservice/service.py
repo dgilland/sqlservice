@@ -64,7 +64,7 @@ class SQLService(object):
 
         - ``dict``
         - :attr:`model_class` instance
-        - ``list``/``tuple`` of ``dict``s
+        - ``list``/``tuple`` of ``dict`` objects
         - ``list``/``tuple`` of :attr:`model_class` instances
 
         This method will attempt to do the "right" thing by mapping any items
@@ -82,8 +82,7 @@ class SQLService(object):
 
         Returns:
             :attr:`model_class`: If a single item passed in.
-            list: A ``list`` of :attr:`model_class` instaces if multiple items
-                passed in.
+            list: A ``list`` of :attr:`model_class` when multiple items passed.
         """
         if not data:
             return
@@ -106,7 +105,7 @@ class SQLService(object):
 
         - ``dict``
         - :attr:`model_class` instance
-        - ``list``/``tuple`` of ``dict``s
+        - ``list``/``tuple`` of ``dict`` objects
         - ``list``/``tuple`` of :attr:`model_class` instances
 
         Args:

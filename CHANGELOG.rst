@@ -10,6 +10,7 @@ Changelog
 - Remove ``Query.top`` method. (**breaking change**)
 - Proxy ``SQLService.__getattr__`` to ``getattr(SQLService.query(), attr)`` so that ``SQLService`` now acts as a proxy to a query instance that uses its ``model_class`` as the primary query entity.
 - Move ``SQLService.find`` and ``SQLService.find_one`` to ``Query``.
+- Improve docs.
 
 
 v0.4.3 (2016-07-11)
