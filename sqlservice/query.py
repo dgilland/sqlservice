@@ -103,6 +103,41 @@ class Query(orm.Query):
 
         return query
 
+    def find_one(self, *criterion, **criterion_kargs):
+        """Return a single model or ``None`` given `criterion` ``dict`` or
+        keyword arguments.
+
+        Args:
+            criterion (dict, optional): Filter-by dict.
+            **criterion_kargs (optional): Mapping of filter-by arguments.
+
+        Returns:
+            :attr:`model_class`: When filtered record exists.
+            None: When filtered record does not exist.
+        """
+        criterion = list(criterion) + [criterion_kargs]
+
+        return self.search(*criterion).first()
+
+    def find(self, *criterion, **kargs):
+        """Return list of models matching `criterion`.
+
+        Args:
+            *criterion (sqlaexpr, optional): SQLA expression to filter against.
+
+        Keyword Args:
+            per_page (int, optional): Number of results to return per page.
+                Defaults to ``None`` (i.e. no limit).
+            page (int, optional): Which page offset of results to return.
+                Defaults to ``1``.
+            order_by (sqlaexpr, optional): Order by expression. Defaults to
+                ``None``.
+
+        Returns:
+            list: List of :attr:`model_class`
+        """
+        return self.search(*criterion, **kargs).all()
+
     def chain(self):
         """Return pydash chaining instance with items returned by
         :meth:`all`.

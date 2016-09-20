@@ -36,10 +36,6 @@ class SQLService(object):
         """
         return self.model_class(data)
 
-    def count(self):
-        """Return total count of records in database."""
-        return self.query().count()
-
     def get(self, ident):
         """Return a single model or ``None`` given `ident` value.
 
@@ -59,45 +55,6 @@ class SQLService(object):
             None: When primary key record does not exist.
         """
         return self.find_one(core.identity_filter(ident, self.model_class))
-
-    def find_one(self, *criterion, **criterion_kargs):
-        """Return a single model or ``None`` given `criterion` ``dict`` or
-        keyword arguments.
-
-        Args:
-            criterion (dict, optional): Filter-by dict.
-            **criterion_kargs (optional): Mapping of filter-by arguments.
-
-        Returns:
-            :attr:`model_class`: When filtered record exists.
-            None: When filtered record does not exist.
-        """
-        criterion = list(criterion) + [criterion_kargs]
-
-        with self.db.transaction(readonly=True):
-            return (self.query()
-                    .search(*criterion)
-                    .first())
-
-    def find(self, *criterion, **kargs):
-        """Return list of models matching `criterion`.
-
-        Args:
-            *criterion (sqlaexpr, optional): SQLA expression to filter against.
-
-        Keyword Args:
-            per_page (int, optional): Number of results to return per page.
-                Defaults to ``None`` (i.e. no limit).
-            page (int, optional): Which page offset of results to return.
-                Defaults to ``1``.
-            order_by (sqlaexpr, optional): Order by expression. Defaults to
-                ``None``.
-
-        Returns:
-            list: List of :attr:`model_class`
-        """
-        with self.db.transaction(readonly=True):
-            return self.query().search(*criterion, **kargs).all()
 
     def save(self, data, before=None, after=None):
         """Save `data` into the database using insert, update, or
@@ -161,3 +118,14 @@ class SQLService(object):
             int: Number of deleted records.
         """
         return self.db.destroy(data, model_class=self.model_class)
+
+    def __getattr__(self, attr):
+        """Proxy attribute access to a :meth:`query` instance."""
+        query = self.query()
+
+        try:
+            return getattr(query, attr)
+        except AttributeError:  # pragma: no cover
+            raise AttributeError(
+                "Neither {0} nor {1} objects have attribute '{2}'"
+                .format(type(self).__name__, type(query).__name__, attr))

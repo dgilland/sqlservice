@@ -8,6 +8,8 @@ Changelog
 - Add ``metadata`` and ``metaclass`` arguments to ``declarative_base`` that taken precedence over the corresponding class attributes set on the passed in declarative base type.
 - Rename Model argument/attribute in ``SQLClient`` to ``__init__`` to ``model_class``. (**breaking change**)
 - Remove ``Query.top`` method. (**breaking change**)
+- Proxy ``SQLService.__getattr__`` to ``getattr(SQLService.query(), attr)`` so that ``SQLService`` now acts as a proxy to a query instance that uses its ``model_class`` as the primary query entity.
+- Move ``SQLService.find`` and ``SQLService.find_one`` to ``Query``.
 
 
 v0.4.3 (2016-07-11)
