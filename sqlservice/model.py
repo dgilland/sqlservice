@@ -88,31 +88,33 @@ class ModelBase(object):
 
         if hasattr(model_attr, 'update') and value and isinstance(value, dict):
             model_attr.update(value)
+        elif field in self.relationships().keys():
+            self._set_relationship_field(field, value)
         else:
-            relationships = self.relationships()
-            if field in relationships.keys():
-                self._set_relationship_field(field, value)
-            else:
-                setattr(self, field, value)
+            setattr(self, field, value)
 
     def _set_relationship_field(self, field, value):
         """Set model relationships field with value."""
-        relation_class = getattr(self.__class__, field).property.mapper.class_
-        is_sequence_relation = is_sequence(getattr(self, field))
+        relation_attr = getattr(self.__class__, field)
+        uselist = relation_attr.property.uselist
+        relation_class = relation_attr.property.mapper.class_
 
-        if is_sequence_relation and is_sequence(value):
+        if uselist:
+            if not isinstance(value, (list, tuple)):  # pragma: no cover
+                value = [value]
+
             # Convert each value instance to relationship class.
             value = [relation_class(val) if not isinstance(val, relation_class)
                      else val
                      for val in value]
+        elif value and isinstance(value, dict):
+            # Convert single value object to relationship class.
+            value = relation_class(value)
         elif not value and isinstance(value, dict):
             # If value is {} and we're trying to update a relationship
             # attribute, then we need to set to None to nullify relationship
             # value.
             value = None
-        elif not is_sequence_relation and isinstance(value, dict):
-            # Convert single value object to relationship class.
-            value = relation_class(value)
 
         setattr(self, field, value)
 
