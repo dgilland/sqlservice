@@ -86,7 +86,7 @@ class ModelBase(object):
         """Set model field with value."""
         model_attr = getattr(self, field, None)
 
-        if hasattr(model_attr, 'update') and value:
+        if hasattr(model_attr, 'update') and value and isinstance(value, dict):
             model_attr.update(value)
         else:
             relationships = self.relationships()
