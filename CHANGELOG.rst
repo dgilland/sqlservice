@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.5.1 (2016-09-28)
+-------------------
+
 - Fix issue where calling ``<Model>.update(data)`` did not correctly update a relationship field when both ``<Model>.<relationship-column>`` and ``data[<relationship-column>]`` were both instances of a model class.
 
 
