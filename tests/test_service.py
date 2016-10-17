@@ -112,6 +112,18 @@ def test_get_return_none(service, ident):
     assert service.get(ident) is None
 
 
+def test_model_identity_map(service, model_pool):
+    """Test that model has an identity map equal to its primary key columns and
+    values.
+    """
+    model = model_pool[service.model_class]
+    pk_cols = model.pk_columns()
+
+    for idx, (col, val) in enumerate(model.identity_map()):
+        assert pk_cols[idx] is col
+        assert model[col.name] == val
+
+
 def test_find(service, models_pool):
     """Test basic find call."""
     models = models_pool[service.model_class]

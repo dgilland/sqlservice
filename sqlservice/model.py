@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.ext import declarative
 from sqlalchemy.util._collections import ImmutableProperties
 
-from . import event
+from . import core, event
 from .utils import classonce, is_sequence
 from ._compat import iteritems
 
@@ -218,15 +218,13 @@ class ModelBase(object):
         If there are multiple primary keys, a tuple containing the primary key
         values is returned.
         """
-        identity = self.class_mapper().identity_key_from_instance(self)[1]
+        return core.primary_identity_value(self)
 
-        if all(val is None for val in identity):
-            identity = None
-
-        if identity is not None and len(identity) == 1:
-            identity = identity[0]
-
-        return identity
+    def identity_map(self):
+        """Return primary key identity map of model instance as an ordered dict
+        mapping each primary key column to the corresponding primary key value.
+        """
+        return core.primary_identity_map(self)
 
     def __getitem__(self, key):
         """Proxy getitem to getattr. Allows for self[key] getters."""

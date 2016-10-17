@@ -357,3 +357,39 @@ def mapper_primary_key(model_class):
         return model_class.pk_columns()
     else:  # pragma: no cover
         return sa.inspect(model_class).primary_key
+
+
+def primary_identity_map(model):
+    """Return identity-map of a model as a N-element tuple where N is the
+    number of primary key columns. Each element of the tuple is a 2-element
+    tuple containing the primary key column and the corresponding model value.
+    """
+    pk_columns = mapper_primary_key(model.__class__)
+    identity = sa.inspect(model.__class__).identity_key_from_instance(model)[1]
+
+    if all(val is None for val in identity) or not pk_columns:
+        identity = None
+    else:
+        identity = tuple((pk_col, identity[idx])
+                         for idx, pk_col in enumerate(pk_columns))
+
+    return identity
+
+
+def primary_identity_value(model):
+    """Return primary key identity of model instance. If there is only a
+    single primary key defined, this function returns the primary key value.
+    If there are multiple primary keys, a tuple containing the primary key
+    values is returned.
+    """
+    id_map = primary_identity_map(model)
+
+    if id_map:
+        identity = tuple(val for col, val in id_map)
+    else:  # pragma: no cover
+        identity = None
+
+    if identity and len(identity) == 1:
+        identity = identity[0]
+
+    return identity
