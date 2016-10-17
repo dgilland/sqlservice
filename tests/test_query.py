@@ -10,16 +10,30 @@ from sqlservice.query import Query
 from .fixtures import AModel, CModel, DModel, parametrize, random_alpha
 
 
+def test_query_model_classes(db):
+    """Test Query.model_classes/join_model_classes/all_model_classes."""
+    model_classes = (AModel,)
+    join_model_classes = (CModel, DModel)
+
+    query = db.query(*model_classes).join(*join_model_classes)
+
+    assert query.model_classes == model_classes
+    assert query.join_model_classes == join_model_classes
+    assert query.all_model_classes == tuple(list(query.model_classes) +
+                                            list(query.join_model_classes))
+
+
 def test_query_entities(db):
     """Test Query.entities/join_entities/all_entities."""
-    entities = [AModel]
+    entities = [AModel.id]
     join_entities = [CModel, DModel]
 
     query = db.query(*entities).join(*join_entities)
 
-    assert query.entities == entities
-    assert query.join_entities == join_entities
-    assert query.all_entities == entities + join_entities
+    assert [ent.expr for ent in query.entities] == entities
+    assert [ent.mapper.class_ for ent in query.join_entities] == join_entities
+    assert query.all_entities == tuple(list(query.entities) +
+                                       list(query.join_entities))
 
 
 @parametrize('model_class,data,callback,expected', [

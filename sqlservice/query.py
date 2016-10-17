@@ -18,18 +18,41 @@ class Query(orm.Query):
 
     @property
     def entities(self):
-        """Return list of entity classes present in query."""
-        return [e.mapper.class_ for e in self._entities]
+        """Return list of entity classes for query."""
+        return self._entities
 
     @property
     def join_entities(self):
-        """Return list of the joined entity classes present in query."""
-        return [e.mapper.class_ for e in self._join_entities]
+        """Return list of the joined entity classes for query."""
+        return self._join_entities
+
+    @property
+    def mapper_entities(self):
+        """Return mapper entities for query."""
+        return tuple(self._mapper_entities)
+
+    @property
+    def model_classes(self):
+        """Return model classes used as selectable for query."""
+        return tuple(entity.mapper.class_ for entity in self.mapper_entities)
+
+    @property
+    def join_model_classes(self):
+        """Return model classes contained in joins for query."""
+        return tuple(enity.mapper.class_ for enity in self._join_entities
+                     if enity.mapper)
 
     @property
     def all_entities(self):
-        """Return list of models + join_models present in query."""
-        return self.entities + self.join_entities
+        """Return list of all entities for query."""
+        return tuple(list(self.entities) +
+                     list(self.join_entities))
+
+    @property
+    def all_model_classes(self):
+        """Return list of all model classes for query."""
+        return tuple(list(self.model_classes) +
+                     list(self.join_model_classes))
 
     def paginate(self, pagination):
         """Return paginated query.
@@ -82,8 +105,8 @@ class Query(orm.Query):
         page = kargs.get('page')
         per_page = kargs.get('per_page')
 
-        if order_by is None and self.entities:
-            order_by = core.mapper_primary_key(self.entities[0])
+        if order_by is None and self.model_classes:
+            order_by = core.mapper_primary_key(self.model_classes[0])
 
         query = self
 
