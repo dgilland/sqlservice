@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.6.3 (2016-10-17)
+-------------------
+
 - Fix model instance merging in ``core.save`` when providing a custom identity function.
 
 
