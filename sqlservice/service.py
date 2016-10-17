@@ -96,7 +96,7 @@ class SQLService(object):
         else:
             models = data
 
-        return self.db.save(models, before, after)
+        return self.db.save(models, before=before, after=after)
 
     def destroy(self, data, synchronize_session=False):
         """Delete bulk records from `data`.

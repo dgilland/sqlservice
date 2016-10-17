@@ -419,7 +419,7 @@ class SQLClient(object):
                                 'an instance of "{2}".'
                                 .format(idx, model, type(model)))
 
-        return core.save(self.session, models, before, after)
+        return core.save(self.session, models, before=before, after=after)
 
     def destroy(self, data, model_class=None, synchronize_session=False):
         """Delete bulk records from `data`.

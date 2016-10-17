@@ -72,18 +72,50 @@ def transaction(session, readonly=False):
             session.info['trans_count'] = 0
 
 
-def save(session, models, before=None, after=None):
+def save(session, models, identity=None, before=None, after=None):
     """Save `models` into the database using insert, update, or
-    upsert-on-primary-key.
+    upsert on `identity`.
 
     The `models` argument can be any of the following:
 
     - Model instance
     - ``list``/``tuple`` of Model instances
 
+    The required function signature and return of `identity` is:
+
+    ::
+
+        def identity(model):
+            return ((column1, value1), (column2, value2), ... (colN, valN))
+
+    For example, a model with a single primary key, the return might look like:
+
+    ::
+
+        model = Model(id=1)
+        identity(model) == ((Model.id, 1))
+
+    And for a model with a composite primary key:
+
+    ::
+
+        model = Model(id1=1, id2=2)
+        identity(model) == ((Model.id1, 1), (Model.id2, 2))
+
+    This requirement is necessary so that the :func:`save` function can
+    correctly generate a query filter to select existing records to determine
+    which of those records should be updated vs inserted.
+
+    If no `identity` function is provided, then :func:`primary_identity_map`
+    will be used which will result in upserting on primary key.
+
     Args:
         session (Session): SQLAlchemy session object.
         models (mixed): Models to save to database.
+        identity (function, optional): Function used to return an idenity map
+            for a given model. Function should have the signature
+            ``identity(model)``. By default :func:`primary_identity_map` is
+            used.
         before (function, optional): Function to call before each model is
             saved via ``session.add``. Function should have signature
             ``before(model, is_new)``.
@@ -103,6 +135,9 @@ def save(session, models, before=None, after=None):
     else:
         as_list = True
 
+    if identity is None:
+        identity = primary_identity_map
+
     # Model instances that should follow the "insert" path.
     insertable = []
 
@@ -119,7 +154,7 @@ def save(session, models, before=None, after=None):
     for idx, model in enumerate(models):
         model_class = type(model)
 
-        if model.identity() is not None:
+        if identity(model) is not None:
             # Primary key(s) are set so might be mergeable.
             # Keep track of original `idx` because we'll need to update
             # the `models` list with the merged instance.
@@ -134,16 +169,17 @@ def save(session, models, before=None, after=None):
         # Doing so will put those models into the session registry which
         # means that when we later call `merge()`, there won't be a
         # database fetch since we've pre-loaded them.
-        for model_class, mrgs in iteritems(mergeable):
-            pk_criteria = primary_key_filter([model for _, model in mrgs],
-                                             model_class)
-            existing = session.query(model_class).filter(pk_criteria).all()
-            existing_index = {model.identity(): model for model in existing}
+        for model_class, class_models in iteritems(mergeable):
+            models = [model for _, model in class_models]
+            criteria = identity_map_filter(models, identity=identity)
 
-            for idx, model in mrgs:
+            existing = session.query(model_class).filter(criteria).all()
+            existing = {identity(model): model for model in existing}
+
+            for idx, model in class_models:
                 if model in session:
                     updatable.append(model)
-                elif model.identity() in existing_index:
+                elif identity(model) in existing:
                     models[idx] = model = session.merge(model)
                     updatable.append(model)
                 else:
@@ -353,10 +389,10 @@ def identity_filter(ident, model_class):
 
 def mapper_primary_key(model_class):
     """Return primary keys of `model_class`."""
-    if hasattr(model_class, 'pk_columns'):
-        return model_class.pk_columns()
-    else:  # pragma: no cover
+    try:
         return sa.inspect(model_class).primary_key
+    except Exception:  # pragma: no cover
+        pass
 
 
 def primary_identity_map(model):
@@ -393,3 +429,18 @@ def primary_identity_value(model):
         identity = identity[0]
 
     return identity
+
+
+def identity_map_filter(models, identity=None):
+    """Return SQLAlchemy filter expression for a list of `models` based on the
+    identity map returned by the given `identity` function.
+    """
+    if identity is None:
+        identity = primary_identity_map
+
+    if not isinstance(models, (tuple, list)):
+        models = [models]
+
+    return sa.or_(sa.and_(col == val
+                          for col, val in identity(model))
+                  for model in models)
