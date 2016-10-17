@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.6.1 (2016-10-17)
+-------------------
+
 - Fix bug where the ``models`` variable was mistakenly redefined during loop iteration in ``core.save``.
 
 
