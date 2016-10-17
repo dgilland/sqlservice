@@ -30,6 +30,7 @@ class AModel(Model):
                    primary_key=True,
                    default=lambda val: int(pyd.unique_id()))
     name = sa.Column(sa.types.String(50))
+    text = sa.Column(sa.types.String(50))
     c_id = sa.Column(sa.types.Integer(), sa.ForeignKey('test_c.id'))
 
     c = sa.orm.relation('CModel')

@@ -371,6 +371,21 @@ def test_save(db, service, models_pool, data_pool):
     assert len(dbmodels) == len(data)
 
 
+def test_save_by_identity(db):
+    """Test saving by a custom identity function."""
+    model1 = AModel({'name': 'a'})
+    db.save(model1)
+
+    def identity(model):
+        return ((AModel.name, model.name),)
+
+    model2 = db.save(AModel({'name': 'a', 'text': 'foobar'}),
+                     identity=identity)
+
+    assert model1 is model2
+    assert model1.text == 'foobar'
+
+
 @parametrize('data', [
     {AModel: [{'id': 1}, {'id': 1}],
      BModel: [{'id1': 1, 'id2': 2}, {'id1': 1, 'id2': 2}]},

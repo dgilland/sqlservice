@@ -178,10 +178,14 @@ def save(session, models, before=None, after=None, identity=None):
             existing = {identity(model): model for model in existing}
 
             for idx, model in class_models:
+                ident = identity(model)
+
                 if model in session:
                     updatable.append(model)
-                elif identity(model) in existing:
-                    models[idx] = model = session.merge(model)
+                elif ident in existing:
+                    model = models[idx] = _force_merge(session,
+                                                       existing[ident],
+                                                       model)
                     updatable.append(model)
                 else:
                     insertable.append(model)
@@ -191,6 +195,19 @@ def save(session, models, before=None, after=None, identity=None):
         _add(session, updatable, is_new=False, before=before, after=after)
 
     return models if as_list else models[0]
+
+
+def _force_merge(session, model, new_model):
+    """Force merge an existing `model` with a `new_model` by copying the
+    primary key values from `model` to `new_model` before calling
+    ``session.merge(model)``.
+    """
+    pk_cols = mapper_primary_key(model.__class__)
+
+    for col in pk_cols:
+        setattr(new_model, col.name, getattr(model, col.name, None))
+
+    return session.merge(new_model)
 
 
 def _add(session, models, is_new=None, before=None, after=None):
