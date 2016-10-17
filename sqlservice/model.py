@@ -191,14 +191,14 @@ class ModelBase(object):
             relationships = self.relationships()
 
             if hasattr(value, 'to_dict'):
-                # Nest calls to child to_dict methods.
+                # Nest call to child to_dict methods.
                 value = value.to_dict()
             elif is_sequence(value):
-                # Nest class to child to_dict methods for sequence values.
+                # Nest calls to child to_dict methods for sequence values.
                 value = [val.to_dict() if hasattr(val, 'to_dict') else val
                          for val in value]
             elif isinstance(value, dict):
-                # Nest class to child to_dict methods for dict values.
+                # Nest calls to child to_dict methods for dict values.
                 value = {ky: val.to_dict() if hasattr(val, 'to_dict') else val
                          for ky, val in iteritems(value)}
             elif key in relationships and value is None:

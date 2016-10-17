@@ -253,14 +253,13 @@ def destroy(session, data, model_class=None, synchronize_session=False):
 
 
 def primary_key_filter(data, model_class):
-    """Given a set of `models` that have their primary key(s) set and that
+    """Given a set of `data` that have their primary key(s) set and that
     may or may not exist in the database, return a filter that queries for
     those records.
 
     Args:
+        data (list): List of ``dict`` or `model_class` instances to query.
         model_class (Model): ORM model class to query against.
-        data (list): List of ``dict`` or `model_class` instances to query
-            for.
 
     Returns:
         sqlalchemy.sql.elements.BinaryExpression
@@ -283,7 +282,7 @@ def primary_key_filter(data, model_class):
 
 
 def _one_primary_key_filter(data, model_class):
-    """Return filter criteria for models with many primary keys."""
+    """Return filter criteria for models with one primary key."""
     pk_col = mapper_primary_key(model_class)[0]
     try:
         ids = pyd.pluck(data, pk_col.name)
@@ -295,7 +294,7 @@ def _one_primary_key_filter(data, model_class):
 
 
 def _many_primary_key_filter(data, model_class):
-    """Return filter criteria for models with one primary key."""
+    """Return filter criteria for models with many primary keys."""
     pk_cols = mapper_primary_key(model_class)
     pk_criteria = []
 
