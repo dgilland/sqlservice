@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.6.2 (2016-10-17)
+-------------------
+
 - Expose ``identity`` argument in ``SQLClient.save`` and ``SQLService.save``.
 
 
