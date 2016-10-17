@@ -170,8 +170,9 @@ def save(session, models, identity=None, before=None, after=None):
         # means that when we later call `merge()`, there won't be a
         # database fetch since we've pre-loaded them.
         for model_class, class_models in iteritems(mergeable):
-            models = [model for _, model in class_models]
-            criteria = identity_map_filter(models, identity=identity)
+            criteria = identity_map_filter(
+                [model for _, model in class_models],
+                identity=identity)
 
             existing = session.query(model_class).filter(criteria).all()
             existing = {identity(model): model for model in existing}
