@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import mock
+import pydash as pyd
 import pytest
 import sqlalchemy as sa
 
 from .fixtures import AModel, BModel, parametrize, random_alpha
+
+from sqlservice import core
 
 
 DATASET = [
@@ -122,6 +125,34 @@ def test_model_identity_map(service, model_pool):
     for idx, (col, val) in enumerate(model.identity_map()):
         assert pk_cols[idx] is col
         assert model[col.name] == val
+
+
+@parametrize('model,expected', [
+    (AModel({'name': 'a',
+             'c': {'name': 'b'},
+             'ds': [{'id': 1, 'name': 'd1'},
+                    {'id': 2, 'name': 'd2'}]}),
+     {'name': 'a',
+      'c': {'name': 'b'},
+      'ds': [{'id': 1, 'name': 'd1'},
+             {'id': 2, 'name': 'd2'}],
+      'd_map': {1: {'id': 1, 'name': 'd1'},
+                2: {'id': 2, 'name': 'd2'}}}),
+    (AModel({'name': 'a',
+             'c': None}),
+     {'name': 'a',
+      'c': {}}),
+])
+def test_model_to_dict(db, model, expected):
+    """Test that a model can be serialized to a dict."""
+    db.save(model)
+    model = (db.query(model.__class__)
+             .filter(core.identity_map_filter(model))
+             .options(sa.orm.eagerload('*'))
+             .first())
+
+    assert pyd.is_match(model.to_dict(), expected)
+    assert pyd.is_match(dict(model), expected)
 
 
 def test_find(service, models_pool):
@@ -276,6 +307,37 @@ def test_update_model(db, service, model_pool):
 
     for key, value in new_values.items():
         assert dbmodel[key] == value
+
+
+def test_update_model_relationship(db):
+    """Test that model.update() can update relationship data."""
+    data = {'name': random_alpha(),
+            'c': {'name': random_alpha()}}
+
+    model = AModel(data)
+    db.save(model)
+
+    new_name = random_alpha()
+
+    model.update({'c': {'name': new_name}})
+    db.save(model)
+
+    assert model.c.name == new_name
+
+
+def test_update_model_relationship_set_null(db):
+    """Test that model.update() can set relationship to NULL with empty dict.
+    """
+    data = {'name': random_alpha(),
+            'c': {'name': random_alpha()}}
+
+    model = AModel(data)
+    db.save(model)
+
+    model.update({'c': {}})
+    db.save(model)
+
+    assert model.c is None
 
 
 def test_update_all_models(db, service, models_pool):

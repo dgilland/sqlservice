@@ -11,6 +11,7 @@ import pytest
 import mock
 
 import sqlalchemy as sa
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from sqlservice import SQLClient, declarative_base
 
@@ -33,6 +34,9 @@ class AModel(Model):
 
     c = sa.orm.relation('CModel')
     ds = sa.orm.relation('DModel')
+    d_map = sa.orm.relation(
+        'DModel',
+        collection_class=attribute_mapped_collection('id'))
 
 
 class BModel(Model):
