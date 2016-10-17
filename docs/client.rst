@@ -273,6 +273,8 @@ While working with model services is the recommended way to interact with ORM mo
 save()
 ++++++
 
+You can save any ORM model instance with ``db.save()``:
+
 .. code-block:: python
 
     # Save a single user
@@ -293,6 +295,37 @@ save()
     # NOTE: If before/after supplied, it will be called for each individual model
     # saved.
     db.save([user1, user2, company1, company2])
+
+
+When saving the SQL client will perform an upsert using the primary key values (if set) of the model(s) being saved. As a result of this, a database query will be issued to select any existing records that may match the models being saved based on their primary key values. This allows you to save model objects that are not yet associated with the SQLAlchemy session's identity map without having to first fetch the object.
+
+This behavior can be overridden by supplying a custom "identity" function that will be applied to the model(s) being saved. The "identity" function must accept a single argument, a model, and return an identity mapping tuple where each tuple item is a 2-element tuple containing a model column object and its value.
+
+For example, if we wanted to upsert using a user's email address, then the identity function would be:
+
+.. code-block:: python
+
+    def user_identity_by_email(model):
+        return ((User.email, model.email),)
+
+
+If you wanted to upsert using a combination of the user's email address and their name, then the identity function function would be:
+
+.. code-block:: python
+
+    def user_identity_by_email_name(model):
+        return ((User.email, model.email),
+                (User.name, model.name))
+
+
+You would then pass one of these functions to ``save()``:
+
+.. code-block:: python
+
+    db.save(user, identity=user_identity_by_email)
+
+
+This effectively allows you to easily create your own upsert methods independent of the database-backend.
 
 
 destroy()

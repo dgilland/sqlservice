@@ -2,6 +2,11 @@ Changelog
 =========
 
 
+- Add ``identity`` argument to ``save`` method to allow a custom identity function to support upserting on something other than just the primary key values.
+- Make ``Query`` entity methods ``entities``, ``join_entities``, and ``all_entities`` return entity objects instead of model classes. (**breaking change**)
+- Add ``Query`` methods ``model_classes``, ``join_model_classes``, and ``all_model_classes`` return the model classes belonging to a query.
+
+
 v0.5.1 (2016-09-28)
 -------------------
 
