@@ -384,7 +384,7 @@ class SQLClient(object):
         with core.transaction(self.session, readonly=readonly):
             yield self.session
 
-    def save(self, models, before=None, after=None):
+    def save(self, models, before=None, after=None, identity=None):
         """Save `models` into the database using insert, update, or
         upsert-on-primary-key.
 
@@ -401,6 +401,10 @@ class SQLClient(object):
             after (function, optional): Function to call after each model is
                 saved via ``session.add``. Function should have signature
                 ``after(model, is_new)``.
+            identity (function, optional): Function used to return an idenity
+                map for a given model. Function should have the signature
+                ``identity(model)``. By default
+                :func:`.core.primary_identity_map` is used.
 
         Returns:
             Model: If a single item passed in.
@@ -419,7 +423,11 @@ class SQLClient(object):
                                 'an instance of "{2}".'
                                 .format(idx, model, type(model)))
 
-        return core.save(self.session, models, before=before, after=after)
+        return core.save(self.session,
+                         models,
+                         before=before,
+                         after=after,
+                         identity=identity)
 
     def destroy(self, data, model_class=None, synchronize_session=False):
         """Delete bulk records from `data`.

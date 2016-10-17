@@ -72,7 +72,7 @@ def transaction(session, readonly=False):
             session.info['trans_count'] = 0
 
 
-def save(session, models, identity=None, before=None, after=None):
+def save(session, models, before=None, after=None, identity=None):
     """Save `models` into the database using insert, update, or
     upsert on `identity`.
 
@@ -112,16 +112,16 @@ def save(session, models, identity=None, before=None, after=None):
     Args:
         session (Session): SQLAlchemy session object.
         models (mixed): Models to save to database.
-        identity (function, optional): Function used to return an idenity map
-            for a given model. Function should have the signature
-            ``identity(model)``. By default :func:`primary_identity_map` is
-            used.
         before (function, optional): Function to call before each model is
             saved via ``session.add``. Function should have signature
             ``before(model, is_new)``.
         after (function, optional): Function to call after each model is
             saved via ``session.add``. Function should have signature
             ``after(model, is_new)``.
+        identity (function, optional): Function used to return an idenity map
+            for a given model. Function should have the signature
+            ``identity(model)``. By default :func:`primary_identity_map` is
+            used.
 
     Returns:
         Model: If a single item passed in.

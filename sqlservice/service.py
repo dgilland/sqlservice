@@ -56,7 +56,7 @@ class SQLService(object):
         """
         return self.find_one(core.identity_filter(ident, self.model_class))
 
-    def save(self, data, before=None, after=None):
+    def save(self, data, before=None, after=None, identity=None):
         """Save `data` into the database using insert, update, or
         upsert-on-primary-key.
 
@@ -79,6 +79,10 @@ class SQLService(object):
             after (function, optional): Function to call after each model is
                 saved via ``session.add``. Function should have signature
                 ``after(model, is_new)``.
+            identity (function, optional): Function used to return an idenity
+                map for a given model. Function should have the signature
+                ``identity(model)``. By default
+                :func:`.core.primary_identity_map` is used.
 
         Returns:
             :attr:`model_class`: If a single item passed in.
@@ -96,7 +100,10 @@ class SQLService(object):
         else:
             models = data
 
-        return self.db.save(models, before=before, after=after)
+        return self.db.save(models,
+                            before=before,
+                            after=after,
+                            identity=identity)
 
     def destroy(self, data, synchronize_session=False):
         """Delete bulk records from `data`.
