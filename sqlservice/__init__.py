@@ -11,7 +11,7 @@ from .__pkg__ import (
     __license__)
 
 from .client import SQLClient
+from .core import destroy, make_identity, save, transaction
 from .model import ModelBase, declarative_base
 from .query import Query
 from .service import SQLService
-from . import event
