@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.7.0 (2016-10-28)
+-------------------
+
 - Add ``core.make_identity`` factory function for easily creating basic identity functions from a list of model column objects that can be used with ``save()``.
 - Import ``core.save``, ``core.destroy``, ``core.transaction``, and ``core.make_identity`` into make package namespace.
 
