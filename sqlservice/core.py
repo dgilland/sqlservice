@@ -372,6 +372,16 @@ def _many_primary_key_filter(data, model_class):
     return sa.or_(*pk_criteria)
 
 
+def make_identity(*columns):
+    """Factory function that returns an identity function that can be used in
+    :func:`save`. The return identity function creates an identity
+    corresponding to the values corresponding to the model columns given.
+    """
+    def identity(model):
+        return tuple((col, getattr(model, col.key)) for col in columns)
+    return identity
+
+
 def identity_filter(ident, model_class):
     """Return filter-by ``dict`` based on `ident` value mapped to primary
     key(s).

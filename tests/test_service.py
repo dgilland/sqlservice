@@ -371,13 +371,14 @@ def test_save(db, service, models_pool, data_pool):
     assert len(dbmodels) == len(data)
 
 
-def test_save_by_identity(db):
+@parametrize('identity', [
+    lambda model: ((AModel.name, model.name),),
+    core.make_identity(AModel.name)
+])
+def test_save_by_identity(db, identity):
     """Test saving by a custom identity function."""
     model1 = AModel({'name': 'a'})
     db.save(model1)
-
-    def identity(model):
-        return ((AModel.name, model.name),)
 
     model2 = db.save(AModel({'name': 'a', 'text': 'foobar'}),
                      identity=identity)

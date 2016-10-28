@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Add ``core.make_identity`` factory function for easily creating basic identity functions from a list of model column objects that can be used with ``save()``.
+
+
 v0.6.3 (2016-10-17)
 -------------------
 
