@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.7.1 (2016-11-04)
+-------------------
+
 - Add additional database session proxy attributes to ``SQLClient``:
 
   - ``SQLClient.scalar -> SQLClient.session.scalar``
