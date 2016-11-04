@@ -2,6 +2,17 @@ Changelog
 =========
 
 
+- Add additional database session proxy attributes to ``SQLClient``:
+
+  - ``SQLClient.scalar -> SQLClient.session.scalar``
+  - ``SQLClient.invalidate -> SQLClient.session.invalidate``
+  - ``SQLClient.expire -> SQLClient.session.expire``
+  - ``SQLClient.expire_all -> SQLClient.session.expire_all``
+  - ``SQLClient.expunge -> SQLClient.session.expunge``
+  - ``SQLClient.expunge_all -> SQLClient.session.expunge_all``
+  - ``SQLClient.prune -> SQLClient.session.prune``
+
+
 v0.7.0 (2016-10-28)
 -------------------
 

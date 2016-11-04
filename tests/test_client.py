@@ -43,15 +43,22 @@ def test_sql_client_proxy_property(db, proxy, attr):
     'add',
     'add_all',
     'close',
+    'invalidate',
     'commit',
     'delete',
     'execute',
+    'scalar',
     'flush',
     'merge',
     'query',
     'refresh',
     'rollback',
     'transaction',
+    'expire',
+    'expire_all',
+    'expunge',
+    'expunge_all',
+    'prune',
 ])
 def test_sql_client_property(db, attr):
     """Test that database manager's proxy attributes map to expected

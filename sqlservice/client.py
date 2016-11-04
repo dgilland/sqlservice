@@ -321,6 +321,11 @@ class SQLClient(object):
         return self.session.execute
 
     @property
+    def scalar(self):
+        """Proxy property to :meth:`session.scalar`."""
+        return self.session.scalar
+
+    @property
     def close(self):
         """Proxy property to :meth:`session.close`."""
         return self.session.close
@@ -329,6 +334,11 @@ class SQLClient(object):
     def close_all(self):
         """Proxy property to :meth:`_Session.close_all`."""
         return self._Session.close_all
+
+    @property
+    def invalidate(self):
+        """Proxy property to :meth:`session.invalidate`."""
+        return self.session.invalidate
 
     @property
     def remove(self):
@@ -352,6 +362,11 @@ class SQLClient(object):
             raise
 
     @property
+    def rollback(self):
+        """Proxy property to :meth:`session.rollback`."""
+        return self.session.rollback
+
+    @property
     def flush(self):
         """Proxy property to :meth:`session.flush`."""
         return self.session.flush
@@ -362,9 +377,29 @@ class SQLClient(object):
         return self.session.refresh
 
     @property
-    def rollback(self):
-        """Proxy property to :meth:`session.rollback`."""
-        return self.session.rollback
+    def expire(self):
+        """Proxy property to :meth:`session.expire`."""
+        return self.session.expire
+
+    @property
+    def expire_all(self):
+        """Proxy property to :meth:`session.expire`."""
+        return self.session.expire_all
+
+    @property
+    def expunge(self):
+        """Proxy property to :meth:`session.expunge`."""
+        return self.session.expunge
+
+    @property
+    def expunge_all(self):
+        """Proxy property to :meth:`session.expunge`."""
+        return self.session.expunge_all
+
+    @property
+    def prune(self):
+        """Proxy property to :meth:`session.prune`."""
+        return self.session.prune
 
     @property
     def query(self):
