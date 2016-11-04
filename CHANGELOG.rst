@@ -12,6 +12,8 @@ Changelog
   - ``SQLClient.expunge_all -> SQLClient.session.expunge_all``
   - ``SQLClient.prune -> SQLClient.session.prune``
 
+- Fix compatibility issue with pydash ``v3.4.7``.
+
 
 v0.7.0 (2016-10-28)
 -------------------

@@ -1,2 +1,2 @@
-pydash>=3.4.5
+pydash>=3.4.7
 SQLAlchemy>=1.0.0

@@ -275,6 +275,7 @@ def destroy(session, data, model_class=None, synchronize_session=False):
     valid_model_class = isinstance(model_class, DeclarativeMeta)
 
     mapped_data = defaultdict(list)
+
     for idx, item in enumerate(data):
         item_class = type(item)
 
@@ -306,20 +307,20 @@ def destroy(session, data, model_class=None, synchronize_session=False):
     return delete_count
 
 
-def primary_key_filter(data, model_class):
-    """Given a set of `data` that have their primary key(s) set and that
+def primary_key_filter(items, model_class):
+    """Given a set of `items` that have their primary key(s) set and that
     may or may not exist in the database, return a filter that queries for
     those records.
 
     Args:
-        data (list): List of ``dict`` or `model_class` instances to query.
+        items (list): List of ``dict`` or `model_class` instances to query.
         model_class (Model): ORM model class to query against.
 
     Returns:
         sqlalchemy.sql.elements.BinaryExpression
     """
-    if not isinstance(data, list):  # pragma: no cover
-        data = [data]
+    if not isinstance(items, list):  # pragma: no cover
+        items = [items]
 
     pk_columns = model_class.pk_columns()
 
@@ -327,27 +328,22 @@ def primary_key_filter(data, model_class):
         # Handle the case where there are multiple primary keys. This
         # requires a more complex query than the simpler "where primary_key
         # in (...)".
-        pk_criteria = _many_primary_key_filter(data, model_class)
+        pk_criteria = _many_primary_key_filter(items, model_class)
     else:
         # Handle single primary key query.
-        pk_criteria = _one_primary_key_filter(data, model_class)
+        pk_criteria = _one_primary_key_filter(items, model_class)
 
     return pk_criteria
 
 
-def _one_primary_key_filter(data, model_class):
+def _one_primary_key_filter(items, model_class):
     """Return filter criteria for models with one primary key."""
     pk_col = mapper_primary_key(model_class)[0]
-    try:
-        ids = pyd.pluck(data, pk_col.name)
-    except ValueError:
-        # Handles case where `data` is a list of ids already.
-        ids = data
-
-    return pk_col.in_(ids)
+    return pk_col.in_(pyd.get(item, pk_col.name, default=item)
+                      for item in items)
 
 
-def _many_primary_key_filter(data, model_class):
+def _many_primary_key_filter(items, model_class):
     """Return filter criteria for models with many primary keys."""
     pk_cols = mapper_primary_key(model_class)
     pk_criteria = []
@@ -358,7 +354,7 @@ def _many_primary_key_filter(data, model_class):
     def idx_pk_index(idx, col):
         return idx
 
-    for item in data:
+    for item in items:
         # AND each primary key value together to filter for that record
         # uniquely.
         pk_index = (idx_pk_index if isinstance(item, tuple)
