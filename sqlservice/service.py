@@ -123,7 +123,9 @@ class SQLService(object):
         Returns:
             int: Number of deleted records.
         """
-        return self.db.destroy(data, model_class=self.model_class)
+        return self.db.destroy(data,
+                               model_class=self.model_class,
+                               synchronize_session=synchronize_session)
 
     def __getattr__(self, attr):
         """Proxy attribute access to a :meth:`query` instance."""
