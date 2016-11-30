@@ -2,7 +2,10 @@ Changelog
 =========
 
 
-- Fix passing of ``synchronize_session`` argument in ``SQLService.destroy``. Argument was mistakenly not being used when calling underlying delete method.
+v0.7.2 (2016-11-29)
+-------------------
+
+- Fix passing of ``synchronize_session`` argument in ``SQLService.destroy`` and ``SQLClient.destroy``. Argument was mistakenly not being used when calling underlying delete method.
 
 
 v0.7.1 (2016-11-04)

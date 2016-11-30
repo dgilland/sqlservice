@@ -485,7 +485,10 @@ class SQLClient(object):
         Returns:
             int: Number of deleted records.
         """
-        return core.destroy(self.session, data, model_class=model_class)
+        return core.destroy(self.session,
+                            data,
+                            model_class=model_class,
+                            synchronize_session=synchronize_session)
 
     def _register_all_services(self):
         """Register all model services using model names/classes from
