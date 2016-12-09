@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.8.0 (2016-12-09)
+-------------------
+
 - Rename ``sqlservice.Query`` to ``SQLQuery``. (**breaking change**)
 - Remove ``sqlservice.SQLService`` class in favor of utilizing ``SQLQuery`` for the ``save`` and ``destroy`` methods for a model class. (**breaking change**)
 - Add ``SQLQuery.save()``.
