@@ -2,6 +2,16 @@ Changelog
 =========
 
 
+- Rename ``sqlservice.Query`` to ``SQLQuery``. (**breaking change**)
+- Remove ``sqlservice.SQLService`` class in favor of utilizing ``SQLQuery`` for the ``save`` and ``destroy`` methods for a model class. (**breaking change**)
+- Add ``SQLQuery.save()``.
+- Add ``SQLQuery.destroy()``.
+- Add ``SQLQuery.model_class`` property.
+- Replace ``service_class`` argument with ``query_class`` in ``SQLClient.__init__()``. (**breaking change**)
+- Remove ``SQLClient.services``. (**breaking change**)
+- When a model class name is used for attribute access on a ``SQLClient`` instance, return an instance of ``SQLQuery(ModelClass)`` instead of ``SQLService(ModelClass)``. (**breaking change**)
+
+
 v0.7.2 (2016-11-29)
 -------------------
 

@@ -370,45 +370,12 @@ def _many_primary_key_filter(items, model_class):
 
 def make_identity(*columns):
     """Factory function that returns an identity function that can be used in
-    :func:`save`. The return identity function creates an identity
-    corresponding to the values corresponding to the model columns given.
+    :func:`save`. The identity function returns an identity-tuple mapping from
+    a model instance with the given `columns` and their values.
     """
     def identity(model):
         return tuple((col, getattr(model, col.key)) for col in columns)
     return identity
-
-
-def identity_filter(ident, model_class):
-    """Return filter-by ``dict`` based on `ident` value mapped to primary
-    key(s).
-
-    Possible values of `ident` are:
-
-    - ``str``/``numeric``: Value of primary key
-    - ``tuple``/``list``: Values corresponding to primary keys. Useful when
-        model has multiple primary keys.
-    - ``dict``: Mapping containing primary key column names and values. Can
-        be used to select models with single or multiple primary keys.
-
-    Args:
-        ident (mixed): Object containing primary key value(s).
-        model_class (object): Model class to produce filter for.
-
-    Returns:
-        dict
-    """
-    pk_cols = mapper_primary_key(model_class)
-
-    if isinstance(ident, dict):
-        criteria = (col == ident.get(col.name)
-                    for col in pk_cols)
-    elif isinstance(ident, (tuple, list)):
-        criteria = (col == pyd.get(ident, idx)
-                    for idx, col in enumerate(pk_cols))
-    else:
-        criteria = (pk_cols[0] == ident,)
-
-    return sa.and_(*criteria)
 
 
 def mapper_primary_key(model_class):

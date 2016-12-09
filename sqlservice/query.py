@@ -13,7 +13,7 @@ from sqlalchemy import orm
 from . import core
 
 
-class Query(orm.Query):
+class SQLQuery(orm.Query):
     """Extended SQLAlchemy query class."""
 
     @property
@@ -30,6 +30,20 @@ class Query(orm.Query):
     def mapper_entities(self):
         """Return mapper entities for query."""
         return tuple(self._mapper_entities)
+
+    @property
+    def model_class(self):
+        """Return primary model class if query generated using
+        ``session.query(model_class)`` or ``None`` otherwise.
+        """
+        try:
+            entity = self._only_full_mapper_zero('')
+        except Exception:  # pragma: no cover
+            class_ = None
+        else:
+            class_ = entity.mapper.class_
+
+        return class_
 
     @property
     def model_classes(self):
@@ -53,6 +67,111 @@ class Query(orm.Query):
         """Return list of all model classes for query."""
         return tuple(list(self.model_classes) +
                      list(self.join_model_classes))
+
+    def _only_model_class_zero(self, methname):
+        """Return :attr:`model_class` or raise an exception."""
+        model_class = self.model_class
+
+        if not model_class:  # pragma: no cover
+            raise sa.exc.InvalidRequestError('{0}() can only be used against '
+                                             'a single mapped class.'
+                                             .format(methname))
+
+        return model_class
+
+    def save(self, data, before=None, after=None, identity=None):
+        """Save `data` into the database using insert, update, or
+        upsert-on-primary-key.
+
+        .. warning:: This requires that the ``Query`` has been generated using
+                     ``Query(<ModelClass>)``; otherwise, and exception will
+                     be raised.
+
+        The `data` argument can be any of the following:
+
+        - ``dict``
+        - :attr:`model_class` instance
+        - ``list``/``tuple`` of ``dict`` objects
+        - ``list``/``tuple`` of :attr:`model_class` instances
+
+        This method will attempt to do the "right" thing by mapping any items
+        in `data` that have their primary key set with the corresponding record
+        in the database if it exists.
+
+        Args:
+            data (mixed): Data to save to database.
+            before (function, optional): Function to call before each model is
+                saved via ``session.add``. Function should have signature
+                ``before(model, is_new)``.
+            after (function, optional): Function to call after each model is
+                saved via ``session.add``. Function should have signature
+                ``after(model, is_new)``.
+            identity (function, optional): Function used to return an idenity
+                map for a given model. Function should have the signature
+                ``identity(model)``. By default
+                :func:`.core.primary_identity_map` is used.
+
+        Returns:
+            :attr:`model_class`: If a single item passed in.
+            list: A ``list`` of :attr:`model_class` when multiple items passed.
+
+        Raises:
+            InvalidRequestError: When :attr:`model_class` is ``None``.
+        """
+        if not data:
+            return
+
+        model_class = self._only_model_class_zero('save')
+
+        if isinstance(data, (list, tuple)):
+            models = [model_class(item) if not isinstance(item, model_class)
+                      else item
+                      for item in data]
+        elif not isinstance(data, model_class):
+            models = model_class(data)
+        else:
+            models = data
+
+        return core.save(self.session,
+                         models,
+                         before=before,
+                         after=after,
+                         identity=identity)
+
+    def destroy(self, data, synchronize_session=False):
+        """Delete bulk records identified by `data`.
+
+        .. warning:: This requires that the ``Query`` has been generated using
+                     ``Query(<ModelClass>)``; otherwise, and exception will
+                     be raised.
+
+        The `data` argument can be any of the following:
+
+        - ``dict``
+        - :attr:`model_class` instance
+        - ``list``/``tuple`` of ``dict`` objects
+        - ``list``/``tuple`` of :attr:`model_class` instances
+
+        Args:
+            data (mixed): Data to delete from database.
+            synchronize_session (bool|str): Argument passed to
+                ``Query.delete``.
+
+        Returns:
+            int: Number of deleted records.
+
+        Raises:
+            InvalidRequestError: When :attr:`model_class` is ``None``.
+        """
+        if not data:
+            return
+
+        model_class = self._only_model_class_zero('destroy')
+
+        return core.destroy(self.session,
+                            data,
+                            model_class=model_class,
+                            synchronize_session=synchronize_session)
 
     def paginate(self, pagination):
         """Return paginated query.

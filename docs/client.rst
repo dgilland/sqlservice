@@ -76,9 +76,9 @@ And if you want to completely close all sessions and terminate the engine connec
 Session Query
 -------------
 
-The default query class for ``db.query``/``db.session.query`` uses :class:`sqlservice.query.Query` which provides additional methods beyond SQLAlchemy's base query class.
+The default query class for ``db.query``/``db.session.query`` uses :class:`sqlservice.query.SQLQuery` which provides additional methods beyond SQLAlchemy's base query class.
 
-You can paginate results with ``db.query.paginate()``:
+You can paginate results with ``paginate()``:
 
 .. code-block:: python
 
@@ -90,7 +90,7 @@ You can paginate results with ``db.query.paginate()``:
     db.query(User).paginate((25, 2))
 
 
-You can filter, paginate, and order results in a single method call with ``db.query.search()``:
+You can filter, paginate, and order results in a single method call with ``search()``:
 
 .. code-block:: python
 
@@ -219,17 +219,24 @@ Reflect existing database schema without predefining ORM models or Table objects
     print(db.tables)
 
 
-ORM Model Services
-------------------
+ORM Model Queries
+-----------------
 
-When creating an instance of ``SQLClient``, model services are automatically created and instances of ``SQLService`` classes are stored for each model and are accessible via attribute access. This allows you to proxy ``SQLService`` attributes for a model with:
+ORM model queries are accessible via attribute access which provides a shorthand for ``db.query(<ModelClass>)``:
 
 .. code-block:: python
 
-    db.User.<SQLService attribute>
+    db.User.<ModelClass>
 
 
-So now you can save a model:
+So now you can easily query models:
+
+.. code-block:: python
+
+    users = db.User.filter(User.name.like('Mc%')).all()
+
+
+You can save a model:
 
 .. code-block:: python
 
@@ -244,7 +251,7 @@ So now you can save a model:
     users = db.User.save([{...}, {...}, User(...), User(...)])
 
 
-You can delete a model:
+You can destroy a model:
 
 .. code-block:: python
 
@@ -261,7 +268,7 @@ You can delete a model:
     db.User.destroy([134, {'id': 135}, user])
 
 
-For more details, see the :mod:`sqlservice.service` module.
+For more details, see the :mod:`sqlservice.query` module.
 
 
 Generic ORM Model Methods
@@ -342,6 +349,3 @@ destroy()
     # Destroy using primary key only.
     db.destroy(3618, model_class=User)
     db.destroy(3618, model_class=User, synchronize_session=True)
-
-
-For more details, see the :mod:`sqlservice.client` module.

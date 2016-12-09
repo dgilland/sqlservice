@@ -12,15 +12,16 @@ The sqlservice package imports commonly used objects into it's top-level namespa
     from sqlservice import (
         ModelBase,
         SQLClient,
-        SQLService,
+        SQLQuery,
         declarative_base,
-        event)
+        destroy,
+        event,
+        make_identity,
+        save,
+        transaction)
 
 
 .. automodule:: sqlservice.client
-    :members:
-
-.. automodule:: sqlservice.service
     :members:
 
 .. automodule:: sqlservice.query

@@ -3,7 +3,7 @@
 import pytest
 import sqlalchemy as sa
 
-from sqlservice import SQLClient, Query
+from sqlservice import SQLClient
 
 from .fixtures import (
     AModel,
@@ -30,7 +30,6 @@ def getattr_path(obj, path):
     ('tables', 'model_class.metadata.tables'),
     ('url', 'engine.url'),
     ('database', 'engine.url.database'),
-    ('services', '_services'),
 ])
 def test_sql_client_proxy_property(db, proxy, attr):
     """Test that database manager's proxy attributes map to expected

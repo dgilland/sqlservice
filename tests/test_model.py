@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import pydash as pyd
 import pytest
+import sqlalchemy as sa
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from sqlservice import declarative_base
+from sqlservice import core, declarative_base
+
+from .fixtures import AModel, Model, parametrize
 
 
 def test_declarative_base_metadata_as_arg():
@@ -85,3 +89,41 @@ def test_declarative_base_metaclass_precedence():
     Model2 = declarative_base(Base, metaclass=MetaClass2)
 
     assert Model2.metaclass is MetaClass2
+
+
+@parametrize('model,expected', [
+    (AModel({'id': 1, 'name': 'a'}), ((AModel.columns()['id'], 1),))
+])
+def test_model_identity_map(model, expected):
+    """Test that model has an identity map equal to its primary key columns and
+    values.
+    """
+    assert model.identity_map() == expected
+
+
+@parametrize('model,expected', [
+    (AModel({'name': 'a',
+             'c': {'name': 'b'},
+             'ds': [{'id': 1, 'name': 'd1'},
+                    {'id': 2, 'name': 'd2'}]}),
+     {'name': 'a',
+      'c': {'name': 'b'},
+      'ds': [{'id': 1, 'name': 'd1'},
+             {'id': 2, 'name': 'd2'}],
+      'd_map': {1: {'id': 1, 'name': 'd1'},
+                2: {'id': 2, 'name': 'd2'}}}),
+    (AModel({'name': 'a',
+             'c': None}),
+     {'name': 'a',
+      'c': {}}),
+])
+def test_model_to_dict(db, model, expected):
+    """Test that a model can be serialized to a dict."""
+    db.save(model)
+    model = (db.query(model.__class__)
+             .filter(core.identity_map_filter(model))
+             .options(sa.orm.eagerload('*'))
+             .first())
+
+    assert pyd.is_match(model.to_dict(), expected)
+    assert pyd.is_match(dict(model), expected)

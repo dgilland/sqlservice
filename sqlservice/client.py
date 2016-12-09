@@ -16,8 +16,7 @@ from sqlalchemy.engine.url import make_url
 
 from . import core
 from .model import declarative_base
-from .query import Query
-from .service import SQLService
+from .query import SQLQuery
 from ._compat import iteritems, string_types
 
 
@@ -85,20 +84,16 @@ class SQLClient(object):
     Args:
         config (dict): Database engine configuration options.
         model_class (object): A SQLAlchemy ORM declarative base model.
-        service_class (object, optional): Service class used to register model
-            service instances. If provided, it should be have the same
-            initialization signature as :class:`.SQLService`. Defaults to
-            :class:`.SQLService`.
     """
     def __init__(self,
                  config=None,
                  model_class=None,
-                 service_class=SQLService):
+                 query_class=SQLQuery):
         if model_class is None:  # pragma: no cover
             model_class = declarative_base()
 
         self.model_class = model_class
-        self.service_class = service_class
+        self.query_class = query_class
 
         self.config = {
             'SQL_DATABASE_URI': 'sqlite://',
@@ -123,10 +118,9 @@ class SQLClient(object):
 
         self.engine = self.create_engine(self.config['SQL_DATABASE_URI'],
                                          engine_options)
-        self.session = self.create_session(self.engine, session_options)
-
-        self._services = {}
-        self._register_all_services()
+        self.session = self.create_session(self.engine,
+                                           session_options,
+                                           query_class=self.query_class)
 
     def create_engine(self, uri, options=None):
         """Factory function to create a database engine using `config` options.
@@ -146,7 +140,7 @@ class SQLClient(object):
                        bind,
                        options=None,
                        session_class=Session,
-                       query_class=Query):
+                       query_class=SQLQuery):
         """Factory function to create a scoped session using `bind`.
 
         Args:
@@ -155,7 +149,7 @@ class SQLClient(object):
             session_class (obj, optional): Session class to use when creating
                 new session instances. Defaults to :class:`.Session`.
             query_class (obj, optional): Query class used for ``session.query``
-                instances. Defaults to :class:`.Query`.
+                instances. Defaults to :class:`.SQLQuery`.
 
         Returns:
             Session: SQLAlchemy session instance bound to `bind`.
@@ -250,13 +244,6 @@ class SQLClient(object):
                       if not name.startswith('_sa_')}
 
         return models
-
-    @property
-    def services(self):
-        """Return service registry ``dict`` with model names as keys and
-        corresponding model service classes as values.
-        """
-        return self._services
 
     def create_all(self):
         """Create all metadata (tables, etc) contained within :attr:`metadata`.
@@ -490,27 +477,6 @@ class SQLClient(object):
                             model_class=model_class,
                             synchronize_session=synchronize_session)
 
-    def _register_all_services(self):
-        """Register all model services using model names/classes from
-        :attr:`models`.
-        """
-        if not self.metadata or not self.models:  # pragma: no cover
-            return
-
-        for model_name, model_class in iteritems(self.models):
-            self._register_service(model_name, model_class)
-
-    def _register_service(self, model_name, model_class):
-        """Register model service using `model_name` as the key and
-        `model_class` as the argument to :attr:`service_class`. Once a service
-        is registered, it won't be created again.
-        """
-        if model_name not in self._services:
-            self._services[model_name] = (
-                self.service_class(self, model_class))
-
-        return self._services[model_name]
-
     def __getitem__(self, item):
         """Return :attr:`service_class` instance corresponding to `item`.
 
@@ -546,8 +512,12 @@ class SQLClient(object):
                 name found in :attr:`metadata`.
         """
         if attr not in self.models:  # pragma: no cover
-            raise AttributeError('Model name, "{0}", is not a recognized '
-                                 'model. Valid names are: {1}'
-                                 .format(attr, ', '.join(self.models)))
+            raise AttributeError('The attribute "{0}" is not an attribute of '
+                                 '{1} nor is it a model class name in the '
+                                 'declarative model class registry. Valid '
+                                 'model names are: {2}'
+                                 .format(attr,
+                                         self.__class__.__name__,
+                                         ', '.join(self.models)))
 
-        return self._register_service(attr, self.models[attr])
+        return self.query(self.models[attr])

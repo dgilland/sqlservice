@@ -25,20 +25,13 @@ So what exactly is ``sqlservice`` and what does "the missing SQLAlchemy ORM inte
 Features
 --------
 
-This library is meant to enhanced your usage of SQLAlchemy. SQLAlchemy is great and this library tries to build upon that by providing useful abstractions on top of it.
+This library is meant to enhance your usage of SQLAlchemy. SQLAlchemy is great and this library tries to build upon that by providing useful abstractions on top of it.
 
-- Database client similar to Flask-SQLAlchemy_ and `alchy.DatabaseManager <http://alchy.readthedocs.io/en/latest/api.html#alchy.manager.Manager>`_ that helps manage an ORM scoped session.
-- A model service interface that enhances model access and serialization.
+- Database client that helps manage an ORM scoped session.
 - Base class for a declarative ORM Model that makes updating model columns and relationships easier and converting to a dictionary a breeze.
-- A decorator based event registration for SQLAlchemy ORM events that can be used at the model class level. No need to register the event handler outside of the class definition.
+- Decorator-based event register for SQLAlchemy ORM events that can be used at the model class level. No need to register the event handler outside of the class definition.
 - An application-side nestable transaction context-manager that helps implement pseudo-subtransactions for those that want implicit transaction demarcation, i.e. session autocommit, without using session subtransactions.
 - And more!
-
-
-History
--------
-
-This library's direct predecessor is `alchy <https://github.com/dgilland/alchy>`_ which itself started as a drop-in replacement for Flask-SQLAlchemy_ combined with new functionality centering around the "fat-model" style. This library takes a different approach and encourages a "fat-service" style. As such, it is primarily a rewrite of alchy with some of its features ported over and improved, some of its features removed, and other features added. With alchy, one's primary interface with the database was through a model class. Whereas with sqlservice, one's primary interface with the database is through a service class.
 
 
 Requirements
