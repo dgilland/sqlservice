@@ -196,5 +196,3 @@ For more details, please see the full documentation at http://sqlservice.readthe
 
 .. |license| image:: http://img.shields.io/pypi/l/sqlservice.svg?style=flat-square
     :target: https://pypi.python.org/pypi/sqlservice/
-
-.. _Flask-SQLAlchemy: http://flask-sqlalchemy.pocoo.org
