@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+- Add ``session_class`` argument to ``SQLClient()`` to override the default session class used by the session maker.
+- Add ``session_options`` argument to ``SQLClient()`` to provide additional session options beyond what is supported by the ``config`` argument.
+
+
 v0.8.0 (2016-12-09)
 -------------------
 

@@ -179,3 +179,12 @@ def test_reflect(filedb):
 
     for tablename, table in filedb.tables.items():
         assert rdb.tables[tablename].name == table.name
+
+
+def test_session_options():
+    """Test that SQLClient's session can be configured with extra options."""
+    db = SQLClient(session_options={'autocommit': True})
+    assert db.session.autocommit is True
+
+    db = SQLClient(session_options={'autocommit': False})
+    assert db.session.autocommit is False

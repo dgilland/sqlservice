@@ -84,16 +84,25 @@ class SQLClient(object):
     Args:
         config (dict): Database engine configuration options.
         model_class (object): A SQLAlchemy ORM declarative base model.
+        query_class (Query, optional): SQLAlchemy Query derived class to use as
+            the default class when creating a new query object.
+        session_class (Session, optional): SQLAlchemy Session derived class to
+            use by the session maker.
+        session_options (dict, optional): Additional session options use when
+            creating the database session.
     """
     def __init__(self,
                  config=None,
                  model_class=None,
-                 query_class=SQLQuery):
+                 query_class=SQLQuery,
+                 session_class=Session,
+                 session_options=None):
         if model_class is None:  # pragma: no cover
             model_class = declarative_base()
 
         self.model_class = model_class
         self.query_class = query_class
+        self.session_class = session_class
 
         self.config = {
             'SQL_DATABASE_URI': 'sqlite://',
@@ -114,12 +123,13 @@ class SQLClient(object):
         self.config.update(config or {})
 
         engine_options = self.make_engine_options()
-        session_options = self.make_session_options()
+        session_options = self.make_session_options(session_options)
 
         self.engine = self.create_engine(self.config['SQL_DATABASE_URI'],
                                          engine_options)
         self.session = self.create_session(self.engine,
                                            session_options,
+                                           session_class=self.session_class,
                                            query_class=self.query_class)
 
     def create_engine(self, uri, options=None):
@@ -182,15 +192,20 @@ class SQLClient(object):
             ('SQL_MAX_OVERFLOW', 'max_overflow')
         ))
 
-    def make_session_options(self):
+    def make_session_options(self, extra_options=None):
         """Return session options from :attr:`config` for use in
         ``sqlalchemy.orm.sessionmaker``.
         """
-        return self._make_options((
+        options = self._make_options((
             ('SQL_AUTOCOMMIT', 'autocommit'),
             ('SQL_AUTOFLUSH', 'autoflush'),
             ('SQL_EXPIRE_ON_COMMIT', 'expire_on_commit')
         ))
+
+        if extra_options:
+            options.update(extra_options)
+
+        return options
 
     def _make_options(self, key_mapping):
         """Return mapped :attr:`config` options using `key_mapping` which is a
