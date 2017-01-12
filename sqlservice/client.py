@@ -170,11 +170,12 @@ class SQLClient(object):
         if query_class:
             options['query_cls'] = query_class
 
+        scopefunc = options.pop('scopefunc', None)
         session_factory = orm.sessionmaker(bind=bind,
                                            class_=session_class,
                                            **options)
 
-        return orm.scoped_session(session_factory)
+        return orm.scoped_session(session_factory, scopefunc=scopefunc)
 
     def make_engine_options(self):
         """Return engine options from :attr:`config` for use in

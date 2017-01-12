@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Fix handling of ``scopefunc`` option in ``SQLClient.create_session``.
+
+
 v0.9.0 (2017-01-10)
 -------------------
 
