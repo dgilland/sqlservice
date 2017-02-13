@@ -269,7 +269,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, sqlservice.__package__, 'SQLService Documentation', [author], 1)
+    (master_doc, project.__package__, 'SQLService Documentation', [author], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -282,9 +282,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, sqlservice.__package__, 'SQLService Documentation',
-   author, sqlservice.__package__, sqlservice.__description__,
-     'Miscellaneous'),
+  (master_doc, project.__package__, 'SQLService Documentation',
+   author, project.__package__, project.__description__,
+   'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
