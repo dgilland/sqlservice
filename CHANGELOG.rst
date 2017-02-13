@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.10.0 (2017-02-13)
+--------------------
+
 - Add ``engine_options`` argument to ``SQLClient()`` to provide additional engine options beyond what is supported by the ``config`` argument.
 - Add ``SQLClient.bulk_insert`` for performing an INSERT with a multi-row VALUES clause.
 - Add ``SQLClient.bulk_insert_many`` for performing an ``executemany()`` DBAPI call.
