@@ -60,6 +60,13 @@ def test_sql_client_proxy_property(db, proxy, attr):
     'expunge',
     'expunge_all',
     'prune',
+    'bulk_insert_mappings',
+    'bulk_save_objects',
+    'bulk_update_mappings',
+    'is_active',
+    'is_modified',
+    'no_autoflush',
+    'prepare'
 ])
 def test_sql_client_property(db, attr):
     """Test that database manager's proxy attributes map to expected

@@ -5,6 +5,16 @@ Changelog
 - Add ``engine_options`` argument to ``SQLClient()`` to provide additional engine options beyond what is supported by the ``config`` argument.
 - Add ``SQLClient.bulk_insert`` for performing an INSERT with a multi-row VALUES clause.
 - Add ``SQLClient.bulk_insert_many`` for performing an ``executemany()`` DBAPI call.
+- Add additional ``SQLClient.session`` proxy properties on ``SQLClient.<proxy>``:
+
+  - ``bulk_insert_mappings``
+  - ``bulk_save_objects``
+  - ``bulk_update_mappings``
+  - ``is_active``
+  - ``is_modified``
+  - ``no_autoflush``
+  - ``preapre``
+
 - Store ``SQLClient.models`` as a static ``dict`` instead of computed property but recompute if an attribute error is detected for ``SQLClient.<Model>`` to handle the case of a late model class import.
 - Fix handling of duplicate base class names during ``SQLClient.models`` creation for model classes that are defined in different submodules. Previously, duplicate model class names prevented those models from being saved via ``SQLClient.save()``.
 

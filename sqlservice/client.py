@@ -354,6 +354,16 @@ class SQLClient(object):
         return self.session.execute
 
     @property
+    def prepare(self):
+        """Proxy property to :meth:`session.prepare`."""
+        return self.session.prepare
+
+    @property
+    def no_autoflush(self):
+        """Proxy property to :meth:`session.no_autoflush`."""
+        return self.session.no_autoflush
+
+    @property
     def scalar(self):
         """Proxy property to :meth:`session.scalar`."""
         return self.session.scalar
@@ -372,6 +382,16 @@ class SQLClient(object):
     def invalidate(self):
         """Proxy property to :meth:`session.invalidate`."""
         return self.session.invalidate
+
+    @property
+    def is_active(self):
+        """Proxy property to :attr:`session.is_active`."""
+        return self.session.is_active
+
+    @property
+    def is_modified(self):
+        """Proxy property to :meth:`session.is_modified`."""
+        return self.session.is_modified
 
     @property
     def remove(self):
@@ -537,6 +557,21 @@ class SQLClient(object):
         else:
             insert_stmt = mapper
         return self.execute(insert_stmt.values(), mappings)
+
+    @property
+    def bulk_insert_mappings(self):
+        """Proxy property to :meth:`session.bulk_insert_mappings`."""
+        return self.session.bulk_insert_mappings
+
+    @property
+    def bulk_save_objects(self):
+        """Proxy property to :meth:`session.bulk_save_objects`."""
+        return self.session.bulk_save_objects
+
+    @property
+    def bulk_update_mappings(self):
+        """Proxy property to :meth:`session.bulk_update_mappings`."""
+        return self.session.bulk_update_mappings
 
     def destroy(self, data, model_class=None, synchronize_session=False):
         """Delete bulk records from `data`.
