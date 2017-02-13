@@ -270,7 +270,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, project, 'SQLService Documentation', [author], 1)
+    (master_doc, project, project + ' Documentation', [author], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -283,7 +283,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, project, 'SQLService Documentation',
+  (master_doc, project, project + ' Documentation',
    author, project, project_description,
    'Miscellaneous'),
 ]
