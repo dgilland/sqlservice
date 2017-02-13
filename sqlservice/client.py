@@ -497,6 +497,47 @@ class SQLClient(object):
                          after=after,
                          identity=identity)
 
+    def bulk_insert(self, mapper, mappings):
+        """Perform a bulk insert into table/statement represented by `mapper`
+        while utilizing a special syntax that replaces the tradtional
+        ``executemany()`` DBAPI call with a multi-row VALUES clause for a
+        single INSERT statement.
+
+        See :meth:`bulk_insert_many` for bulk inserts using ``executemany()``.
+
+        Args:
+            mapper: An ORM class or SQLAlchemy insert-statement object.
+            mappings (list): List of ``dict`` objects to insert.
+
+        Returns:
+            ResultProxy
+        """
+        if hasattr(mapper, '__table__'):
+            insert_stmt = mapper.__table__.insert()
+        else:
+            insert_stmt = mapper
+        return self.execute(insert_stmt.values(mappings))
+
+    def bulk_insert_many(self, mapper, mappings):
+        """Perform a bulk insert into table/statement represented by `mapper`
+        while utilizing the ``executemany()`` DBAPI call.
+
+        See :meth:`bulk_insert` for bulk inserts using a multi-row VALUES
+        clause for a single INSERT statement.
+
+        Args:
+            mapper: An ORM class or SQLAlchemy insert-statement object.
+            mappings (list): List of ``dict`` objects to insert.
+
+        Returns:
+            ResultProxy
+        """
+        if hasattr(mapper, '__table__'):
+            insert_stmt = mapper.__table__.insert()
+        else:
+            insert_stmt = mapper
+        return self.execute(insert_stmt.values(), mappings)
+
     def destroy(self, data, model_class=None, synchronize_session=False):
         """Delete bulk records from `data`.
 

@@ -413,6 +413,42 @@ def test_insert_all_models(db, model_query, data_pool):
     assert set(models) == set(dbmodels)
 
 
+@parametrize('insert_stmt,mappings', [
+    (AModel,
+     [{'name': random_alpha()},
+      {'name': random_alpha()},
+      {'name': random_alpha()}]),
+    (AModel.__table__.insert(),
+     [{'name': random_alpha()},
+      {'name': random_alpha()},
+      {'name': random_alpha()}]),
+])
+def test_bulk_insert(db, insert_stmt, mappings):
+    """Test bulk insert of data."""
+    db.bulk_insert(insert_stmt, mappings)
+
+    for mapping in mappings:
+        assert db[AModel].filter_by(**mapping).one()
+
+
+@parametrize('insert_stmt,mappings', [
+    (AModel,
+     [{'name': random_alpha()},
+      {'name': random_alpha()},
+      {'name': random_alpha()}]),
+    (AModel.__table__.insert(),
+     [{'name': random_alpha()},
+      {'name': random_alpha()},
+      {'name': random_alpha()}]),
+])
+def test_bulk_insert_many(db, insert_stmt, mappings):
+    """Test bulk insert many of data."""
+    db.bulk_insert_many(insert_stmt, mappings)
+
+    for mapping in mappings:
+        assert db[AModel].filter_by(**mapping).one()
+
+
 def test_update_model(db, model_query, model_pool):
     """Test query model update."""
     model = model_pool[model_query.model_class]
