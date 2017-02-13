@@ -128,8 +128,8 @@ def test_nested_trans_single_rollback_before_commit(db, rollback_event):
         with db.transaction():
             with db.transaction():
                 with db.transaction():
-                    raise MyTestError(('Exception occurs at the bottom-most '
-                                       'context before commit issued.'))
+                    raise MyTestError('Exception occurs at the bottom-most '
+                                      'context before commit issued.')
 
     assert rollback_event.call_count == 1
 
@@ -188,3 +188,12 @@ def test_session_options():
 
     db = SQLClient(session_options={'autocommit': False})
     assert db.session.autocommit is False
+
+
+def test_engine_options():
+    """Test that SQLClient's engine can be configured with extra options."""
+    db = SQLClient(engine_options={'echo': True})
+    assert db.engine.echo is True
+
+    db = SQLClient(engine_options={'echo': False})
+    assert db.engine.echo is False

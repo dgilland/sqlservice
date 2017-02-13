@@ -96,7 +96,8 @@ class SQLClient(object):
                  model_class=None,
                  query_class=SQLQuery,
                  session_class=Session,
-                 session_options=None):
+                 session_options=None,
+                 engine_options=None):
         if model_class is None:  # pragma: no cover
             model_class = declarative_base()
 
@@ -122,7 +123,7 @@ class SQLClient(object):
 
         self.config.update(config or {})
 
-        engine_options = self.make_engine_options()
+        engine_options = self.make_engine_options(engine_options)
         session_options = self.make_session_options(session_options)
 
         self.engine = self.create_engine(self.config['SQL_DATABASE_URI'],
@@ -177,11 +178,11 @@ class SQLClient(object):
 
         return orm.scoped_session(session_factory, scopefunc=scopefunc)
 
-    def make_engine_options(self):
+    def make_engine_options(self, extra_options=None):
         """Return engine options from :attr:`config` for use in
         ``sqlalchemy.create_engine``.
         """
-        return self._make_options((
+        options = self._make_options((
             ('SQL_ECHO', 'echo'),
             ('SQL_ECHO_POOL', 'echo_pool'),
             ('SQL_ENCODING', 'ecoding'),
@@ -192,6 +193,11 @@ class SQLClient(object):
             ('SQL_POOL_RECYCLE', 'pool_recycle'),
             ('SQL_MAX_OVERFLOW', 'max_overflow')
         ))
+
+        if extra_options:
+            options.update(extra_options)
+
+        return options
 
     def make_session_options(self, extra_options=None):
         """Return session options from :attr:`config` for use in

@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Add ``engine_options`` argument to ``SQLClient()`` to provide additional engine options beyond what is supported by the ``config`` argument.
+
+
 v0.9.1 (2017-01-12)
 -------------------
 
