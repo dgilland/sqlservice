@@ -8,6 +8,13 @@ python:
   - "3.4"
   - "3.5"
 
+addons:
+  apt:
+    sources:
+      - travis-ci/sqlite3
+    packages:
+      - sqlite3
+
 # command to install dependencies
 install:
   - make travisci-install
