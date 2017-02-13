@@ -3,6 +3,8 @@ Changelog
 
 
 - Add ``engine_options`` argument to ``SQLClient()`` to provide additional engine options beyond what is supported by the ``config`` argument.
+- Store ``SQLClient.models`` as a static ``dict`` instead of computed property but recompute if an attribute error is detected for ``SQLClient.<Model>`` to handle the case of a late model class import.
+- Fix handling of duplicate base class names during ``SQLClient.models`` creation for model classes that are defined in different submodules. Previously, duplicate model class names prevented those models from being saved via ``SQLClient.save()``.
 
 
 v0.9.1 (2017-01-12)

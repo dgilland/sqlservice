@@ -21,6 +21,7 @@ parametrize = pytest.mark.parametrize
 
 
 Model = declarative_base()
+DupModel = declarative_base()
 
 
 class AModel(Model):
@@ -69,6 +70,11 @@ class DModel(Model):
                    default=lambda val: int(pyd.unique_id()))
     name = sa.Column(sa.types.String(50))
     a_id = sa.Column(sa.types.Integer(), sa.ForeignKey('test_a.id'))
+
+
+class DupAModel(DupModel):
+    __tablename__ = 'test_dup_a'
+    id = sa.Column(sa.types.Integer(), primary_key=True)
 
 
 @pytest.fixture

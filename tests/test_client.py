@@ -7,6 +7,8 @@ from sqlservice import SQLClient
 
 from .fixtures import (
     AModel,
+    DupModel,
+    DupAModel,
     MyTestError,
     parametrize,
     random_alpha
@@ -197,3 +199,34 @@ def test_engine_options():
 
     db = SQLClient(engine_options={'echo': False})
     assert db.engine.echo is False
+
+
+def test_duplicate_model_class_name():
+    """Test that duplicate model class names are supported by SQLClient model
+    registry.
+    """
+    # Since we're going to shadow the same model name, we need an alias to it
+    # for testing.
+    global DupAModel
+    _DupAModel = DupAModel
+
+    class DupAModel(DupModel):
+        __tablename__ = 'test_dup_dup_a'
+        id = sa.Column(sa.types.Integer(), primary_key=True)
+
+    db = SQLClient(model_class=DupModel)
+    db.create_all()
+
+    assert 'tests.fixtures.DupAModel' in db.models
+    assert db.models['tests.fixtures.DupAModel'] is _DupAModel
+
+    assert 'tests.test_client.DupAModel' in db.models
+    assert db.models['tests.test_client.DupAModel'] is DupAModel
+
+    model1 = DupAModel()
+    assert db.save(model1) is model1
+
+    model2 = _DupAModel()
+    assert db.save(model2) is model2
+
+    del DupAModel

@@ -10,6 +10,7 @@ from contextlib import contextmanager
 
 import sqlalchemy as sa
 from sqlalchemy import orm
+from sqlalchemy.ext.declarative.clsregistry import _MultipleClassMarker
 from sqlalchemy.orm.exc import UnmappedError
 from sqlalchemy.orm.session import Session
 from sqlalchemy.engine.url import make_url
@@ -132,6 +133,7 @@ class SQLClient(object):
                                            session_options,
                                            session_class=self.session_class,
                                            query_class=self.query_class)
+        self.update_models_registry()
 
     def create_engine(self, uri, options=None):
         """Factory function to create a database engine using `config` options.
@@ -224,6 +226,41 @@ class SQLClient(object):
                 for cfg_key, opt_key in key_mapping
                 if self.config.get(cfg_key) is not None}
 
+    def update_models_registry(self):
+        """Update :attr:`models` registry as computed from :attr:`model_class`.
+        """
+        self.models = self.create_models_registry(self.model_class)
+
+    def create_models_registry(self, model_class):
+        """Return model registry ``dict`` with model names as keys and
+        corresponding model classes as values.
+        """
+        models = {}
+        class_registry = getattr(model_class, '_decl_class_registry', None)
+
+        if not class_registry:
+            return models
+
+        for name, model in iteritems(class_registry):
+            if name.startswith('_sa_'):
+                continue
+
+            if isinstance(model, _MultipleClassMarker):
+                # Handle case where there are multiple ORM models with the same
+                # base class name but located in different submodules.
+                model = list(model)
+
+                if len(model) == 1:  # pragma: no cover
+                    models[name] = model[0]
+                else:
+                    for obj in list(model):
+                        modobj = '{0}.{1}'.format(obj.__module__, obj.__name__)
+                        models[modobj] = obj
+            else:
+                models[name] = model
+
+        return models
+
     @property
     def url(self):
         """Proxy property to database engine's database URL."""
@@ -253,19 +290,6 @@ class SQLClient(object):
         table names as keys and corresponding table objects as values.
         """
         return self.metadata.tables
-
-    @property
-    def models(self):
-        """Return model registry ``dict`` with model names as keys and
-        corresponding model classes as values.
-        """
-        models = getattr(self.model_class, '_decl_class_registry', None)
-
-        if models:
-            models = {name: model for name, model in iteritems(models)
-                      if not name.startswith('_sa_')}
-
-        return models
 
     def create_all(self):
         """Create all metadata (tables, etc) contained within :attr:`metadata`.
@@ -534,10 +558,19 @@ class SQLClient(object):
                 name found in :attr:`metadata`.
         """
         if attr not in self.models:  # pragma: no cover
+            # Potentially, this model could have been imported after creation
+            # of this class. Since we got a bad attribute, let's go ahead and
+            # update the registry and try again.
+            self.update_models_registry()
+
+        if attr not in self.models:  # pragma: no cover
             raise AttributeError('The attribute "{0}" is not an attribute of '
-                                 '{1} nor is it a model class name in the '
-                                 'declarative model class registry. Valid '
-                                 'model names are: {2}'
+                                 '{1} nor is it a unique model class name in '
+                                 'the declarative model class registry. Valid '
+                                 'model names are: {2}. If a model name is '
+                                 'shown as a full module path, then that '
+                                 'model class name is not unique and cannot '
+                                 'be referenced via attribute access.'
                                  .format(attr,
                                          self.__class__.__name__,
                                          ', '.join(self.models)))
