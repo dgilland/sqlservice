@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.11.0 (2017-03-10)
+--------------------
+
 - Make ``SQLClient.save()`` update the declarative model registry whenever an model class isn't in it. This allows saving to work when a ``SQLClient`` instance was created before models have been imported yet.
 - Make ``SQLClient.expunge()`` support multiple instances.
 - Make ``SQLClient.save()`` and ``SQLQuery.save()`` handle saving empty dictionaries.
