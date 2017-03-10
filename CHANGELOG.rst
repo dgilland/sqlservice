@@ -3,6 +3,7 @@ Changelog
 
 
 - Make ``SQLClient.expunge()`` support multiple instances.
+- Make ``SQLClient.save()`` and ``SQLQuery.save()`` handle saving empty dictionaries.
 
 
 v0.10.0 (2017-02-13)

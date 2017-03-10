@@ -693,12 +693,6 @@ def test_model_get_set_item():
     assert model['name'] == 'foo'
 
 
-@parametrize('value', [{}, [], False, None, 0])
-def test_empty_save(model_query, value):
-    """Test that an empty saving an empty value returns None."""
-    assert model_query.save(value) is None
-
-
 def test_save_invalid_type(db):
     """Test that save with an invalid type raises an exception."""
     with pytest.raises(TypeError):
@@ -707,7 +701,7 @@ def test_save_invalid_type(db):
 
 @parametrize('value', [{}, [], False, None, 0])
 def test_empty_destroy(model_query, value):
-    """Test that an empty saving an empty value returns None."""
+    """Test that destroying an empty value returns None."""
     assert model_query.destroy(value) is None
 
 

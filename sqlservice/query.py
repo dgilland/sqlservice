@@ -118,9 +118,6 @@ class SQLQuery(orm.Query):
         Raises:
             InvalidRequestError: When :attr:`model_class` is ``None``.
         """
-        if not data:
-            return
-
         model_class = self._only_model_class_zero('save')
 
         if isinstance(data, (list, tuple)):
