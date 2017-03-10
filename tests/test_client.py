@@ -238,6 +238,20 @@ def test_duplicate_model_class_name():
     del DupAModel
 
 
+@parametrize('value', [{}, [{}]])
+def test_save_invalid_type(db, value):
+    """Test that save with an invalid type raises an exception."""
+    with pytest.raises(TypeError):
+        db.save(value)
+
+
+@parametrize('value', [{}, [{}]])
+def test_destroy_invalid_type(db, value):
+    """Test that destroy with an invalid type raises an exception."""
+    with pytest.raises(TypeError):
+        db.destroy(value)
+
+
 def test_expunge_handles_multiple_instances(db):
     """Test that SQLClient.expunge can expunge multiple instances."""
     models = [AModel(), AModel(), AModel()]

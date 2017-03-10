@@ -500,16 +500,31 @@ class SQLClient(object):
         """
         if not isinstance(models, (list, tuple)):
             _models = [models]
+            as_list = False
         else:
             _models = models
+            as_list = True
 
         for idx, model in enumerate(_models):
+            if type(model) in self.models.values():
+                continue
+
+            self.update_models_registry()
+
             if type(model) not in self.models.values():
-                raise TypeError('Type of value given to save() method is not '
-                                'a valid SQLALchemy declarative class. '
-                                'Item with index {0} and with value "{1}" is '
-                                'an instance of "{2}".'
-                                .format(idx, model, type(model)))
+                if as_list:
+                    idx_msg = 'Item with index {0} and value '.format(idx)
+                else:
+                    idx_msg = ''
+
+                raise TypeError(
+                    'Type of value given to save() method is not a recognized '
+                    'SQLALchemy declarative class that derives from {0}. '
+                    '{1}"{2}" is an instance of "{3}".'
+                    .format(self.model_class,
+                            idx_msg,
+                            model,
+                            type(model)))
 
         return core.save(self.session,
                          models,
@@ -640,15 +655,15 @@ class SQLClient(object):
             self.update_models_registry()
 
         if attr not in self.models:  # pragma: no cover
-            raise AttributeError('The attribute "{0}" is not an attribute of '
-                                 '{1} nor is it a unique model class name in '
-                                 'the declarative model class registry. Valid '
-                                 'model names are: {2}. If a model name is '
-                                 'shown as a full module path, then that '
-                                 'model class name is not unique and cannot '
-                                 'be referenced via attribute access.'
-                                 .format(attr,
-                                         self.__class__.__name__,
-                                         ', '.join(self.models)))
+            raise AttributeError(
+                'The attribute "{0}" is not an attribute of {1} nor is it a '
+                'unique model class name in the declarative model class '
+                'registry of {2}. Valid model names are: {3}. If a model name '
+                'is shown as a full module path, then that model class name '
+                'is not unique and cannot be referenced via attribute access.'
+                .format(attr,
+                        self.__class__.__name__,
+                        self.model_class,
+                        ', '.join(self.models)))
 
         return self.query(self.models[attr])
