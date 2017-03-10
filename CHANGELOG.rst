@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Make ``SQLClient.expunge()`` support multiple instances.
+
+
 v0.10.0 (2017-02-13)
 --------------------
 

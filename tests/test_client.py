@@ -57,7 +57,6 @@ def test_sql_client_proxy_property(db, proxy, attr):
     'transaction',
     'expire',
     'expire_all',
-    'expunge',
     'expunge_all',
     'prune',
     'bulk_insert_mappings',
@@ -237,3 +236,17 @@ def test_duplicate_model_class_name():
     assert db.save(model2) is model2
 
     del DupAModel
+
+
+def test_expunge_handles_multiple_instances(db):
+    """Test that SQLClient.expunge can expunge multiple instances."""
+    models = [AModel(), AModel(), AModel()]
+    db.save(models)
+
+    for model in models:
+        assert model in db.session
+
+    db.expunge(*models)
+
+    for model in models:
+        assert model not in db.session

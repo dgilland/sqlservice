@@ -439,10 +439,10 @@ class SQLClient(object):
         """Proxy property to :meth:`session.expire`."""
         return self.session.expire_all
 
-    @property
-    def expunge(self):
-        """Proxy property to :meth:`session.expunge`."""
-        return self.session.expunge
+    def expunge(self, *instances):
+        """Remove all `instances` from :attr:`session`."""
+        for instance in instances:
+            self.session.expunge(instance)
 
     @property
     def expunge_all(self):
