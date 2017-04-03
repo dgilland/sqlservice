@@ -287,28 +287,22 @@ class SQLQuery(orm.Query):
         """
         return pyd.chain(self.all())
 
-    def index_by(self, callback=None):
-        """Index items returned by :meth:`all` using `callback`."""
-        return pyd.index_by(self.all(), callback)
+    def key_by(self, iteratee=None):
+        """Index items returned by :meth:`all` using `iteratee`."""
+        return pyd.key_by(self.all(), iteratee)
 
-    def stack_by(self, callback=None):
-        """Group items returned by :meth:`all` using `callback`."""
-        return pyd.group_by(self.all(), callback)
+    def stack_by(self, iteratee=None):
+        """Group items returned by :meth:`all` using `iteratee`."""
+        return pyd.group_by(self.all(), iteratee)
 
-    def map(self, callback=None):
-        """Map `callback` to each item returned by :meth:`all`."""
-        return pyd.map_(self.all(), callback)
+    def map(self, iteratee=None):
+        """Map `iteratee` to each item returned by :meth:`all`."""
+        return pyd.map_(self.all(), iteratee)
 
-    def reduce(self, callback=None, initial=None):
-        """Reduce :meth:`all` using `callback`."""
-        return pyd.reduce_(self.all(), callback, initial)
+    def reduce(self, iteratee=None, initial=None):
+        """Reduce :meth:`all` using `iteratee`."""
+        return pyd.reduce_(self.all(), iteratee, initial)
 
-    def reduce_right(self, callback=None, initial=None):
-        """Reduce reversed :meth:`all` using `callback`."""
-        return pyd.reduce_right(self.all(), callback, initial)
-
-    def pluck(self, column):
-        """Pluck `column` attribute values from :meth:`all` results and
-        return as list.
-        """
-        return pyd.pluck(self.all(), column)
+    def reduce_right(self, iteratee=None, initial=None):
+        """Reduce reversed :meth:`all` using `iteratee`."""
+        return pyd.reduce_right(self.all(), iteratee, initial)

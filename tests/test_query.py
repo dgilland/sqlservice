@@ -262,33 +262,34 @@ def test_find_order_by(model_query, models_pool, order_by):
     assert ret == recs
 
 
-@parametrize('model_class,data,callback,expected', [
+@parametrize('model_class,data,iteratee,expected', [
     (AModel,
      [{'name': 'a'}, {'name': 'b'}],
      lambda model: model.name * 2,
      ['aa', 'bb']),
+    (AModel, [{'name': 'a'}, {'name': 'b'}], 'name', ['a', 'b']),
 ])
-def test_query_map(db, model_class, data, callback, expected):
+def test_query_map(db, model_class, data, iteratee, expected):
     """Test SQLQuery.map."""
     db.save([model_class(item) for item in data])
-    assert db.query(model_class).map(callback) == expected
+    assert db.query(model_class).map(iteratee) == expected
 
 
-@parametrize('model_class,data,callback,initial,expected', [
+@parametrize('model_class,data,iteratee,initial,expected', [
     (AModel,
      [{'name': 'a'}, {'name': 'b'}],
      lambda ret, model: ret + model.name,
      '',
      'ab'),
 ])
-def test_query_reduce(db, model_class, data, callback, initial, expected):
+def test_query_reduce(db, model_class, data, iteratee, initial, expected):
     """Test SQLQuery.reduce."""
     db.save([model_class(item) for item in data])
-    result = db.query(model_class).reduce(callback, initial=initial)
+    result = db.query(model_class).reduce(iteratee, initial=initial)
     assert result == expected
 
 
-@parametrize('model_class,data,callback,initial,expected', [
+@parametrize('model_class,data,iteratee,initial,expected', [
     (AModel,
      [{'name': 'a'}, {'name': 'b'}],
      lambda ret, model: ret + model.name,
@@ -298,22 +299,13 @@ def test_query_reduce(db, model_class, data, callback, initial, expected):
 def test_query_reduce_right(db,
                             model_class,
                             data,
-                            callback,
+                            iteratee,
                             initial,
                             expected):
     """Test SQLQuery.reduce_right."""
     db.save([model_class(item) for item in data])
-    result = db.query(model_class).reduce_right(callback, initial=initial)
+    result = db.query(model_class).reduce_right(iteratee, initial=initial)
     assert result == expected
-
-
-@parametrize('model_class,data,column,expected', [
-    (AModel, [{'name': 'a'}, {'name': 'b'}], 'name', ['a', 'b']),
-])
-def test_query_pluck(db, model_class, data, column, expected):
-    """Test SQLQuery.pluck."""
-    db.save([model_class(item) for item in data])
-    assert db.query(model_class).pluck(column) == expected
 
 
 @parametrize('model_class,data', [
@@ -335,31 +327,31 @@ def test_query_chain(db, model_class, data):
     assert results == data
 
 
-@parametrize('model_class,data,callback,expected', [
+@parametrize('model_class,data,iteratee,expected', [
     (AModel,
      [{'name': 'a'}, {'name': 'b'}],
      'name',
      {'a': {'name': 'a'}, 'b': {'name': 'b'}}),
 ])
-def test_query_index_by(db, model_class, data, callback, expected):
-    """Test SQLQuery.index_by."""
+def test_query_key_by(db, model_class, data, iteratee, expected):
+    """Test SQLQuery.key_by."""
     db.save([model_class(item) for item in data])
-    results = db.query(model_class).index_by(callback)
+    results = db.query(model_class).key_by(iteratee)
 
     for key, value in results.items():
         assert pyd.pick(dict(value), pyd.keys(expected[key])) == expected[key]
 
 
-@parametrize('model_class,data,callback,expected', [
+@parametrize('model_class,data,iteratee,expected', [
     (AModel,
      [{'name': 'a'}, {'name': 'b'}, {'name': 'a'}],
      'name',
      {'a': [{'name': 'a'}, {'name': 'a'}], 'b': [{'name': 'b'}]}),
 ])
-def test_query_stack_by(db, model_class, data, callback, expected):
+def test_query_stack_by(db, model_class, data, iteratee, expected):
     """Test SQLQuery.stack_by."""
     db.save([model_class(item) for item in data])
-    results = db.query(model_class).stack_by(callback)
+    results = db.query(model_class).stack_by(iteratee)
 
     for key, items in results.items():
         items = [pyd.pick(dict(item), pyd.keys(expected[key][0]))
