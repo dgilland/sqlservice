@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.12.0 (2017-04-03)
+--------------------
+
 - Bump minimum requirement for pydash to ``v4.0.0``. (**breaking change**)
 - Remove ``Query.pluck`` in favor or ``Query.map`` since ``map`` can do everything ``pluck`` could. (**breaking change**)
 - Rename ``Query.index_by`` to ``Query.key_by``. (**breaking change**)
