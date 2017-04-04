@@ -299,6 +299,12 @@ class SQLQuery(orm.Query):
         """Map `iteratee` to each item returned by :meth:`all`."""
         return pyd.map_(self.all(), iteratee)
 
+    def pluck(self, path):
+        """Pluck `path` attribute values from :meth:`all` results and
+        return as list.
+        """
+        return pyd.pluck(self.all(), path)
+
     def reduce(self, iteratee=None, initial=None):
         """Reduce :meth:`all` using `iteratee`."""
         return pyd.reduce_(self.all(), iteratee, initial)

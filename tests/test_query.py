@@ -275,6 +275,16 @@ def test_query_map(db, model_class, data, iteratee, expected):
     assert db.query(model_class).map(iteratee) == expected
 
 
+@parametrize('model_class,data,column,expected', [
+    (AModel, [{'name': 'a'}, {'name': 'b'}], 'name', ['a', 'b']),
+    (AModel, [{'name': 'a', 'c': {'name': 'cname'}}], 'c.name', ['cname'])
+])
+def test_query_pluck(db, model_class, data, column, expected):
+    """Test SQLQuery.pluck."""
+    db.save([model_class(item) for item in data])
+    assert db.query(model_class).pluck(column) == expected
+
+
 @parametrize('model_class,data,iteratee,initial,expected', [
     (AModel,
      [{'name': 'a'}, {'name': 'b'}],
