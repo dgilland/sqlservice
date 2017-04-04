@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.12.1 (2017-04-04)
+--------------------
+
 - Bump minimum requirement for pydash to ``v4.0.1``.
 - Revert removal of ``Query.pluck`` but now ``pluck`` works with a deep path *and* path list (e.g. ``['a', 'b', 0, 'c']`` to get ``'value'`` in ``{'a': {'b': [{'c': 'value'}]}}`` which is something that ``Query.map`` doesn't support.
 
