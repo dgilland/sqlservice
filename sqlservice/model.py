@@ -7,9 +7,15 @@ The declarative base model class for SQLAlchemy ORM.
 """
 
 from collections import deque
+from functools import partial
 
+from pydash.helpers import callit
 import sqlalchemy as sa
-from sqlalchemy.ext import declarative
+from sqlalchemy.ext.declarative import (
+    DeclarativeMeta,
+    declarative_base as _declarative_base,
+    declared_attr
+)
 from sqlalchemy.util._collections import ImmutableProperties
 
 from . import core, event
@@ -17,16 +23,16 @@ from .utils import classonce, is_sequence
 from ._compat import iteritems
 
 
-class ModelMeta(declarative.DeclarativeMeta):
+class ModelMeta(DeclarativeMeta):
     """Model metaclass that prepares model classes for event registration
     hooks.
     """
     def __new__(mcs, name, bases, dct):
-        cls = declarative.DeclarativeMeta.__new__(mcs, name, bases, dct)
+        cls = DeclarativeMeta.__new__(mcs, name, bases, dct)
         return cls
 
     def __init__(cls, name, bases, dct):
-        declarative.DeclarativeMeta.__init__(cls, name, bases, dct)
+        DeclarativeMeta.__init__(cls, name, bases, dct)
 
         if hasattr(cls, '__table__'):
             event.register(cls, dct)
@@ -36,6 +42,11 @@ class ModelBase(object):
     """Declarative base for all ORM model classes."""
     metaclass = ModelMeta
     metadata = None
+
+    @declared_attr
+    def __dict_args__(cls):
+        """Per model configuration of :meth:`to_dict` serialization options."""
+        return {'adapters': {}}
 
     def __init__(self, data=None, **kargs):
         self.update(data, **kargs)
@@ -180,6 +191,12 @@ class ModelBase(object):
         Returns:
             dict
         """
+        args = getattr(self, '__dict_args__', {})
+        adapters = args.get('adapters')
+        default_adapter = partial(_default_dict_adapter,
+                                  relationships=self.relationships())
+        default_adapter._argcount = 2
+
         session = sa.orm.object_session(self)
         data = self.descriptors_to_dict()
 
@@ -188,27 +205,10 @@ class ModelBase(object):
             data = self.descriptors_to_dict()
 
         for key, value in iteritems(data):
-            relationships = self.relationships()
-
-            if hasattr(value, 'to_dict'):
-                # Nest call to child to_dict methods.
-                value = value.to_dict()
-            elif is_sequence(value):
-                # Nest calls to child to_dict methods for sequence values.
-                value = [val.to_dict() if hasattr(val, 'to_dict') else val
-                         for val in value]
-            elif isinstance(value, dict):
-                # Nest calls to child to_dict methods for dict values.
-                value = {ky: val.to_dict() if hasattr(val, 'to_dict') else val
-                         for ky, val in iteritems(value)}
-            elif key in relationships and value is None:
-                # Instead of returning a null relationship value as ``None``,
-                # return it as an empty dict. This gives a more consistent
-                # representation of the relationship value type (i.e. a non-
-                # null relationship value would be a dict).
-                value = {}
-
-            data[key] = value
+            adapter = _get_dict_adapter(adapters,
+                                        value,
+                                        default=default_adapter)
+            data[key] = callit(adapter, value, key)
 
         return data
 
@@ -289,9 +289,41 @@ def declarative_base(cls=ModelBase, metadata=None, metaclass=None):
     if metaclass:
         options['metaclass'] = metaclass
 
-    Base = declarative.declarative_base(**options)
+    Base = _declarative_base(**options)
 
     if metaclass:
         Base.metaclass = metaclass
 
     return Base
+
+
+def _get_dict_adapter(adapters, value, default):
+    adapter = default
+
+    for cls, _adapter in iteritems(adapters):
+        if isinstance(value, cls):
+            adapter = _adapter
+            break
+
+    return adapter
+
+
+def _default_dict_adapter(value, key, relationships):
+    if hasattr(value, 'to_dict'):
+        # Nest call to child to_dict methods.
+        value = value.to_dict()
+    elif is_sequence(value):
+        # Nest calls to child to_dict methods for sequence values.
+        value = [val.to_dict() if hasattr(val, 'to_dict') else val
+                 for val in value]
+    elif isinstance(value, dict):
+        # Nest calls to child to_dict methods for dict values.
+        value = {ky: val.to_dict() if hasattr(val, 'to_dict') else val
+                 for ky, val in iteritems(value)}
+    elif key in relationships and value is None:
+        # Instead of returning a null relationship value as ``None``,
+        # return it as an empty dict. This gives a more consistent
+        # representation of the relationship value type (i.e. a non-
+        # null relationship value would be a dict).
+        value = {}
+    return value

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import mock
 import pydash as pyd
 import pytest
 import sqlalchemy as sa
@@ -8,7 +9,7 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from sqlservice import core, declarative_base
 
-from .fixtures import AModel, Model, parametrize
+from .fixtures import AModel, DModel, Model, parametrize
 
 
 def test_declarative_base_metadata_as_arg():
@@ -127,3 +128,23 @@ def test_model_to_dict(db, model, expected):
 
     assert pyd.is_match(model.to_dict(), expected)
     assert pyd.is_match(dict(model), expected)
+
+
+@parametrize('adapters,data,expected', [
+    ({list: lambda models, col: [model.id for model in models]},
+     {'ds': [DModel(id=1), DModel(id=2)]},
+     {'ds': [1, 2]}),
+    ({str: lambda val: val[0]},
+     {'name': 'foo'},
+     {'name': 'f'})
+])
+def test_model_to_dict_args_adapters(db, adapters, data, expected):
+    """Test that Model.__dict_args__['exclude_sequence_types'] can be used to
+    skip nested dict serialization of those types.
+    """
+    args = {'adapters': adapters}
+    expected = data if expected is True else expected
+
+    with mock.patch.object(AModel, '__dict_args__', new=args):
+        model = AModel(data)
+        assert dict(model) == expected

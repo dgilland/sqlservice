@@ -28,8 +28,9 @@ def classonce(meth):
 
 
 def is_sequence(obj):
-    """Test if `obj` is an iterable but not ``dict`` or ``str``. Mainly used to
-    determine if `obj` can be treated like a ``list`` for iteration purposes.
+    """Test if `obj` is an iterable but not ``dict`` or ``str``. This function
+    is mainly used to determine if `obj` can be treated like a ``list`` for
+    iteration purposes.
     """
     return (isinstance(obj, Iterable) and
             not isinstance(obj, string_types) and

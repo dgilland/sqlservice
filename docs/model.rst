@@ -185,13 +185,39 @@ Want to serialize your models to ``dict`` objects?
     user.to_dict()
     dict(user)
     # {'id': 1,
-       'devices': [{'id': 1, 'name': 'device1', 'user_id': 1}, {'id': 2, 'name': 'device2', 'user_id': 1}],
        'name': 'Bob Smith',
-       'email': 'bobsmith@example.com'}
+       'email': 'bobsmith@example.com',
+       'about': {'nickname': 'Bo', 'hometown': 'Example City'},
+       'devices': [{'id': 1, 'name': 'device1', 'user_id': 1}, {'id': 2, 'name': 'device2', 'user_id': 1}]}
+
 
 As you can see, relationships are serialized too.
 
 But how does this handle lazy loaded models? When serializing the only data that is serialized is what is already loaded. This is done to avoid triggerring a large number of individual queries on lazily loaded attributes. Essentially, ``Model.to_dict()`` only looks at what's already present in ``user.__dict__`` and never touches any attributes directly (which could lead to additional queries). So it's up to you to ensure that your model is loaded with the data you want to be serialized before calling ``to_dict()``.
+
+Need to serialize certain types differently? Add some adapters using ``__dict_args__`` class attribute:
+
+.. code-block:: python
+
+    class User(Model):
+        ...
+        __dict_args__ = {
+            'adapters': {
+                UserAbout: lambda model: {'nickname': model.nickname},
+                list: lambda items, col: [item.name for item in items],
+                (int, str): lambda value, col: col + ':' + str(value)
+            }
+        }
+
+    dict(user)
+    # {'id': 'id:1',
+       'name': 'name:Bob Smith',
+       'email': 'email:bobsmith@example.com',
+       'about': {'nickname': 'Bo'},
+       'devices': [{'name': 'device1'}, {'device': 'device2'}]}
+
+
+The ``adapters`` argument is expected to be a mapping of classes to their respective serializer handler. The serializer handler should be a callable that accepts up to two arguments: ``(value, column))`` (the arguments passed in are based on the function definition and are automatically detected). The adapter handler is matched to a value when ``isinstance(value, adapter_class)`` returns ``True``. For relationships defined as a ``list`` or other list-like structure, the relationship class' ``__dict_args__`` will be used during nested serialization. If you need to reference classes that aren't defined yet (e.g. other model classes), you can make ``__dict_args__`` a ``@property``.
 
 
 Object Identity
