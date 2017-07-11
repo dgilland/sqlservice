@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+- Add ``ModelBase.__dict_args__`` attribute for providing arguments to ``ModelBase.to_dict``.
+- Add ``adapters`` option to ``ModelBase.__dict_args__`` for mapping model value types to custom serializatoin handlers during ``ModelBase.to_dict()`` call.
+
+
 v0.12.1 (2017-04-04)
 --------------------
 
