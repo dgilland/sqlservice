@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.14.0 (2017-08-03)
+--------------------
+
 - Make ``declarative_base`` pass extra keyword arguments to ``sqlalchemy.ext.declarative.declarative_base``.
 - Remove ``ModelBase.metaclass`` and ``ModelBase.metadata`` hooks for hoisting those values to ``declarative_base()``. Instead, pass optional ``metadata`` and ``metaclass`` arguments directly to ``declarative_base``. (**breaking change**)
 - Replace broken ``declarative_base`` decorator usage with new decorator-only function, ``as_declarative``. Previously, ``@declarative_base`` only worked as a decorator when not "called" (i.e. ``@declarative_base`` worked but ``@declarative_base(...)`` failed).
