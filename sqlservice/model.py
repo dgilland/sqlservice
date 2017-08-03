@@ -40,9 +40,6 @@ class ModelMeta(DeclarativeMeta):
 
 class ModelBase(object):
     """Declarative base for all ORM model classes."""
-    metaclass = ModelMeta
-    metadata = None
-
     @declared_attr
     def __dict_args__(cls):
         """Per model configuration of :meth:`to_dict` serialization options."""
@@ -250,9 +247,9 @@ class ModelBase(object):
         return '<{0}({1})>'.format(self.__class__.__name__, values)
 
 
-def declarative_base(cls=ModelBase, metadata=None, metaclass=None):
     """Function and decorator that converts a normal class into a SQLAlchemy
     declarative base class.
+def declarative_base(cls=ModelBase, metadata=None, metaclass=ModelMeta)
 
     Args:
         cls (type): A type to use as the base for the generated declarative
@@ -271,11 +268,6 @@ def declarative_base(cls=ModelBase, metadata=None, metaclass=None):
     Returns:
         class: Declarative base class
     """
-    if metadata is None:
-        metadata = getattr(cls, 'metadata', None)
-
-    if metaclass is None:
-        metaclass = getattr(cls, 'metaclass', None)
 
     options = {'cls': cls,
                'name': cls.__name__}

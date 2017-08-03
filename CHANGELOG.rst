@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Remove ``ModelBase.metaclass`` and ``ModelBase.metadata`` hooks for hoisting those values to ``declarative_base()``. Instead, pass optional ``metadata`` and ``metaclass`` arguments directly to ``declarative_base``. (**breaking change**)
+
+
 v0.13.0 (2017-07-11)
 --------------------
 
