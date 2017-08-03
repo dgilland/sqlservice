@@ -7,7 +7,7 @@ import sqlalchemy as sa
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from sqlservice import core, declarative_base
+from sqlservice import as_declarative, core, declarative_base
 from sqlservice.model import ModelBase, ModelMeta
 
 from .fixtures import AModel, DModel, Model, parametrize
@@ -27,8 +27,13 @@ def test_declarative_base():
     assert Model.metaclass is MetaClass
 
 
+def test_as_declarative():
+    """Test as_declarative()."""
+    @as_declarative()
+    class Model(object):
         pass
 
+    assert Model.metaclass is ModelMeta
 
 
 @parametrize('model,expected', [

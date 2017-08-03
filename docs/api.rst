@@ -13,6 +13,7 @@ The sqlservice package imports commonly used objects into it's top-level namespa
         ModelBase,
         SQLClient,
         SQLQuery,
+        as_declarative,
         declarative_base,
         destroy,
         event,

@@ -295,6 +295,14 @@ def declarative_base(cls=ModelBase,
     return Base
 
 
+def as_declarative(**kargs):
+    """Decorator version of :func:`declarative_base`."""
+    def decorated(cls):
+        kargs['cls'] = cls
+        return declarative_base(**kargs)
+    return decorated
+
+
 def _get_dict_adapter(adapters, value, default):
     adapter = default
 

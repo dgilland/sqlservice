@@ -8,14 +8,17 @@ The general approach to using ``sqlservice.ModelBase`` is to use it as the base 
 .. code-block:: python
 
     # in models/base.py
-    from sqlservice import ModelBase, declarative_base
+    from sqlalchemy import MetaData
+    from sqlservice import ModelBase, as_declarative, declarative_base
 
-    @declarative_base
+    metadata = MetaData()
+
+    @as_declarative(metadata=metadata)
     class Model(ModelBase):
         pass
 
-    # declarative_base can also be used as a regular function
-    # Model = declarative_base(ModelBase)
+    # Or using the declarative_base function...
+    # Model = declarative_base(ModelBase, metadata=metadata)
 
 
 .. note:: All keyword arguments to ``sqlservice.as_declarative`` or ``sqlservice.declarative_base`` will be passed to ``sqlalchemy.ext.declarative.declarative_base``.
