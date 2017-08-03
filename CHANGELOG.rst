@@ -2,6 +2,7 @@ Changelog
 =========
 
 
+- Make ``declarative_base`` pass extra keyword arguments to ``sqlalchemy.ext.declarative.declarative_base``.
 - Remove ``ModelBase.metaclass`` and ``ModelBase.metadata`` hooks for hoisting those values to ``declarative_base()``. Instead, pass optional ``metadata`` and ``metaclass`` arguments directly to ``declarative_base``. (**breaking change**)
 
 

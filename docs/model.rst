@@ -17,6 +17,9 @@ The general approach to using ``sqlservice.ModelBase`` is to use it as the base 
     # declarative_base can also be used as a regular function
     # Model = declarative_base(ModelBase)
 
+
+.. note:: All keyword arguments to ``sqlservice.as_declarative`` or ``sqlservice.declarative_base`` will be passed to ``sqlalchemy.ext.declarative.declarative_base``.
+
 From there you can use ``Model`` as the base class for your ORM model classes.
 
 .. code-block:: python
