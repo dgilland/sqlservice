@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Fix typo in ``SQL_ENCODING`` config option mapping to SQLAlchemy parameter. Thanks dsully_!
+
+
 v0.14.0 (2017-08-03)
 --------------------
 
@@ -271,3 +274,6 @@ v0.1.0 (2016-05-24)
 -------------------
 
 - First release.
+
+
+.. _dsully: https://github.com/dsully
