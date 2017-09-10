@@ -187,7 +187,7 @@ class SQLClient(object):
         options = self._make_options((
             ('SQL_ECHO', 'echo'),
             ('SQL_ECHO_POOL', 'echo_pool'),
-            ('SQL_ENCODING', 'ecoding'),
+            ('SQL_ENCODING', 'encoding'),
             ('SQL_CONVERT_UNICODE', 'convert_unicode'),
             ('SQL_ISOLATION_LEVEL', 'isolation_level'),
             ('SQL_POOL_SIZE', 'pool_size'),
