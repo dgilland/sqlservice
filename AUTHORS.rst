@@ -11,4 +11,4 @@ Lead
 Contributors
 ------------
 
-None
+- Dan Sully, `dsully@github <https://github.com/dsully>`_
