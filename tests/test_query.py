@@ -13,14 +13,15 @@ from .fixtures import AModel, BModel, CModel, DModel, parametrize, random_alpha
 
 
 DATASET = [
-    {AModel: {'name': random_alpha()},
+    {AModel: {'name': random_alpha(), 'text': random_alpha()},
      BModel: {'name': random_alpha()}},
     {AModel: {'name': random_alpha(),
+              'text': random_alpha(),
               'c': {'name': random_alpha()},
               'ds': [{'name': random_alpha()},
                      {'name': random_alpha()}]},
      BModel: {'name': random_alpha()}},
-    {AModel: {'id': 1000, 'name': random_alpha()},
+    {AModel: {'id': 1000, 'name': random_alpha(), 'text': random_alpha()},
      BModel: {'id1': 1000, 'id2': 1000, 'name': random_alpha()}},
 ]
 
@@ -144,6 +145,29 @@ def test_find_criteria_as_filter_by(model_query, models_pool):
 
         assert len(ret) == 1
         assert ret[0] is model
+
+
+def test_find_criteria_as_filter_by_on_join(db, model_pool):
+    """Test that find criteria using a filter-by dict works with JOIN."""
+    model = model_pool[AModel]
+    ret = db.query(AModel).outerjoin(CModel).find({'text': model.text})
+    assert len(ret) == 1
+
+
+def test_find_criteria_as_filter_by_with_entities(model_query, models_pool):
+    """Test that find criteria can be passed in as a filter-by dict when using
+    a subset of model entities for the query.
+    """
+    model_class = model_query.model_class
+    models = models_pool[model_query.model_class]
+
+    for model in models:
+        ret = (model_query
+               .with_entities(*(getattr(model_class, col)
+                                for col in model.columns().keys()))
+               .find({key: model[key] for key in model.columns().keys()}))
+
+        assert len(ret) == 1
 
 
 def test_find_one_criteria_as_filter_by(model_query, models_pool):

@@ -11,6 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from . import core
+from ._compat import iteritems
 
 
 class SQLQuery(orm.Query):
@@ -221,16 +222,26 @@ class SQLQuery(orm.Query):
         page = kargs.get('page')
         per_page = kargs.get('per_page')
 
-        if order_by is None and self.model_classes:
-            order_by = core.mapper_primary_key(self.model_classes[0])
+        model_class = self.model_class
+
+        if order_by is None and model_class:
+            order_by = core.mapper_primary_key(self.model_class)
 
         query = self
 
         for criteria in pyd.flatten(criterion):
+            # If we have keyword (dict) criteria, we want to apply it to the
+            # base model (if present) instead of the last joined model.
+            if isinstance(criteria, dict) and model_class:
+                criteria = [getattr(model_class, key) == val
+                            for key, val in iteritems(criteria)]
+
             if isinstance(criteria, dict):
                 query = query.filter_by(**criteria)
             else:
-                query = query.filter(criteria)
+                if not isinstance(criteria, list):
+                    criteria = [criteria]
+                query = query.filter(*criteria)
 
         if order_by is not None:
             if not isinstance(order_by, (list, tuple)):
