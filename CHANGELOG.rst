@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.14.2 (2017-10-17)
+--------------------
+
 - Fix ``Query.search()`` so that ``dict`` filter-by criteria will be applied to the base model class of the query if it's set (i.e. make ``db.query(ModelA).join(ModelB).search({'a_only_field': 'foo'})`` work so that ``{'a_only_field': 'foo'}`` is filtered on ``ModelA.a_only_field`` instead of ``ModelB``). This also applies to ``Query.find()`` and ``Query.find_one()`` which use ``search()`` internally.
 
 
