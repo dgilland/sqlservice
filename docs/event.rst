@@ -33,7 +33,7 @@ Model Events allows one to write event registration more succinctly as:
 
 .. code-block:: python
 
-    from sqlservice import events
+    from sqlservice import event
 
     from myproject import Model
 
@@ -41,12 +41,12 @@ Model Events allows one to write event registration more succinctly as:
         _id = Column(types.Integer(), primary_key=True)
         email = Column(types.String())
 
-        @events.on_set('email', retval=True)
+        @event.on_set('email', retval=True)
         def on_set_email(target, value, oldvalue, initiator):
             print 'received set event for target: {0}'.format(target)
             return value
 
-        @events.before_insert()
+        @event.before_insert()
         def before_insert(mapper, connection, target):
             print ('received "before_insert" event for target: {0}'
                    .format(target))
