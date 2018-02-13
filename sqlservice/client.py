@@ -80,6 +80,10 @@ class SQLClient(object):
                               attribute/object access subsequent to a completed
                               transaction will load from the most recent
                               database state. Defaults to ``True``.
+    **SQL_POOL_PRE_PING**     When ``True` will enable SQLAlchemy's connection 
+                              pool “pre-ping” feature that tests connections 
+                              for liveness upon each checkout. 
+                              Defaults to ``True``. Requires SQLAlchemy 1.2+
     ========================  =================================================
 
     Args:
@@ -119,8 +123,12 @@ class SQLClient(object):
             'SQL_MAX_OVERFLOW': None,
             'SQL_AUTOCOMMIT': False,
             'SQL_AUTOFLUSH': True,
-            'SQL_EXPIRE_ON_COMMIT': True
+            'SQL_EXPIRE_ON_COMMIT': True,
         }
+        
+        # pool_pre_ping was added in SQLAlchemy 1.2.0
+        if sa.__version__ >= '1.2.0':
+            self.config['SQL_POOL_PRE_PING'] = True
 
         self.config.update(config or {})
 
@@ -193,7 +201,8 @@ class SQLClient(object):
             ('SQL_POOL_SIZE', 'pool_size'),
             ('SQL_POOL_TIMEOUT', 'pool_timeout'),
             ('SQL_POOL_RECYCLE', 'pool_recycle'),
-            ('SQL_MAX_OVERFLOW', 'max_overflow')
+            ('SQL_MAX_OVERFLOW', 'max_overflow'),
+            ('SQL_POOL_PRE_PING', 'pool_pre_ping'),
         ))
 
         if extra_options:
