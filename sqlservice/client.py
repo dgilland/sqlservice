@@ -124,11 +124,8 @@ class SQLClient(object):
             'SQL_AUTOCOMMIT': False,
             'SQL_AUTOFLUSH': True,
             'SQL_EXPIRE_ON_COMMIT': True,
+            'SQL_POOL_PRE_PING': None,
         }
-
-        # pool_pre_ping was added in SQLAlchemy 1.2.0
-        if sa.__version__ >= '1.2.0':
-            self.config['SQL_POOL_PRE_PING'] = False
 
         self.config.update(config or {})
 
