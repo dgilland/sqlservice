@@ -82,8 +82,8 @@ class SQLClient(object):
                               database state. Defaults to ``True``.
     **SQL_POOL_PRE_PING**     When ``True` will enable SQLAlchemy's connection
                               pool “pre-ping” feature that tests connections
-                              for liveness upon each checkout.
-                              Defaults to ``False``. Requires SQLAlchemy 1.2+
+                              for liveness upon each checkout. Defaults to
+                              ``False``. Requires SQLAlchemy >= 1.2.
     ========================  =================================================
 
     Args:

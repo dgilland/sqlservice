@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Add ``SQL_POOL_PRE_PING`` config option to ``SQLClient`` that sets ``pool_pre_ping`` argument to engine. Requires SQLAlchemy >= 1.2. Thanks dsully_!
+
+
 v0.14.2 (2017-10-17)
 --------------------
 
