@@ -87,7 +87,9 @@ class SQLClient(object):
     ========================  =================================================
 
     Args:
-        config (dict): Database engine configuration options.
+        config (dict|str): Database engine configuration options or database
+            URI string. Defaults to ``None`` which uses an in-memory SQLite
+            database.
         model_class (object): A SQLAlchemy ORM declarative base model.
         query_class (Query, optional): SQLAlchemy Query derived class to use as
             the default class when creating a new query object.
@@ -103,6 +105,9 @@ class SQLClient(object):
                  session_class=Session,
                  session_options=None,
                  engine_options=None):
+        if isinstance(config, string_types):
+            config = {'SQL_DATABASE_URI': config}
+
         if model_class is None:  # pragma: no cover
             model_class = declarative_base()
 
@@ -124,7 +129,7 @@ class SQLClient(object):
             'SQL_AUTOCOMMIT': False,
             'SQL_AUTOFLUSH': True,
             'SQL_EXPIRE_ON_COMMIT': True,
-            'SQL_POOL_PRE_PING': None,
+            'SQL_POOL_PRE_PING': None
         }
 
         self.config.update(config or {})

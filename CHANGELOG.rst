@@ -2,6 +2,7 @@ Changelog
 =========
 
 
+- Support a database URI string as the configuration value for ``SQLClient``. For example, previously had to do ``SQLClient({'SQL_DATABASE_URI': '<db_uri>'})`` but now can do ``SQLClient('<db_uri>')``.
 - Add ``repr()`` support to ``SQLClient``.
 
 

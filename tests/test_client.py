@@ -189,6 +189,15 @@ def test_reflect(filedb):
         assert rdb.tables[tablename].name == table.name
 
 
+def test_config_string():
+    """Test that a database URI string can be used to configure SQLClient."""
+    uri = 'sqlite:///test.db'
+    db = SQLClient(uri)
+
+    assert db.config['SQL_DATABASE_URI'] == uri
+    assert str(db.url) == uri
+
+
 def test_session_options():
     """Test that SQLClient's session can be configured with extra options."""
     db = SQLClient(session_options={'autocommit': True})
