@@ -264,3 +264,8 @@ def test_expunge_handles_multiple_instances(db):
 
     for model in models:
         assert model not in db.session
+
+
+def test_repr(db):
+    """Test repr() of SQLClient."""
+    assert repr(db) == "<SQLClient('sqlite://')>"

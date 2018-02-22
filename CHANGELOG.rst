@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Add ``repr()`` support to ``SQLClient``.
+
+
 v0.15.0 (2018-02-13)
 --------------------
 
