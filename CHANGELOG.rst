@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Use ``repr(self.url)`` in ``SQLClient.__repr__()`` instead of ``str()`` to mask connection password if provided.
+
+
 v0.16.0 (2018-02-21)
 --------------------
 

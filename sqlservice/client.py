@@ -627,7 +627,7 @@ class SQLClient(object):
 
     def __repr__(self):
         return '<{}({!r})>'.format(self.__class__.__name__,
-                                   str(self.url))
+                                   repr(self.url))
 
     def __getitem__(self, item):
         """Return :attr:`service_class` instance corresponding to `item`.
