@@ -2,6 +2,13 @@ Changelog
 =========
 
 
+- Remove ``readonly`` argument from ``SQLClient.transaction`` and replace with separate ``commit`` and ``rollback``. (**breaking change**)
+
+  - The default is ``commit=True`` and ``rollback=False``. This behavior mirrors the previous behavior.
+  - When ``rollback=True``, the ``commit`` argument is ignored and the top-level transaction is always rolled back. This is like ``readonly=True`` in version ``0.17.0``.
+  - When ``commit=False`` and ``rollback=False``, the "transaction" isn't finalized and is left open. This is like ``readonly=True`` in versions ``<=0.16.1``.
+
+
 v0.17.0 (2018-03-12)
 --------------------
 

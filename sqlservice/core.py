@@ -12,7 +12,7 @@ from ._compat import iteritems
 
 
 @contextmanager
-def transaction(session, readonly=False):
+def transaction(session, commit=True, rollback=False):
     """Nestable session transaction context manager where only a single
     commit will be issued once all contexts have been exited. If an
     exception occurs either at commit time or before, the transaction will
@@ -20,6 +20,10 @@ def transaction(session, readonly=False):
 
     Args:
         session (Session): SQLAlchemy session object.
+        commit (bool, optional): Whether to commit the transaction or leave it
+            open. Defaults to ``True``.
+        rollback (bool, optiona): Whether to rollback the transaction. Defaults
+            to ``False``. WARNING: This overrides `commit`.
 
     Yields:
         :attr:`session`
@@ -34,7 +38,7 @@ def transaction(session, readonly=False):
     # Bump count every time context is entered.
     session.info['trans_count'] += 1
 
-    if not readonly:
+    if commit:
         # Disable autoflush during write transactions. Autoflush can cause
         # issues when setting ORM relationship values in cases where
         # consistency is only maintained at commit time but would fail if
@@ -59,9 +63,9 @@ def transaction(session, readonly=False):
 
         # Only finalize transaction once our counter reaches zero.
         if session.info['trans_count'] <= 0:
-            if readonly:
+            if rollback:
                 session.rollback()
-            else:
+            elif commit:
                 try:
                     session.commit()
                 except Exception:

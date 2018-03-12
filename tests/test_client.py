@@ -142,34 +142,70 @@ def test_nested_trans_single_rollback_before_commit(db, rollback_event):
     assert rollback_event.call_count == 1
 
 
-def test_readonly_trans(db, commit_event):
-    """Test that a readonly transaction doesn't commit."""
-    with db.transaction(readonly=True):
+def test_nocommit_trans(db, commit_event, rollback_event):
+    """Test that a no-commit transaction doesn't commit."""
+    with db.transaction(commit=False):
         db.add(AModel())
 
     assert commit_event.call_count == 0
+    assert rollback_event.call_count == 0
 
 
-def test_nested_trans_outer_readonly(db, commit_event):
-    """Test that a write transaction nested inside a readonly transaction
+def test_nested_trans_outer_nocommit(db, commit_event, rollback_event):
+    """Test that a commit transaction nested inside a no-commit transaction
     doesn't commit.
     """
-    with db.transaction(readonly=True):
+    with db.transaction(commit=False):
         with db.transaction():
             db.add(AModel())
 
     assert commit_event.call_count == 0
+    assert rollback_event.call_count == 0
 
 
-def test_nested_trans_inner_readonly(db, commit_event):
-    """Test that a readonly transaction nested inside a write transaction does
+def test_nested_trans_inner_nocommit(db, commit_event, rollback_event):
+    """Test that a no-commit transaction nested inside a write transaction does
     commit.
     """
     with db.transaction():
-        with db.transaction(readonly=True):
+        with db.transaction(commit=False):
             db.add(AModel())
 
     assert commit_event.call_count == 1
+    assert rollback_event.call_count == 0
+
+
+def test_rollback_trans(db, commit_event, rollback_event):
+    """Test that a rollback transaction rolls back."""
+    with db.transaction(rollback=True):
+        db.add(AModel())
+
+    assert commit_event.call_count == 0
+    assert rollback_event.call_count == 1
+
+
+def test_nested_trans_outer_rollback(db, commit_event, rollback_event):
+    """Test that a commit transaction nested inside a rollback transaction
+    rolls back.
+    """
+    with db.transaction(rollback=True):
+        with db.transaction():
+            db.add(AModel())
+
+    assert commit_event.call_count == 0
+    assert rollback_event.call_count == 1
+
+
+def test_nested_trans_inner_rollback(db, commit_event, rollback_event):
+    """Test that a rollback transaction nested inside a write transaction does
+    commit.
+    """
+    with db.transaction():
+        with db.transaction(rollback=True):
+            db.add(AModel())
+
+    assert commit_event.call_count == 1
+    assert rollback_event.call_count == 0
 
 
 def test_reflect(filedb):

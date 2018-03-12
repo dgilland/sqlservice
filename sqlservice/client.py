@@ -471,16 +471,22 @@ class SQLClient(object):
         return self.session.query
 
     @contextmanager
-    def transaction(self, readonly=False):
+    def transaction(self, commit=True, rollback=False):
         """Nestable session transaction context manager where only a single
         commit will be issued once all contexts have been exited. If an
         exception occurs either at commit time or before, the transaction will
         be rolled back and the original exception re-raised.
 
+        Args:
+            commit (bool, optional): Whether to commit the transaction or leave
+            it open. Defaults to ``True``.
+        rollback (bool, optiona): Whether to rollback the transaction. Defaults
+            to ``False``. WARNING: This overrides `commit`.
+
         Yields:
             :attr:`session`
         """
-        with core.transaction(self.session, readonly=readonly):
+        with core.transaction(self.session, commit=commit, rollback=rollback):
             yield self.session
 
     def save(self, models, before=None, after=None, identity=None):
