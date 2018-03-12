@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.18.0 (2018-03-12)
+--------------------
+
 - Remove ``readonly`` argument from ``SQLClient.transaction`` and replace with separate ``commit`` and ``rollback``. (**breaking change**)
 
   - The default is ``commit=True`` and ``rollback=False``. This behavior mirrors the previous behavior.
