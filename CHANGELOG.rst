@@ -2,6 +2,11 @@ Changelog
 =========
 
 
+- Rollback instead of commit in a readonly transaction issued by ``SQLClient.transaction``. (**potential breaking change**)
+
+  - There's a potential breaking change for the case where there's nested a write transaction under a readonly transaction. Previously, the write transaction would be committed when the readonly transaction finalized since commit was being called instead of rollback. However with this change, the settings of the first transaction before any nesting will now determine whether the entire transaction is committed or rollbacked.
+
+
 v0.16.1 (2018-02-26)
 --------------------
 

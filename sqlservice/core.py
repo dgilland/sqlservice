@@ -57,14 +57,16 @@ def transaction(session, readonly=False):
     else:
         session.info['trans_count'] -= 1
 
-        # Paranoia dictates that we compare with "<=" instead of "==".
-        # Only commit once our trans counter reaches zero.
-        if not readonly and session.info['trans_count'] <= 0:
-            try:
-                session.commit()
-            except Exception:
+        # Only finalize transaction once our counter reaches zero.
+        if session.info['trans_count'] <= 0:
+            if readonly:
                 session.rollback()
-                raise
+            else:
+                try:
+                    session.commit()
+                except Exception:
+                    session.rollback()
+                    raise
     finally:
         # Restore autoflush setting once transaction is over.
         if session.info['trans_count'] <= 0:
