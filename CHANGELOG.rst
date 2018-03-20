@@ -3,6 +3,7 @@ Changelog
 
 
 - Support model class names as valid keys in ``ModelBase.__dict_args__['adapaters']``. Works similar to string namesused in ``sqlalchemy.orm.relation``.
+- Support model class orm descriptors (e.g. columns, relationships) as valid keys in ``ModelBase.__dict_args__['adapaters']``.
 
 
 v0.18.0 (2018-03-12)

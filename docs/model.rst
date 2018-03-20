@@ -210,6 +210,9 @@ Need to serialize certain types differently? Add some adapters using ``__dict_ar
         __dict_args__ = {
             'adapters': {
                 UserAbout: lambda model: {'nickname': model.nickname},
+                # identical to above but using string name for Model...
+                # 'UserAbout': lambda model: {'nickname': model.nickname},
+                'devices': lambda devices: [(device.name, device.keys) for device in devices],
                 list: lambda items, col: [item.name for item in items],
                 (int, str): lambda value, col: col + ':' + str(value)
             }
@@ -220,10 +223,19 @@ Need to serialize certain types differently? Add some adapters using ``__dict_ar
        'name': 'name:Bob Smith',
        'email': 'email:bobsmith@example.com',
        'about': {'nickname': 'Bo'},
-       'devices': [{'name': 'device1'}, {'device': 'device2'}]}
+       'devices': [('device1', ['key1a', 'key1b']),
+                   ('device2', ['key2a', 'key2b'])]}
 
 
-The ``adapters`` argument is expected to be a mapping of classes to their respective serializer handler. The serializer handler should be a callable that accepts up to two arguments: ``(value, column))`` (the arguments passed in are based on the function definition and are automatically detected). The adapter handler is matched to a value when ``isinstance(value, adapter_class)`` returns ``True``. For relationships defined as a ``list`` or other list-like structure, the relationship class' ``__dict_args__`` will be used during nested serialization. If you need to reference classes that aren't defined yet (e.g. other model classes), you can make ``__dict_args__`` a ``@property``.
+The ``adapaters`` argument is expected to be a mapping to serializers where each key can be one of:
+
+- model class object (e.g. ``UserAbout``)
+- string name of model class (e.g. ``'UserAbout'``)
+- string name of model attribute (e.g. ``'about'`` which corresponds to ``User.about``)
+- other type (e.g. ``list``, ``int``, ``str``, etc.)
+- tuple of types (e.g. ``(int, float)``)
+
+The serializer should be a callable that accepts up to two arguments: ``(value, column)`` (the arguments passed in are based on the function definition and are automatically detected). The adapter serializer used when it's key matches the matches the value's type, descriptor name, or model class name. For relationships defined as a ``list`` or other list-like structure, the relationship class' ``__dict_args__`` will be used during nested serialization. If you need to reference classes that aren't defined yet (e.g. other model classes), you can make ``__dict_args__`` a ``@property`` or use the string class name if it's another model class.
 
 
 Object Identity

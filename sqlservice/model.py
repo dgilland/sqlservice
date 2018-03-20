@@ -205,6 +205,7 @@ class ModelBase(object):
             adapter = _get_dict_adapter(
                 adapters,
                 getattr(self, '_decl_class_registry', {}),
+                key,
                 value,
                 default=default_adapter)
             data[key] = callit(adapter, value, key)
@@ -305,17 +306,21 @@ def as_declarative(**kargs):
     return decorated
 
 
-def _get_dict_adapter(adapters, decl_class_registry, value, default):
+def _get_dict_adapter(adapters, decl_class_registry, key, value, default):
     adapter = default
 
-    for cls, _adapter in iteritems(adapters):
-        # Map string model names to model class.
-        if isinstance(cls, string_types) and cls in decl_class_registry:
-            cls = decl_class_registry[cls]
+    if key in adapters:
+        # Prioritize key mappings over isinstance mappings below.
+        adapter = adapters[key]
+    else:
+        for cls, _adapter in iteritems(adapters):
+            # Map string model names to model class.
+            if isinstance(cls, string_types) and cls in decl_class_registry:
+                cls = decl_class_registry[cls]
 
-        if isinstance(value, cls):
-            adapter = _adapter
-            break
+            if isinstance(value, cls):
+                adapter = _adapter
+                break
 
     return adapter
 
