@@ -134,6 +134,16 @@ class ModelBase(object):
 
     @classmethod
     @classonce
+    def class_registry(cls):
+        """Returns declarative class registry containing declarative model
+        class names mapped to class objects.
+        """
+        items = iteritems(getattr(cls, '_decl_class_registry', {}))
+        return {key: value for key, value in items
+                if not key.startswith('_sa_')}
+
+    @classmethod
+    @classonce
     def columns(cls):
         """Return model columns as ``dict`` like ``OrderProperties`` object."""
         return cls.class_mapper().columns

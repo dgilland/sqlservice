@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Add ``ModelBase.class_registry()`` that returns the declarative class registry from declarative metadata. Roughly equivalent to ``ModelBase._decl_class_registry`` but with ``_sa_*`` keys removed.
+
+
 v0.19.0 (2018-03-19)
 --------------------
 
