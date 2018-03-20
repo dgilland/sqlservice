@@ -10,7 +10,7 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlservice import as_declarative, core, declarative_base
 from sqlservice.model import ModelBase, ModelMeta
 
-from .fixtures import AModel, DModel, Model, parametrize
+from .fixtures import AModel, CModel, DModel, Model, parametrize
 
 
 def test_declarative_base():
@@ -80,7 +80,10 @@ def test_model_to_dict(db, model, expected):
      {'ds': [1, 2]}),
     ({str: lambda val: val[0]},
      {'name': 'foo'},
-     {'name': 'f'})
+     {'name': 'f'}),
+    ({'CModel': lambda c: {'name': c.name}},
+     {'c': CModel(id=1, name='foo')},
+     {'c': {'name': 'foo'}}),
 ])
 def test_model_to_dict_args_adapters(db, adapters, data, expected):
     """Test that Model.__dict_args__['exclude_sequence_types'] can be used to

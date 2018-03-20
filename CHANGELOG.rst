@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Support model class names as valid keys in ``ModelBase.__dict_args__['adapaters']``. Works similar to string namesused in ``sqlalchemy.orm.relation``.
+
+
 v0.18.0 (2018-03-12)
 --------------------
 

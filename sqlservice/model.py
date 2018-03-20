@@ -20,7 +20,7 @@ from sqlalchemy.util._collections import ImmutableProperties
 
 from . import core, event
 from .utils import classonce, is_sequence
-from ._compat import iteritems
+from ._compat import iteritems, string_types
 
 
 class ModelMeta(DeclarativeMeta):
@@ -202,9 +202,11 @@ class ModelBase(object):
             data = self.descriptors_to_dict()
 
         for key, value in iteritems(data):
-            adapter = _get_dict_adapter(adapters,
-                                        value,
-                                        default=default_adapter)
+            adapter = _get_dict_adapter(
+                adapters,
+                getattr(self, '_decl_class_registry', {}),
+                value,
+                default=default_adapter)
             data[key] = callit(adapter, value, key)
 
         return data
@@ -303,10 +305,14 @@ def as_declarative(**kargs):
     return decorated
 
 
-def _get_dict_adapter(adapters, value, default):
+def _get_dict_adapter(adapters, decl_class_registry, value, default):
     adapter = default
 
     for cls, _adapter in iteritems(adapters):
+        # Map string model names to model class.
+        if isinstance(cls, string_types) and cls in decl_class_registry:
+            cls = decl_class_registry[cls]
+
         if isinstance(value, cls):
             adapter = _adapter
             break
