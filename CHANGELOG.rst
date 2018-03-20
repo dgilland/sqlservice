@@ -3,6 +3,8 @@ Changelog
 
 
 - Add ``ModelBase.class_registry()`` that returns the declarative class registry from declarative metadata. Roughly equivalent to ``ModelBase._decl_class_registry`` but with ``_sa_*`` keys removed.
+- Pass model instance as third optional argument to ``ModelBase.__dict_args__['adapters']`` handlers.
+- Expose default ``dict`` adapater as ``sqlservice.model.default_dict_adapter``.
 
 
 v0.19.0 (2018-03-19)

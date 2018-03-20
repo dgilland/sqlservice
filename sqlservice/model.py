@@ -200,9 +200,8 @@ class ModelBase(object):
         """
         args = getattr(self, '__dict_args__', {})
         adapters = args.get('adapters')
-        default_adapter = partial(_default_dict_adapter,
-                                  relationships=self.relationships())
-        default_adapter._argcount = 2
+        default_adapter = default_dict_adapter
+        class_registry = self.class_registry()
 
         session = sa.orm.object_session(self)
         data = self.descriptors_to_dict()
@@ -212,13 +211,12 @@ class ModelBase(object):
             data = self.descriptors_to_dict()
 
         for key, value in iteritems(data):
-            adapter = _get_dict_adapter(
-                adapters,
-                getattr(self, '_decl_class_registry', {}),
-                key,
-                value,
-                default=default_adapter)
-            data[key] = callit(adapter, value, key)
+            adapter = _get_dict_adapter(key,
+                                        value,
+                                        default_adapter,
+                                        adapters,
+                                        class_registry)
+            data[key] = callit(adapter, value, key, self)
 
         return data
 
@@ -316,26 +314,10 @@ def as_declarative(**kargs):
     return decorated
 
 
-def _get_dict_adapter(adapters, decl_class_registry, key, value, default):
-    adapter = default
-
-    if key in adapters:
-        # Prioritize key mappings over isinstance mappings below.
-        adapter = adapters[key]
-    else:
-        for cls, _adapter in iteritems(adapters):
-            # Map string model names to model class.
-            if isinstance(cls, string_types) and cls in decl_class_registry:
-                cls = decl_class_registry[cls]
-
-            if isinstance(value, cls):
-                adapter = _adapter
-                break
-
-    return adapter
-
-
-def _default_dict_adapter(value, key, relationships):
+def default_dict_adapter(value, key, model):
+    """Default :meth:`ModelBase.to_dict` adapter that handles nested
+    serialization of model objects.
+    """
     if hasattr(value, 'to_dict'):
         # Nest call to child to_dict methods.
         value = value.to_dict()
@@ -347,10 +329,36 @@ def _default_dict_adapter(value, key, relationships):
         # Nest calls to child to_dict methods for dict values.
         value = {ky: val.to_dict() if hasattr(val, 'to_dict') else val
                  for ky, val in iteritems(value)}
-    elif key in relationships and value is None:
+    elif (value is None and
+            callable(getattr(model, 'relationships')) and
+            key in model.relationships()):
         # Instead of returning a null relationship value as ``None``,
         # return it as an empty dict. This gives a more consistent
         # representation of the relationship value type (i.e. a non-
         # null relationship value would be a dict).
         value = {}
     return value
+
+
+# Minor optimization for pydash.helpers.callit to avoid function signature
+# inspection.
+default_dict_adapter._argcount = 3
+
+
+def _get_dict_adapter(key, value, default, adapters, class_registry):
+    adapter = default
+
+    if key in adapters:
+        # Prioritize key mappings over isinstance mappings below.
+        adapter = adapters[key]
+    else:
+        for cls, _adapter in iteritems(adapters):
+            # Map string model names to model class.
+            if isinstance(cls, string_types) and cls in class_registry:
+                cls = class_registry[cls]
+
+            if isinstance(value, cls):
+                adapter = _adapter
+                break
+
+    return adapter

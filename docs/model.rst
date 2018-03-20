@@ -235,7 +235,7 @@ The ``adapaters`` argument is expected to be a mapping to serializers where each
 - other type (e.g. ``list``, ``int``, ``str``, etc.)
 - tuple of types (e.g. ``(int, float)``)
 
-The serializer should be a callable that accepts up to two arguments: ``(value, column)`` (the arguments passed in are based on the function definition and are automatically detected). The adapter serializer used when it's key matches the matches the value's type, descriptor name, or model class name. For relationships defined as a ``list`` or other list-like structure, the relationship class' ``__dict_args__`` will be used during nested serialization. If you need to reference classes that aren't defined yet (e.g. other model classes), you can make ``__dict_args__`` a ``@property`` or use the string class name if it's another model class.
+The serializer should be a callable that accepts up to three arguments: ``(value, column, model_instance)`` (the arguments passed in are based on the function definition and are automatically detected). The adapter serializer used when it's key matches the matches the value's type, descriptor name, or model class name. For relationships defined as a ``list`` or other list-like structure, the relationship class' ``__dict_args__`` will be used during nested serialization. If you need to reference classes that aren't defined yet (e.g. other model classes), you can make ``__dict_args__`` a ``@property`` or use the string class name if it's another model class.
 
 
 Object Identity
