@@ -1,8 +1,8 @@
 coverage==4.4.1
 flake8==3.5.0
-invoke==0.19.0
+invoke==0.22.1
 mock==2.0.0
-pylint==1.8.2
+pylint==1.8.3
 pytest==3.4.2
 pytest-cov==2.5.1
 Sphinx==1.7.1
