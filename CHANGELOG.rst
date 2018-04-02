@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.21.0 (2018-04-02)
+--------------------
+
 - Add ``SQLClient.ping()`` method that performs a basic connection check.
 
 
