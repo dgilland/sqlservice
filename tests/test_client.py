@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import mock
 import pytest
 import sqlalchemy as sa
 
@@ -73,6 +74,38 @@ def test_sql_client_property(db, attr):
     """
     assert hasattr(db, attr)
     assert getattr(db, attr)
+
+
+def test_ping(filedb):
+    """Test that SQLClinet.ping() returns True on success."""
+    assert filedb.ping() is True
+
+
+def test_ping_exception(db):
+    """Test that SQLClient.ping() raises and exception on failure."""
+    mocked_engine = mock.Mock()
+    mocked_conn = mock.Mock(
+        scalar=mock.Mock(side_effect=sa.exc.DBAPIError(None, None, None)))
+    mocked_engine.connect.return_value = mocked_conn
+
+    with mock.patch.object(db, 'engine', new=mocked_engine):
+        with pytest.raises(sa.exc.DBAPIError):
+            db.ping()
+
+
+def test_ping_exception_invalidated(db):
+    """Test that SQLClient.ping() raises and exception on failure with an
+    invalidated connection.
+    """
+    mocked_engine = mock.Mock()
+    mocked_conn = mock.Mock(
+        scalar=mock.Mock(side_effect=sa.exc.DBAPIError(
+            None, None, None, connection_invalidated=True)))
+    mocked_engine.connect.return_value = mocked_conn
+
+    with mock.patch.object(db, 'engine', new=mocked_engine):
+        with pytest.raises(sa.exc.DBAPIError):
+            db.ping()
 
 
 def test_nonnested_trans_commit(db):

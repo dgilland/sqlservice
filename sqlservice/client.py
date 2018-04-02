@@ -470,6 +470,40 @@ class SQLClient(object):
         """Proxy property to :meth:`session.query`."""
         return self.session.query
 
+    def ping(self):
+        """Ping the database to check whether the connection is valid.
+
+        Returns:
+            bool: ``True`` when connection check passes.
+
+        Raises:
+            sqlalche.exc.SQLAlchemyError: When the connection check fails.
+        """
+        conn = self.engine.connect()
+
+        # Run a SELECT 1. Use a sa.select() so that the SELECT of a scalar
+        # value without a table is appropriately formatted for the backend.
+        try:
+            conn.scalar(sa.select([1]))
+        except sa.exc.DBAPIError as exc:
+            # Catch SQLAlchemy's DBAPIError, which is a wrapper for the DBAPI's
+            # exception. It includes a "connection_invalidated" attribute which
+            # specifies if this connection is a "disconnect" condition, which
+            # is based on inspection of the original exception by the dialect
+            # in use.
+            if exc.connection_invalidated:
+                # Run the same SELECT again. The connection will re-validate
+                # itself and establish a new connection. The disconnect
+                # detection here also causes the whole connection pool to be
+                # invalidated so that all stale connections are discarded.
+                conn.scalar(sa.select([1]))
+            else:
+                raise
+
+        conn.close()
+
+        return True
+
     @contextmanager
     def transaction(self, commit=True, rollback=False):
         """Nestable session transaction context manager where only a single
