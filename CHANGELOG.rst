@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.22.0 (2018-04-12)
+--------------------
+
 - Change default behavior of ``SQLClient.transaction()`` to **not** override the current session's ``autoflush`` setting (use ``SQLClient.transaction(autoflush=True)`` instead. (**breaking change**)
 - Add boolean ``autoflush`` option to ``SQLClient.transaction()`` to set session's ``autoflush`` value for the duration of the transaction.
 - Add new ``sqlservice.event`` decorators:
