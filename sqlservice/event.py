@@ -74,9 +74,24 @@ def register(cls, dct):
 ##
 
 
+class on_init_scalar(AttributeEventDecorator):
+    """Event decorator for the ``init_scalar`` event."""
+    event_names = ('init_scalar',)
+
+
+class on_init_collection(AttributeEventDecorator):
+    """Event decorator for the ``init_collection`` event."""
+    event_names = ('init_collection',)
+
+
 class on_set(AttributeEventDecorator):
     """Event decorator for the ``set`` event."""
     event_names = ('set',)
+
+
+class on_modified(AttributeEventDecorator):
+    """Event decorator for the ``modified`` event."""
+    event_names = ('modified',)
 
 
 class on_append(AttributeEventDecorator):
@@ -84,9 +99,19 @@ class on_append(AttributeEventDecorator):
     event_names = ('append',)
 
 
+class on_bulk_replace(AttributeEventDecorator):
+    """Event decorator for the ``bulk_replace`` event."""
+    event_names = ('bulk_replace',)
+
+
 class on_remove(AttributeEventDecorator):
     """Event decorator for the ``remove`` event."""
     event_names = ('remove',)
+
+
+class on_dispose_collection(AttributeEventDecorator):
+    """Event decorator for the ``dispose_collection`` event."""
+    event_names = ('dispose_collection',)
 
 
 ##

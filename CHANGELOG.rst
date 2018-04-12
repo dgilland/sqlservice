@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+- Add new ``sqlservice.event`` decorators:
+
+  - ``on_init_scalar``
+  - ``on_init_collection``
+  - ``on_modified``
+  - ``on_bulk_replace``
+  - ``on_dispose_collection``
+
+
 v0.21.0 (2018-04-02)
 --------------------
 

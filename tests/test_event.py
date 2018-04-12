@@ -22,8 +22,28 @@ class EventModel(Model):
     def on_append(self, value, oldvalue, initator):
         pass
 
+    @event.on_bulk_replace('id')
+    def on_bulk_replace(self, value, oldvalue, initator):
+        pass
+
     @event.on_remove('id')
     def on_remove(self, value, oldvalue, initator):
+        pass
+
+    @event.on_init_scalar('id')
+    def on_init_scalar(self, value, dict_):
+        pass
+
+    @event.on_init_collection('id')
+    def on_init_collection(self, collection, collection_adapter):
+        pass
+
+    @event.on_dispose_collection('id')
+    def on_dispose_collection(self, collection, collection_adapter):
+        pass
+
+    @event.on_modified('id')
+    def on_modified(self, initator):
         pass
 
     @event.before_delete()
@@ -75,6 +95,11 @@ class EventModel(Model):
     (EventModel.id, 'set', EventModel.on_set),
     (EventModel.id, 'append', EventModel.on_append),
     (EventModel.id, 'remove', EventModel.on_remove),
+    (EventModel.id, 'init_scalar', EventModel.on_init_scalar),
+    (EventModel.id, 'init_collection', EventModel.on_init_collection),
+    (EventModel.id, 'dispose_collection', EventModel.on_dispose_collection),
+    (EventModel.id, 'modified', EventModel.on_modified),
+    (EventModel.id, 'bulk_replace', EventModel.on_bulk_replace),
     (EventModel, 'before_delete', EventModel.before_delete),
     (EventModel, 'before_insert', EventModel.before_insert),
     (EventModel, 'before_update', EventModel.before_update),
