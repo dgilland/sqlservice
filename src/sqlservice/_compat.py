@@ -1,13 +1,6 @@
 # flake8: noqa
 # pylint: skip-file
 """Python 2/3 compatibility
-
-    Some py2/py3 compatibility support based on a stripped down
-    version of six so we don't have to depend on a specific version
-    of it.
-
-    Borrowed from
-    https://github.com/mitsuhiko/flask/blob/master/flask/_compat.py
 """
 
 import sys

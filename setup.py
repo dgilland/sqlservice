@@ -6,7 +6,8 @@ from setuptools import setup, find_packages
 
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    with open(os.path.join(os.path.dirname(__file__), fname)) as fp:
+        return fp.read()
 
 
 def parse_requirements(filename):
@@ -15,7 +16,7 @@ def parse_requirements(filename):
             if line.strip()]
 
 pkg = {}
-exec(read('sqlservice/__pkg__.py'), pkg)
+exec(read('src/sqlservice/__pkg__.py'), pkg)
 
 readme = read('README.rst')
 changelog = read('CHANGELOG.rst')
@@ -31,13 +32,15 @@ setup(
     author_email=pkg['__email__'],
     description=pkg['__description__'],
     long_description=readme + '\n\n' + changelog,
-    packages=find_packages(exclude=['tests', 'tasks']),
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    include_package_data=True,
     install_requires=requirements,
     keywords='sqlservice sqlalchemy orm database',
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
+        'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
+        'Intended Audience :: Developers',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python',

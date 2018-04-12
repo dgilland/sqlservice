@@ -62,9 +62,9 @@ project_description = project_module.__description__
 author = project_module.__author__
 copyright = '2016, {0}'.format(author)
 
-# The version info for the project you're documenting, acts as replacement
-# for |version| and |release|, also used in various other places throughout
-# the built documents.
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
 #
 # The short X.Y version.
 version = release = project_module.__version__
