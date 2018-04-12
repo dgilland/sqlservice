@@ -505,7 +505,7 @@ class SQLClient(object):
         return True
 
     @contextmanager
-    def transaction(self, commit=True, rollback=False):
+    def transaction(self, commit=True, rollback=False, autoflush=None):
         """Nestable session transaction context manager where only a single
         commit will be issued once all contexts have been exited. If an
         exception occurs either at commit time or before, the transaction will
@@ -513,14 +513,21 @@ class SQLClient(object):
 
         Args:
             commit (bool, optional): Whether to commit the transaction or leave
-            it open. Defaults to ``True``.
-        rollback (bool, optiona): Whether to rollback the transaction. Defaults
-            to ``False``. WARNING: This overrides `commit`.
+                it open. Defaults to ``True``.
+            rollback (bool, optional): Whether to rollback the transaction.
+                Defaults to ``False``. WARNING: This overrides `commit`.
+            autoflush (bool, optional): Whether to override
+                ``session.autoflush``. Original ``session.autoflush`` will be
+                restored after transaction. Defaults to ``None`` which doesn't
+                modify ``session.autoflush``.
 
         Yields:
             :attr:`session`
         """
-        with core.transaction(self.session, commit=commit, rollback=rollback):
+        with core.transaction(self.session,
+                              commit=commit,
+                              rollback=rollback,
+                              autoflush=autoflush):
             yield self.session
 
     def save(self, models, before=None, after=None, identity=None):

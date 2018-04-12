@@ -12,7 +12,7 @@ from ._compat import iteritems
 
 
 @contextmanager
-def transaction(session, commit=True, rollback=False):
+def transaction(session, commit=True, rollback=False, autoflush=None):
     """Nestable session transaction context manager where only a single
     commit will be issued once all contexts have been exited. If an
     exception occurs either at commit time or before, the transaction will
@@ -22,14 +22,15 @@ def transaction(session, commit=True, rollback=False):
         session (Session): SQLAlchemy session object.
         commit (bool, optional): Whether to commit the transaction or leave it
             open. Defaults to ``True``.
-        rollback (bool, optiona): Whether to rollback the transaction. Defaults
-            to ``False``. WARNING: This overrides `commit`.
+        rollback (bool, optional): Whether to rollback the transaction.
+            Defaults to ``False``. WARNING: This overrides `commit`.
+        autoflush (bool, optional): Whether to override ``session.autoflush``.
+            Original ``session.autoflush`` will be restored after transaction.
+            Defaults to ``None`` which doesn't modify ``session.autoflush``.
 
     Yields:
         :attr:`session`
     """
-    session.info.setdefault('autoflush', session.autoflush)
-
     # Keep track of nested calls to this context manager using this
     # "trans_count" counter. Data stored in session.info will be local to
     # that session and persist through its lifetime.
@@ -38,12 +39,12 @@ def transaction(session, commit=True, rollback=False):
     # Bump count every time context is entered.
     session.info['trans_count'] += 1
 
-    if commit:
-        # Disable autoflush during write transactions. Autoflush can cause
-        # issues when setting ORM relationship values in cases where
-        # consistency is only maintained at commit time but would fail if
-        # an autoflush occurred beforehand.
-        session.autoflush = False
+    # Keep track of original autoflush setting so it can be restored after
+    # transaction.
+    original_autoflush = session.autoflush
+
+    if commit and autoflush is not None:
+        session.autoflush = autoflush
 
     try:
         yield session
@@ -72,10 +73,8 @@ def transaction(session, commit=True, rollback=False):
                     session.rollback()
                     raise
     finally:
-        # Restore autoflush setting once transaction is over.
-        if session.info['trans_count'] <= 0:
-            session.autoflush = session.info['autoflush']
-            session.info['trans_count'] = 0
+        # Restore autoflush to original value.
+        session.autoflush = original_autoflush
 
 
 def save(session, models, before=None, after=None, identity=None):

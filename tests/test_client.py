@@ -108,7 +108,7 @@ def test_ping_exception_invalidated(db):
             db.ping()
 
 
-def test_nonnested_trans_commit(db):
+def test_transaction_commit(db):
     """Test that a non-nested transaction commits."""
     model = AModel(name=random_alpha())
 
@@ -118,7 +118,7 @@ def test_nonnested_trans_commit(db):
     assert db.query(AModel).get(model.id) is model
 
 
-def test_nonnested_trans_rollback(db):
+def test_transaction_error_rollback(db):
     """Test that a non-nested transaction rolls back."""
     model = AModel(name=random_alpha())
 
@@ -129,7 +129,7 @@ def test_nonnested_trans_rollback(db):
             db.add(AModel(id=model.id, name=model.name))
 
 
-def test_nested_trans_single_commit(db, commit_event):
+def test_transaction_nested_single_commit(db, commit_event):
     """Test that a nested transaction results in a single commit."""
     with db.transaction():
         db.add(AModel(name=random_alpha()))
@@ -142,7 +142,7 @@ def test_nested_trans_single_commit(db, commit_event):
     assert commit_event.call_count == 1
 
 
-def test_nested_trans_single_rollback_on_rollback(db, rollback_event):
+def test_transaction_nested_single_rollback_on_rollback(db, rollback_event):
     """Test that a nested transaction results in a single rollback when
     database error encountered.
     """
@@ -161,7 +161,7 @@ def test_nested_trans_single_rollback_on_rollback(db, rollback_event):
     assert rollback_event.call_count == 1
 
 
-def test_nested_trans_single_rollback_before_commit(db, rollback_event):
+def test_transaction_nested_single_rollback_before_commit(db, rollback_event):
     """Test that a nested transaction results in a single rollback when an
     exception occurs before commit is issued.
     """
@@ -175,7 +175,7 @@ def test_nested_trans_single_rollback_before_commit(db, rollback_event):
     assert rollback_event.call_count == 1
 
 
-def test_nocommit_trans(db, commit_event, rollback_event):
+def test_transaction_commit_false(db, commit_event, rollback_event):
     """Test that a no-commit transaction doesn't commit."""
     with db.transaction(commit=False):
         db.add(AModel())
@@ -184,7 +184,9 @@ def test_nocommit_trans(db, commit_event, rollback_event):
     assert rollback_event.call_count == 0
 
 
-def test_nested_trans_outer_nocommit(db, commit_event, rollback_event):
+def test_transaction_nested_outer_commit_false(db,
+                                               commit_event,
+                                               rollback_event):
     """Test that a commit transaction nested inside a no-commit transaction
     doesn't commit.
     """
@@ -196,7 +198,9 @@ def test_nested_trans_outer_nocommit(db, commit_event, rollback_event):
     assert rollback_event.call_count == 0
 
 
-def test_nested_trans_inner_nocommit(db, commit_event, rollback_event):
+def test_transaction_nested_inner_commit_false(db,
+                                               commit_event,
+                                               rollback_event):
     """Test that a no-commit transaction nested inside a write transaction does
     commit.
     """
@@ -208,7 +212,7 @@ def test_nested_trans_inner_nocommit(db, commit_event, rollback_event):
     assert rollback_event.call_count == 0
 
 
-def test_rollback_trans(db, commit_event, rollback_event):
+def test_transaction_rollback(db, commit_event, rollback_event):
     """Test that a rollback transaction rolls back."""
     with db.transaction(rollback=True):
         db.add(AModel())
@@ -217,7 +221,7 @@ def test_rollback_trans(db, commit_event, rollback_event):
     assert rollback_event.call_count == 1
 
 
-def test_nested_trans_outer_rollback(db, commit_event, rollback_event):
+def test_transaction_nested_outer_rollback(db, commit_event, rollback_event):
     """Test that a commit transaction nested inside a rollback transaction
     rolls back.
     """
@@ -229,7 +233,7 @@ def test_nested_trans_outer_rollback(db, commit_event, rollback_event):
     assert rollback_event.call_count == 1
 
 
-def test_nested_trans_inner_rollback(db, commit_event, rollback_event):
+def test_transaction_nested_inner_rollback(db, commit_event, rollback_event):
     """Test that a rollback transaction nested inside a write transaction does
     commit.
     """
@@ -239,6 +243,32 @@ def test_nested_trans_inner_rollback(db, commit_event, rollback_event):
 
     assert commit_event.call_count == 1
     assert rollback_event.call_count == 0
+
+
+@parametrize('config_autoflush,autoflush,expected', [
+    (True, False, False),
+    (True, True, True),
+    (True, None, True),
+    (False, False, False),
+    (False, True, True),
+    (False, None, False)
+])
+def test_transaction_autoflush_false(config_autoflush, autoflush, expected):
+    """Test that transactions can override default session autoflush."""
+    db = SQLClient({'SQL_AUTOFLUSH': config_autoflush})
+
+    assert db.session.autoflush is config_autoflush
+
+    with db.transaction(autoflush=autoflush):
+        assert db.session.autoflush is expected
+
+        # Nested transactions override previous one.
+        with db.transaction(autoflush=not autoflush):
+            assert db.session.autoflush is not autoflush
+
+        assert db.session.autoflush is expected
+
+    assert db.session.autoflush is config_autoflush
 
 
 def test_reflect(filedb):
