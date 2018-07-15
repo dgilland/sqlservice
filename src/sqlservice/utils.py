@@ -6,10 +6,9 @@ Utilities
 The utilities module.
 """
 
-from collections import Iterable
 from functools import wraps
 
-from ._compat import string_types
+from ._compat import Iterable, string_types
 
 
 def classonce(meth):

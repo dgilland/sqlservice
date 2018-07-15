@@ -10,6 +10,8 @@ PY2 = sys.version_info[0] == 2
 
 
 if PY2:
+    from collections import Iterable
+
     text_type = unicode
     string_types = (str, unicode)
     integer_types = (int, long)
@@ -23,6 +25,8 @@ if PY2:
     def iteritems(d):
         return d.iteritems()
 else:
+    from collections.abc import Iterable
+
     text_type = str
     string_types = (str,)
     integer_types = (int,)

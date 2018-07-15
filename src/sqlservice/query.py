@@ -193,6 +193,8 @@ class SQLQuery(orm.Query):
             per_page = pagination
 
         if per_page:
+            # Disable false-positive until fixed upstream.
+            # pylint: disable=assignment-from-no-return
             query = query.limit(per_page)
 
         if page and page > 1 and per_page:
