@@ -22,6 +22,23 @@ from ._compat import iteritems, string_types
 
 
 class SQLClient(object):
+    DEFAULT_CONFIG = {
+        'SQL_DATABASE_URI': 'sqlite://',
+        'SQL_ECHO': False,
+        'SQL_ECHO_POOL': False,
+        'SQL_ENCODING': None,
+        'SQL_CONVERT_UNICODE': None,
+        'SQL_ISOLATION_LEVEL': None,
+        'SQL_POOL_SIZE': None,
+        'SQL_POOL_TIMEOUT': None,
+        'SQL_POOL_RECYCLE': None,
+        'SQL_MAX_OVERFLOW': None,
+        'SQL_AUTOCOMMIT': False,
+        'SQL_AUTOFLUSH': True,
+        'SQL_EXPIRE_ON_COMMIT': True,
+        'SQL_POOL_PRE_PING': None
+    }
+
     """Database client for interacting with a database.
 
     The following configuration values can be passed into a new
@@ -115,22 +132,7 @@ class SQLClient(object):
         self.query_class = query_class
         self.session_class = session_class
 
-        self.config = {
-            'SQL_DATABASE_URI': 'sqlite://',
-            'SQL_ECHO': False,
-            'SQL_ECHO_POOL': False,
-            'SQL_ENCODING': None,
-            'SQL_CONVERT_UNICODE': None,
-            'SQL_ISOLATION_LEVEL': None,
-            'SQL_POOL_SIZE': None,
-            'SQL_POOL_TIMEOUT': None,
-            'SQL_POOL_RECYCLE': None,
-            'SQL_MAX_OVERFLOW': None,
-            'SQL_AUTOCOMMIT': False,
-            'SQL_AUTOFLUSH': True,
-            'SQL_EXPIRE_ON_COMMIT': True,
-            'SQL_POOL_PRE_PING': None
-        }
+        self.config = self.DEFAULT_CONFIG
 
         self.config.update(config or {})
 
