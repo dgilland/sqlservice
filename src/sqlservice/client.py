@@ -132,7 +132,7 @@ class SQLClient(object):
         self.query_class = query_class
         self.session_class = session_class
 
-        self.config = self.DEFAULT_CONFIG
+        self.config = self.DEFAULT_CONFIG.copy()
 
         self.config.update(config or {})
 
