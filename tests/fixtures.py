@@ -88,7 +88,7 @@ def db():
 
     yield _db
 
-    _db.shutdown()
+    _db.disconnect()
     _db.drop_all()
 
 
@@ -104,7 +104,7 @@ def filedb(tmpdir):
 
     yield _filedb
 
-    _filedb.shutdown()
+    _filedb.disconnect()
     os.remove(dbpath)
 
 

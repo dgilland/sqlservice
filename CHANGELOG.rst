@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+- Rename ``SQLClient.shutdown()`` to ``disconnect()`` but keep ``shutdown()`` as a deprecated alias.
+- Deprecate ``SQLClient.shutdown()``. use ``SQLClient.disconnect()`` instead. Will be removed in ``v1``.
+
+
 v0.22.1 (2018-07-15)
 --------------------
 
