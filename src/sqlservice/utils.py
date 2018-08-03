@@ -5,10 +5,10 @@ Utilities
 
 The utilities module.
 """
-
+from collections import Mapping
 from functools import wraps
 
-from ._compat import Iterable, string_types
+from ._compat import Iterable, string_types, iteritems
 
 
 def classonce(meth):
@@ -34,3 +34,26 @@ def is_sequence(obj):
     return (isinstance(obj, Iterable) and
             not isinstance(obj, string_types) and
             not isinstance(obj, dict))
+
+
+class FrozenDict(Mapping):
+    def __init__(self, *args, **kwargs):
+        self._dict = dict(*args, **kwargs)
+
+    def dict(self):
+        return self._dict.copy()
+
+    def __getitem__(self, key):
+        return self._dict.__getitem__(key)
+
+    def __contains__(self, item):
+        return self._dict.__contains__(item)
+
+    def __iter__(self):
+        return self._dict.__iter__()
+
+    def __len__(self):
+        return self._dict.__len__()
+
+    def __repr__(self):
+        return '<%s %r>' % (self.__class__.__name__, self._dict)
