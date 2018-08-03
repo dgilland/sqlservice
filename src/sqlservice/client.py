@@ -18,7 +18,7 @@ from sqlalchemy.engine.url import make_url
 from . import core
 from .model import declarative_base
 from .query import SQLQuery
-from ._compat import iteritems, string_types
+from ._compat import deprecated, iteritems, string_types
 from .utils import FrozenDict
 
 
@@ -412,11 +412,15 @@ class SQLClient(object):
         """Proxy propery to :meth:`_Session.remove`."""
         return self._Session.remove
 
-    def shutdown(self):
-        """Shut down all database sessions and connections."""
+    def disconnect(self):
+        """Disconnect all database sessions and connections."""
         self.close_all()
         self.remove()
         self.engine.dispose()
+
+    @deprecated("Use 'disconnect' instead.")
+    def shutdown(self):  # pragma: no cover
+        self.disconnect()
 
     def commit(self):
         """Commit a session transaction but rollback if an error occurs. This

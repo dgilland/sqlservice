@@ -66,11 +66,11 @@ db.remove     Session.remove         Dispose of the current scoped session.
 db.close_all  Session.close_all      Close all thread-local session objects.
 ============  =====================  ===========
 
-And if you want to completely close all sessions and terminate the engine connection, use ``shutdown()``, which will close all thread-local sessions, dispose of the scoped session, and dispose of the engine connection:
+And if you want to completely close all sessions and terminate the engine connection, use ``disconnect()``, which will close all thread-local sessions, dispose of the scoped session, and dispose of the engine connection:
 
 .. code-block:: python
 
-    db.shutdown()
+    db.disconnect()
 
 
 Session Query

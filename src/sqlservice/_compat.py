@@ -1,9 +1,13 @@
+# -*- coding: utf-8 -*-
 # flake8: noqa
 # pylint: skip-file
 """Python 2/3 compatibility
 """
 
+from functools import wraps
+
 import sys
+import warnings
 
 
 PY2 = sys.version_info[0] == 2
@@ -39,3 +43,17 @@ else:
 
     def iteritems(d):
         return iter(d.items())
+
+
+def deprecated(message):
+    """Decorator that will warn when using a deprecated function."""
+    def decorator(func):
+        @wraps(func)
+        def decorated(*args, **kargs):
+            warnings.warn('{!r} is a deprecated function. {}'
+                          .format(func.__name__, message),
+                          category=DeprecationWarning,
+                          stacklevel=2)
+            return func(*args, **kargs)
+        return decorated
+    return decorator
