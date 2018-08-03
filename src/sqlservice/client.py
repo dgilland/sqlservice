@@ -19,10 +19,11 @@ from . import core
 from .model import declarative_base
 from .query import SQLQuery
 from ._compat import iteritems, string_types
+from .utils import FrozenDict
 
 
 class SQLClient(object):
-    DEFAULT_CONFIG = {
+    DEFAULT_CONFIG = FrozenDict({
         'SQL_DATABASE_URI': 'sqlite://',
         'SQL_ECHO': False,
         'SQL_ECHO_POOL': False,
@@ -37,7 +38,7 @@ class SQLClient(object):
         'SQL_AUTOFLUSH': True,
         'SQL_EXPIRE_ON_COMMIT': True,
         'SQL_POOL_PRE_PING': None
-    }
+    })
 
     """Database client for interacting with a database.
 
@@ -132,7 +133,7 @@ class SQLClient(object):
         self.query_class = query_class
         self.session_class = session_class
 
-        self.config = self.DEFAULT_CONFIG.copy()
+        self.config = self.DEFAULT_CONFIG.dict()
 
         self.config.update(config or {})
 
