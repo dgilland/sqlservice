@@ -1,4 +1,6 @@
+
 import pytest
+
 from sqlservice.utils import FrozenDict
 
 

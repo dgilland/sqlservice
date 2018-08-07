@@ -23,23 +23,6 @@ from .utils import FrozenDict
 
 
 class SQLClient(object):
-    DEFAULT_CONFIG = FrozenDict({
-        'SQL_DATABASE_URI': 'sqlite://',
-        'SQL_ECHO': False,
-        'SQL_ECHO_POOL': False,
-        'SQL_ENCODING': None,
-        'SQL_CONVERT_UNICODE': None,
-        'SQL_ISOLATION_LEVEL': None,
-        'SQL_POOL_SIZE': None,
-        'SQL_POOL_TIMEOUT': None,
-        'SQL_POOL_RECYCLE': None,
-        'SQL_MAX_OVERFLOW': None,
-        'SQL_AUTOCOMMIT': False,
-        'SQL_AUTOFLUSH': True,
-        'SQL_EXPIRE_ON_COMMIT': True,
-        'SQL_POOL_PRE_PING': None
-    })
-
     """Database client for interacting with a database.
 
     The following configuration values can be passed into a new
@@ -116,6 +99,23 @@ class SQLClient(object):
         session_options (dict, optional): Additional session options use when
             creating the database session.
     """
+    DEFAULT_CONFIG = FrozenDict({
+        'SQL_DATABASE_URI': 'sqlite://',
+        'SQL_ECHO': False,
+        'SQL_ECHO_POOL': False,
+        'SQL_ENCODING': None,
+        'SQL_CONVERT_UNICODE': None,
+        'SQL_ISOLATION_LEVEL': None,
+        'SQL_POOL_SIZE': None,
+        'SQL_POOL_TIMEOUT': None,
+        'SQL_POOL_RECYCLE': None,
+        'SQL_MAX_OVERFLOW': None,
+        'SQL_AUTOCOMMIT': False,
+        'SQL_AUTOFLUSH': True,
+        'SQL_EXPIRE_ON_COMMIT': True,
+        'SQL_POOL_PRE_PING': None
+    })
+
     def __init__(self,
                  config=None,
                  model_class=None,
@@ -133,7 +133,7 @@ class SQLClient(object):
         self.query_class = query_class
         self.session_class = session_class
 
-        self.config = self.DEFAULT_CONFIG.dict()
+        self.config = self.DEFAULT_CONFIG.copy()
 
         self.config.update(config or {})
 
