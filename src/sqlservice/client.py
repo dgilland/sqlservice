@@ -26,7 +26,8 @@ class SQLClient(object):
     """Database client for interacting with a database.
 
     The following configuration values can be passed into a new
-    :class:`SQLClient` instance as a ``dict``.
+    :class:`SQLClient` instance as a ``dict``. Alternatively, this class can
+    be subclassed and :attr:`DEFAULT_CONFIG` overridden with a custom defaults.
 
     ========================  =================================================
     **SQL_DATABASE_URI**      URI used to connect to the database. Defaults
@@ -99,6 +100,8 @@ class SQLClient(object):
         session_options (dict, optional): Additional session options use when
             creating the database session.
     """
+    #: The default client configuration for this class. Override in a subclass
+    #: to set new class-wide defaults.
     DEFAULT_CONFIG = FrozenDict({
         'SQL_DATABASE_URI': 'sqlite://',
         'SQL_ECHO': False,

@@ -2,8 +2,18 @@ Changelog
 =========
 
 
+- Add ``SQLClient.DEFAULT_CONFIG`` class attribute as way to override config defaults at the class level via subclassing.
 - Rename ``SQLClient.shutdown()`` to ``disconnect()`` but keep ``shutdown()`` as a deprecated alias.
-- Deprecate ``SQLClient.shutdown()``. use ``SQLClient.disconnect()`` instead. Will be removed in ``v1``.
+- Deprecate ``SQLClient.shutdown()``. Use ``SQLClient.disconnect()`` instead. Will be removed in ``v1``.
+- Deprecate ``SQLQuery`` methods below. Use ``pydash`` library directly or re-implement in subclass of ``SQLQuery`` and pass to ``SQLClient()`` via ``query_class`` argument. Methods will be removed in ``v1``:
+
+  - ``SQLQuery.chain()``
+  - ``SQLQuery.pluck()``
+  - ``SQLQuery.key_by()``
+  - ``SQLQuery.map()``
+  - ``SQLQuery.reduce()``
+  - ``SQLQuery.reduce_right()``
+  - ``SQLQuery.stack_by()``
 
 
 v0.22.1 (2018-07-15)
