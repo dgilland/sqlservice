@@ -14,7 +14,7 @@ PY2 = sys.version_info[0] == 2
 
 
 if PY2:
-    from collections import Iterable
+    from collections import Iterable, Mapping
 
     text_type = unicode
     string_types = (str, unicode)
@@ -29,7 +29,7 @@ if PY2:
     def iteritems(d):
         return d.iteritems()
 else:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Mapping
 
     text_type = str
     string_types = (str,)

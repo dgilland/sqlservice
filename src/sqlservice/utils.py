@@ -5,10 +5,10 @@ Utilities
 
 The utilities module.
 """
-from collections import Mapping
+
 from functools import wraps
 
-from ._compat import Iterable, string_types, iteritems
+from ._compat import Iterable, Mapping, string_types, iteritems
 
 
 def classonce(meth):
