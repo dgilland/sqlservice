@@ -102,36 +102,6 @@ You can filter, paginate, and order results in a single method call with ``searc
     db.query(User).search(per_page=25, page=2, order_by=User.name).all()
 
 
-You can `pydash <https://github.com/dgilland/pydash>`_ methods like ``chain()``, ``pluck()``, ``reduce()``, and more:
-
-.. code-block:: python
-
-    # Return a list of users' names.
-    db.query(User).pluck('name')
-
-    # Convert a list of users into a dict indexed by id.
-    db.query(User).index_by('id')
-    db.query(User).index_by(lambda user: user.id)
-
-    # Start a pydash chaining sequence to return a comma-delimited string of ids.
-    db.query(User).chain().pluck('id').map(str).join(',').value()
-
-    # Map a function.
-    db.query(User).map(repr)
-
-    # Group items into a dict of lists indexed by a column.
-    db.query(User).stack_by('name')
-    # {'Bob': [<User>, <User>], 'Mike': [<User>]}
-
-    # Or group according to a callback function.
-    db.query(User).stack_by(lambda user: user.name[0])
-    # {'B': [<User>, <User>], 'M': [<User>]}
-
-    # Reduce users by a callback function
-    db.query(User).reduce(lambda result, user: result + user.name, initial='')
-    db.query(User).reduce_right(lambda result, user: result + user.name, initial='')
-
-
 For more details, see the :mod:`sqlservice.query` module.
 
 

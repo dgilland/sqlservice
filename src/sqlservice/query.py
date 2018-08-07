@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from . import core
-from ._compat import iteritems
+from ._compat import deprecated, iteritems
 
 
 class SQLQuery(orm.Query):
@@ -290,6 +290,7 @@ class SQLQuery(orm.Query):
         """
         return self.search(*criterion, **kargs).all()
 
+    @deprecated('Use pydash library directly instead')
     def chain(self):
         """Return pydash chaining instance with items returned by
         :meth:`all`.
@@ -300,28 +301,34 @@ class SQLQuery(orm.Query):
         """
         return pyd.chain(self.all())
 
+    @deprecated('Use pydash library directly instead')
     def key_by(self, iteratee=None):
         """Index items returned by :meth:`all` using `iteratee`."""
         return pyd.key_by(self.all(), iteratee)
 
+    @deprecated('Use pydash library directly instead')
     def stack_by(self, iteratee=None):
         """Group items returned by :meth:`all` using `iteratee`."""
         return pyd.group_by(self.all(), iteratee)
 
+    @deprecated('Use pydash library directly instead')
     def map(self, iteratee=None):
         """Map `iteratee` to each item returned by :meth:`all`."""
         return pyd.map_(self.all(), iteratee)
 
+    @deprecated('Use pydash library directly instead')
     def pluck(self, path):
         """Pluck `path` attribute values from :meth:`all` results and
         return as list.
         """
         return pyd.pluck(self.all(), path)
 
+    @deprecated('Use pydash library directly instead')
     def reduce(self, iteratee=None, initial=None):
         """Reduce :meth:`all` using `iteratee`."""
         return pyd.reduce_(self.all(), iteratee, initial)
 
+    @deprecated('Use pydash library directly instead')
     def reduce_right(self, iteratee=None, initial=None):
         """Reduce reversed :meth:`all` using `iteratee`."""
         return pyd.reduce_right(self.all(), iteratee, initial)
