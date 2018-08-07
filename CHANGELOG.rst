@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v0.23.0 (2018-08-06)
+--------------------
+
 - Add ``SQLClient.DEFAULT_CONFIG`` class attribute as way to override config defaults at the class level via subclassing.
 - Rename ``SQLClient.shutdown()`` to ``disconnect()`` but keep ``shutdown()`` as a deprecated alias.
 - Deprecate ``SQLClient.shutdown()``. Use ``SQLClient.disconnect()`` instead. Will be removed in ``v1``.
