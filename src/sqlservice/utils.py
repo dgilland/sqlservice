@@ -7,11 +7,16 @@ The utilities module.
 """
 
 from functools import wraps
+import types
 
-from ._compat import Iterable, Mapping, string_types, iteritems
+from ._compat import Sequence, Mapping, string_types, iteritems
 
 
 class FrozenDict(Mapping):
+    """A frozen dictionary implementation that prevents the object from being
+    mutated. This is primarily used when defining a dict-like object as a class
+    attribute that shouldn't be mutated by subclasses.
+    """
     def __init__(self, *args, **kwargs):
         self._dict = dict(*args, **kwargs)
 
@@ -49,11 +54,18 @@ def classonce(meth):
     return decorated
 
 
-def is_sequence(obj):
-    """Test if `obj` is an iterable but not ``dict`` or ``str``. This function
-    is mainly used to determine if `obj` can be treated like a ``list`` for
-    iteration purposes.
+def is_sequence(value):
+    """Test if `value` is a sequence but ``str``. This function is mainly used
+    to determine if `value` can be treated like a ``list`` for iteration
+    purposes.
     """
-    return (isinstance(obj, Iterable) and
-            not isinstance(obj, string_types) and
-            not isinstance(obj, dict))
+    return (is_generator(value) or
+            (isinstance(value, Sequence) and
+             not isinstance(value, string_types)))
+
+
+def is_generator(value):
+    """Return whether `value` is a generator or generator-like."""
+    return (isinstance(value, types.GeneratorType) or
+            (hasattr(value, '__iter__') and hasattr(value, '__next__') and
+             not hasattr(value, '__getitem__')))

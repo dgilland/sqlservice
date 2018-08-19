@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+- Don't mutate ``models`` argument when passed in as a list to ``SQLClient.save|core.save``.
+- Allow generators to be passed into ``SQLClient.save|core.save`` and ``SQLClient.destroy|core.destroy``.
+
+
 v0.23.0 (2018-08-06)
 --------------------
 

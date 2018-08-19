@@ -9,6 +9,7 @@ from sqlalchemy import orm
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from ._compat import iteritems
+from .utils import is_sequence
 
 
 @contextmanager
@@ -132,13 +133,12 @@ def save(session, models, before=None, after=None, identity=None):
         Model: If a single item passed in.
         list: A ``list`` of Model instaces if multiple items passed in.
     """
-    if not isinstance(models, (list, tuple)):
-        # Data was not passed in a list/tuple so we'll want to return it
-        # the same.
+    if not is_sequence(models):
         as_list = False
         models = [models]
     else:
         as_list = True
+        models = list(models)
 
     if identity is None:
         identity = primary_identity_map
@@ -157,13 +157,11 @@ def save(session, models, before=None, after=None, identity=None):
 
     # Parition models into `addable` or `mergeable` buckets.
     for idx, model in enumerate(models):
-        model_class = type(model)
-
         if identity(model) is not None:
             # Primary key(s) are set so might be mergeable.
             # Keep track of original `idx` because we'll need to update
             # the `models` list with the merged instance.
-            mergeable[model_class].append((idx, model))
+            mergeable[model.__class__].append((idx, model))
         else:
             # No primary key set so add to the insert list.
             insertable.append(model)
@@ -176,11 +174,9 @@ def save(session, models, before=None, after=None, identity=None):
         # database fetch since we've pre-loaded them.
         for model_class, class_models in iteritems(mergeable):
             criteria = identity_map_filter(
-                [model for _, model in class_models],
-                identity=identity)
-
-            existing = session.query(model_class).filter(criteria).all()
-            existing = {identity(model): model for model in existing}
+                (model for _, model in class_models), identity=identity)
+            query = session.query(model_class).filter(criteria)
+            existing = {identity(model): model for model in query}
 
             for idx, model in class_models:
                 ident = identity(model)
@@ -188,10 +184,8 @@ def save(session, models, before=None, after=None, identity=None):
                 if model in session:
                     updatable.append(model)
                 elif ident in existing:
-                    model = models[idx] = _force_merge(session,
-                                                       existing[ident],
-                                                       model)
-                    updatable.append(model)
+                    models[idx] = _force_merge(session, existing[ident], model)
+                    updatable.append(models[idx])
                 else:
                     insertable.append(model)
 
@@ -236,7 +230,7 @@ def _add(session, models, is_new=None, before=None, after=None):
             saved via ``session.add``. Function should have signature
             ``after(model, is_new)``.
     """
-    if not isinstance(models, (list, tuple)):  # pragma: no cover
+    if not is_sequence(models):  # pragma: no cover
         models = [models]
 
     for model in models:
@@ -274,7 +268,7 @@ def destroy(session, data, model_class=None, synchronize_session=False):
     Returns:
         int: Number of deleted records.
     """
-    if not isinstance(data, list):
+    if not is_sequence(data) or isinstance(data, tuple):
         data = [data]
 
     valid_model_class = isinstance(model_class, DeclarativeMeta)
@@ -282,7 +276,7 @@ def destroy(session, data, model_class=None, synchronize_session=False):
     mapped_data = defaultdict(list)
 
     for idx, item in enumerate(data):
-        item_class = type(item)
+        item_class = item.__class__
 
         if not isinstance(item_class, DeclarativeMeta) and valid_model_class:
             class_ = model_class
@@ -295,7 +289,7 @@ def destroy(session, data, model_class=None, synchronize_session=False):
                             'model class argument is not valid. '
                             'Item with index {0} and with value "{1}" is '
                             'an instance of "{2}" and model class is {3}.'
-                            .format(idx, item, type(item), model_class))
+                            .format(idx, item, item_class, model_class))
 
         mapped_data[class_].append(item)
 
@@ -324,7 +318,7 @@ def primary_key_filter(items, model_class):
     Returns:
         sqlalchemy.sql.elements.BinaryExpression
     """
-    if not isinstance(items, list):  # pragma: no cover
+    if not is_sequence(items) or isinstance(items, tuple):  # pragma: no cover
         items = [items]
 
     pk_columns = model_class.pk_columns()
@@ -434,7 +428,7 @@ def identity_map_filter(models, identity=None):
     if identity is None:
         identity = primary_identity_map
 
-    if not isinstance(models, (tuple, list)):
+    if not is_sequence(models):
         models = [models]
 
     return sa.or_(sa.and_(col == val

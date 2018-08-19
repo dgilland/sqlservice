@@ -332,10 +332,10 @@ def default_dict_adapter(value, key, model):
     elif (value is None and
             callable(getattr(model, 'relationships')) and
             key in model.relationships()):
-        # Instead of returning a null relationship value as ``None``,
-        # return it as an empty dict. This gives a more consistent
-        # representation of the relationship value type (i.e. a non-
-        # null relationship value would be a dict).
+        # Instead of returning a null relationship value as ``None``, return it
+        # as an empty dict. This gives a more consistent representation of the
+        # relationship value type (i.e. a non-null relationship value would be
+        # a dict).
         value = {}
     return value
 

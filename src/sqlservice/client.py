@@ -19,7 +19,7 @@ from . import core
 from .model import declarative_base
 from .query import SQLQuery
 from ._compat import deprecated, iteritems, string_types
-from .utils import FrozenDict
+from .utils import FrozenDict, is_sequence
 
 
 class SQLClient(object):
@@ -566,20 +566,20 @@ class SQLClient(object):
             Model: If a single item passed in.
             list: A ``list`` of Model instaces if multiple items passed in.
         """
-        if not isinstance(models, (list, tuple)):
-            _models = [models]
+        if not is_sequence(models):
+            models = [models]
             as_list = False
         else:
-            _models = models
+            models = list(models)
             as_list = True
 
-        for idx, model in enumerate(_models):
-            if type(model) in self.models.values():
+        for idx, model in enumerate(models):
+            if model.__class__ in self.models.values():
                 continue
 
             self.update_models_registry()
 
-            if type(model) not in self.models.values():
+            if model.__class__ not in self.models.values():
                 if as_list:
                     idx_msg = 'Item with index {0} and value '.format(idx)
                 else:
@@ -592,10 +592,10 @@ class SQLClient(object):
                     .format(self.model_class,
                             idx_msg,
                             model,
-                            type(model)))
+                            model.__class__))
 
         return core.save(self.session,
-                         models,
+                         models if as_list else models[0],
                          before=before,
                          after=after,
                          identity=identity)
