@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 
 import pytest
 import sqlalchemy as sa
 
 from sqlservice import event
-from sqlservice._compat import PY2
 
 from .fixtures import Model, parametrize
 
@@ -116,11 +114,4 @@ class EventModel(Model):
 ])
 def test_events(target, event, listener):
     """Test that event listeners are properly registered."""
-    if PY2:
-        for evt_cls in sa.event.base._registrars[event]:
-            tgt = evt_cls._accept_with(target)
-            if tgt is not None:
-                break
-        assert tgt
-    else:
-        assert sa.event.contains(target, event, listener)
+    assert sa.event.contains(target, event, listener)

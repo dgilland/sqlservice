@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Model
 -----
@@ -19,7 +18,6 @@ from sqlalchemy.util._collections import ImmutableProperties
 
 from . import core, event
 from .utils import classonce, is_sequence
-from ._compat import iteritems, string_types
 
 
 class ModelMeta(DeclarativeMeta):
@@ -78,7 +76,7 @@ class ModelBase(object):
         # Collect and order data fields in a pseudo-deterministic order where
         # column updates occur before relationship updates but order within
         # those types is indeterministic.
-        for field, value in iteritems(data):
+        for field, value in data.items():
             if field in relations:
                 # Set relationships last.
                 field_order.append((field, value))
@@ -137,7 +135,7 @@ class ModelBase(object):
         """Returns declarative class registry containing declarative model
         class names mapped to class objects.
         """
-        items = iteritems(getattr(cls, '_decl_class_registry', {}))
+        items = getattr(cls, '_decl_class_registry', {}).items()
         return {key: value for key, value in items
                 if not key.startswith('_sa_')}
 
@@ -184,7 +182,7 @@ class ModelBase(object):
             dict
         """
         descriptors = self.descriptors()
-        return {key: value for key, value in iteritems(self.__dict__)
+        return {key: value for key, value in self.__dict__.items()
                 if key in descriptors}
 
     def to_dict(self):
@@ -209,7 +207,7 @@ class ModelBase(object):
             session.refresh(self)
             data = self.descriptors_to_dict()
 
-        for key, value in iteritems(data):
+        for key, value in data.items():
             adapter = _get_dict_adapter(key,
                                         value,
                                         default_adapter,
@@ -243,7 +241,7 @@ class ModelBase(object):
 
     def __iter__(self):
         """Iterator that yields table columns as strings."""
-        return iteritems(self.to_dict())
+        return iter(self.to_dict().items())
 
     def __contains__(self, key):
         """Return whether `key` is a model descriptor."""
@@ -327,7 +325,7 @@ def default_dict_adapter(value, key, model):
     elif isinstance(value, dict):
         # Nest calls to child to_dict methods for dict values.
         value = {ky: val.to_dict() if hasattr(val, 'to_dict') else val
-                 for ky, val in iteritems(value)}
+                 for ky, val in value.items()}
     elif (value is None and
             callable(getattr(model, 'relationships')) and
             key in model.relationships()):
@@ -346,9 +344,9 @@ def _get_dict_adapter(key, value, default, adapters, class_registry):
         # Prioritize key mappings over isinstance mappings below.
         adapter = adapters[key]
     else:
-        for cls, _adapter in iteritems(adapters):
+        for cls, _adapter in adapters.items():
             # Map string model names to model class.
-            if isinstance(cls, string_types) and cls in class_registry:
+            if isinstance(cls, str) and cls in class_registry:
                 cls = class_registry[cls]
 
             if isinstance(value, cls):

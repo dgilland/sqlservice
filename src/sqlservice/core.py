@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 
 from collections import defaultdict
 from contextlib import contextmanager
@@ -7,7 +6,6 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from ._compat import iteritems
 from .utils import is_sequence
 
 
@@ -171,7 +169,7 @@ def save(session, models, before=None, after=None, identity=None):
         # Doing so will put those models into the session registry which
         # means that when we later call `merge()`, there won't be a
         # database fetch since we've pre-loaded them.
-        for model_class, class_models in iteritems(mergeable):
+        for model_class, class_models in mergeable.items():
             criteria = identity_map_filter(
                 (model for _, model in class_models), identity=identity)
             query = session.query(model_class).filter(criteria)
@@ -295,7 +293,7 @@ def destroy(session, data, model_class=None, synchronize_session=False):
     delete_count = 0
 
     with transaction(session):
-        for model_class, data in iteritems(mapped_data):
+        for model_class, data in mapped_data.items():
             count = (session.query(model_class)
                      .filter(primary_key_filter(data, model_class))
                      .options(orm.lazyload('*'))

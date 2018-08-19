@@ -1,13 +1,12 @@
-# -*- coding: utf-8 -*-
 
 from collections import deque
 import random
 import os
 import string
 import sys
+from unittest import mock
 
 import pytest
-import mock
 
 import sqlalchemy as sa
 from sqlalchemy.orm.collections import attribute_mapped_collection

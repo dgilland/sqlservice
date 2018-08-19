@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Utilities
 ---------
@@ -6,10 +5,9 @@ Utilities
 The utilities module.
 """
 
+from collections.abc import Mapping, Sequence
 from functools import wraps
 import types
-
-from ._compat import Sequence, Mapping, string_types, iteritems
 
 
 class FrozenDict(Mapping):
@@ -70,8 +68,7 @@ def is_sequence(value):
     purposes.
     """
     return (is_generator(value) or
-            (isinstance(value, Sequence) and
-             not isinstance(value, string_types)))
+            (isinstance(value, Sequence) and not isinstance(value, str)))
 
 
 def is_generator(value):

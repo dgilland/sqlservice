@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Client
 ------
@@ -18,7 +17,6 @@ from sqlalchemy.engine.url import make_url
 from . import core
 from .model import declarative_base
 from .query import SQLQuery
-from ._compat import iteritems, string_types
 from .utils import FrozenDict, is_sequence
 
 
@@ -126,7 +124,7 @@ class SQLClient(object):
                  session_class=Session,
                  session_options=None,
                  engine_options=None):
-        if isinstance(config, string_types):
+        if isinstance(config, str):
             config = {'SQL_DATABASE_URI': config}
 
         if model_class is None:  # pragma: no cover
@@ -258,7 +256,7 @@ class SQLClient(object):
         if not class_registry:
             return models
 
-        for name, model in iteritems(class_registry):
+        for name, model in class_registry.items():
             if name.startswith('_sa_'):
                 continue
 
@@ -696,7 +694,7 @@ class SQLClient(object):
             AttributeError: When item doesn't correspond to model class
                 name found in :attr:`metadata`.
         """
-        if not isinstance(item, string_types):
+        if not isinstance(item, str):
             # If anything other than a string is supplied, use the item's
             # __name__ as the model name to index to.
             item = getattr(item, '__name__', item)

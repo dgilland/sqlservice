@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Query
 -----
@@ -11,7 +10,6 @@ from sqlalchemy import orm
 
 from . import core
 from .utils import flatten, is_sequence
-from ._compat import deprecated, iteritems
 
 
 class SQLQuery(orm.Query):
@@ -236,7 +234,7 @@ class SQLQuery(orm.Query):
             # base model (if present) instead of the last joined model.
             if isinstance(criteria, dict) and model_class:
                 criteria = (getattr(model_class, key) == val
-                            for key, val in iteritems(criteria))
+                            for key, val in criteria.items())
 
             if isinstance(criteria, dict):
                 query = query.filter_by(**criteria)
