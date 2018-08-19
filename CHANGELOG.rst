@@ -7,7 +7,7 @@ Changelog
 - Allow generators to be passed into ``SQLClient.save|core.save`` and ``SQLClient.destroy|core.destroy``.
 - Remove deprecated methods: (**breaking change**)
 
-  - ``SQLClient.shudtown()``
+  - ``SQLClient.shutdown()`` (use ``SQLClient.disconnect()``)
   - ``SQLQuery.chain()``
   - ``SQLQuery.pluck()``
   - ``SQLQuery.key_by()``
