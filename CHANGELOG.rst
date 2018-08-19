@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v1.0.0 (2018-08-19)
+-------------------
+
 - Drop support for Python 2.7. (**breaking change**)
 - Don't mutate ``models`` argument when passed in as a list to ``SQLClient.save|core.save``.
 - Allow generators to be passed into ``SQLClient.save|core.save`` and ``SQLClient.destroy|core.destroy``.
