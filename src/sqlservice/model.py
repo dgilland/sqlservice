@@ -9,7 +9,6 @@ The declarative base model class for SQLAlchemy ORM.
 from collections import deque
 from functools import partial
 
-from pydash.helpers import callit
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import (
     DeclarativeMeta,
@@ -216,7 +215,7 @@ class ModelBase(object):
                                         default_adapter,
                                         adapters,
                                         class_registry)
-            data[key] = callit(adapter, value, key, self)
+            data[key] = adapter(value, key, self)
 
         return data
 
@@ -338,11 +337,6 @@ def default_dict_adapter(value, key, model):
         # a dict).
         value = {}
     return value
-
-
-# Minor optimization for pydash.helpers.callit to avoid function signature
-# inspection.
-default_dict_adapter._argcount = 3
 
 
 def _get_dict_adapter(key, value, default, adapters, class_registry):

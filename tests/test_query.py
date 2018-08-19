@@ -4,9 +4,6 @@ import mock
 import pytest
 import sqlalchemy as sa
 
-import pydash as pyd
-from pydash.chaining import Chain
-
 from sqlservice import core
 
 from .fixtures import AModel, BModel, CModel, DModel, parametrize, random_alpha
@@ -284,113 +281,6 @@ def test_find_order_by(model_query, models_pool, order_by):
     ret = model_query.find(order_by=order_by)
 
     assert ret == recs
-
-
-@parametrize('model_class,data,iteratee,expected', [
-    (AModel,
-     [{'name': 'a'}, {'name': 'b'}],
-     lambda model: model.name * 2,
-     ['aa', 'bb']),
-    (AModel, [{'name': 'a'}, {'name': 'b'}], 'name', ['a', 'b']),
-])
-def test_query_map(db, model_class, data, iteratee, expected):
-    """Test SQLQuery.map."""
-    db.save([model_class(item) for item in data])
-    assert db.query(model_class).map(iteratee) == expected
-
-
-@parametrize('model_class,data,column,expected', [
-    (AModel, [{'name': 'a'}, {'name': 'b'}], 'name', ['a', 'b']),
-    (AModel, [{'name': 'a', 'c': {'name': 'cname'}}], 'c.name', ['cname'])
-])
-def test_query_pluck(db, model_class, data, column, expected):
-    """Test SQLQuery.pluck."""
-    db.save([model_class(item) for item in data])
-    assert db.query(model_class).pluck(column) == expected
-
-
-@parametrize('model_class,data,iteratee,initial,expected', [
-    (AModel,
-     [{'name': 'a'}, {'name': 'b'}],
-     lambda ret, model: ret + model.name,
-     '',
-     'ab'),
-])
-def test_query_reduce(db, model_class, data, iteratee, initial, expected):
-    """Test SQLQuery.reduce."""
-    db.save([model_class(item) for item in data])
-    result = db.query(model_class).reduce(iteratee, initial=initial)
-    assert result == expected
-
-
-@parametrize('model_class,data,iteratee,initial,expected', [
-    (AModel,
-     [{'name': 'a'}, {'name': 'b'}],
-     lambda ret, model: ret + model.name,
-     '',
-     'ba'),
-])
-def test_query_reduce_right(db,
-                            model_class,
-                            data,
-                            iteratee,
-                            initial,
-                            expected):
-    """Test SQLQuery.reduce_right."""
-    db.save([model_class(item) for item in data])
-    result = db.query(model_class).reduce_right(iteratee, initial=initial)
-    assert result == expected
-
-
-@parametrize('model_class,data', [
-    (AModel, [{'name': 'a'}, {'name': 'b'}]),
-])
-def test_query_chain(db, model_class, data):
-    """Test SQLQuery.chain."""
-    db.save([model_class(item) for item in data])
-    chain = db.query(model_class).chain()
-
-    assert isinstance(chain, Chain)
-
-    keys = list(data[0].keys())
-    results = (chain
-               .map(dict)
-               .map(lambda item: pyd.pick(item, keys))
-               .value())
-
-    assert results == data
-
-
-@parametrize('model_class,data,iteratee,expected', [
-    (AModel,
-     [{'name': 'a'}, {'name': 'b'}],
-     'name',
-     {'a': {'name': 'a'}, 'b': {'name': 'b'}}),
-])
-def test_query_key_by(db, model_class, data, iteratee, expected):
-    """Test SQLQuery.key_by."""
-    db.save([model_class(item) for item in data])
-    results = db.query(model_class).key_by(iteratee)
-
-    for key, value in results.items():
-        assert pyd.pick(dict(value), pyd.keys(expected[key])) == expected[key]
-
-
-@parametrize('model_class,data,iteratee,expected', [
-    (AModel,
-     [{'name': 'a'}, {'name': 'b'}, {'name': 'a'}],
-     'name',
-     {'a': [{'name': 'a'}, {'name': 'a'}], 'b': [{'name': 'b'}]}),
-])
-def test_query_stack_by(db, model_class, data, iteratee, expected):
-    """Test SQLQuery.stack_by."""
-    db.save([model_class(item) for item in data])
-    results = db.query(model_class).stack_by(iteratee)
-
-    for key, items in results.items():
-        items = [pyd.pick(dict(item), pyd.keys(expected[key][0]))
-                 for item in items]
-        assert items == expected[key]
 
 
 @parametrize('pagination,limit,offset', [

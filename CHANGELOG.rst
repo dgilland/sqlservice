@@ -4,6 +4,16 @@ Changelog
 
 - Don't mutate ``models`` argument when passed in as a list to ``SQLClient.save|core.save``.
 - Allow generators to be passed into ``SQLClient.save|core.save`` and ``SQLClient.destroy|core.destroy``.
+- Remove deprecated methods: (**breaking change**)
+
+  - ``SQLClient.shudtown()``
+  - ``SQLQuery.chain()``
+  - ``SQLQuery.pluck()``
+  - ``SQLQuery.key_by()``
+  - ``SQLQuery.map()``
+  - ``SQLQuery.reduce()``
+  - ``SQLQuery.reduce_right()``
+  - ``SQLQuery.stack_by()``
 
 
 v0.23.0 (2018-08-06)

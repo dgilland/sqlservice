@@ -6,11 +6,11 @@ Query
 The query module.
 """
 
-import pydash as pyd
 import sqlalchemy as sa
 from sqlalchemy import orm
 
 from . import core
+from .utils import flatten, is_sequence
 from ._compat import deprecated, iteritems
 
 
@@ -231,24 +231,27 @@ class SQLQuery(orm.Query):
 
         query = self
 
-        for criteria in pyd.flatten(criterion):
+        for criteria in flatten(criterion):
             # If we have keyword (dict) criteria, we want to apply it to the
             # base model (if present) instead of the last joined model.
             if isinstance(criteria, dict) and model_class:
-                criteria = [getattr(model_class, key) == val
-                            for key, val in iteritems(criteria)]
+                criteria = (getattr(model_class, key) == val
+                            for key, val in iteritems(criteria))
 
             if isinstance(criteria, dict):
                 query = query.filter_by(**criteria)
             else:
-                if not isinstance(criteria, list):
-                    criteria = [criteria]
-                query = query.filter(*criteria)
+                if not is_sequence(criteria):
+                    # pylint: disable=assignment-from-no-return
+                    query = query.filter(criteria)
+                else:
+                    query = query.filter(*criteria)
 
         if order_by is not None:
-            if not isinstance(order_by, (list, tuple)):
-                order_by = [order_by]
-            query = query.order_by(*order_by)
+            if not is_sequence(order_by):
+                query = query.order_by(order_by)
+            else:
+                query = query.order_by(*order_by)
 
         if per_page or page:
             query = query.paginate((per_page, page))
@@ -289,46 +292,3 @@ class SQLQuery(orm.Query):
             list: List of :attr:`model_class`
         """
         return self.search(*criterion, **kargs).all()
-
-    @deprecated('Use pydash library directly instead')
-    def chain(self):
-        """Return pydash chaining instance with items returned by
-        :meth:`all`.
-
-        See Also:
-            `pydash's <http://pydash.readthedocs.org/>`_ documentation on
-            `chaining <http://pydash.readthedocs.org/en/latest/chaining.html>`_
-        """
-        return pyd.chain(self.all())
-
-    @deprecated('Use pydash library directly instead')
-    def key_by(self, iteratee=None):
-        """Index items returned by :meth:`all` using `iteratee`."""
-        return pyd.key_by(self.all(), iteratee)
-
-    @deprecated('Use pydash library directly instead')
-    def stack_by(self, iteratee=None):
-        """Group items returned by :meth:`all` using `iteratee`."""
-        return pyd.group_by(self.all(), iteratee)
-
-    @deprecated('Use pydash library directly instead')
-    def map(self, iteratee=None):
-        """Map `iteratee` to each item returned by :meth:`all`."""
-        return pyd.map_(self.all(), iteratee)
-
-    @deprecated('Use pydash library directly instead')
-    def pluck(self, path):
-        """Pluck `path` attribute values from :meth:`all` results and
-        return as list.
-        """
-        return pyd.pluck(self.all(), path)
-
-    @deprecated('Use pydash library directly instead')
-    def reduce(self, iteratee=None, initial=None):
-        """Reduce :meth:`all` using `iteratee`."""
-        return pyd.reduce_(self.all(), iteratee, initial)
-
-    @deprecated('Use pydash library directly instead')
-    def reduce_right(self, iteratee=None, initial=None):
-        """Reduce reversed :meth:`all` using `iteratee`."""
-        return pyd.reduce_right(self.all(), iteratee, initial)

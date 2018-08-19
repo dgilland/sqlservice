@@ -3,7 +3,6 @@
 from collections import defaultdict
 from contextlib import contextmanager
 
-import pydash as pyd
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -338,8 +337,9 @@ def primary_key_filter(items, model_class):
 def _one_primary_key_filter(items, model_class):
     """Return filter criteria for models with one primary key."""
     pk_col = mapper_primary_key(model_class)[0]
-    return pk_col.in_(pyd.get(item, pk_col.name, default=item)
-                      for item in items)
+    return pk_col.in_(
+        item[pk_col.name] if isinstance(item, (dict, model_class)) else item
+        for item in items)
 
 
 def _many_primary_key_filter(items, model_class):
@@ -356,11 +356,10 @@ def _many_primary_key_filter(items, model_class):
     for item in items:
         # AND each primary key value together to filter for that record
         # uniquely.
-        pk_index = (idx_pk_index if isinstance(item, tuple)
-                    else obj_pk_index)
+        pk_index = idx_pk_index if isinstance(item, tuple) else obj_pk_index
         pk_criteria.append(
-            sa.and_(*(col == pyd.get(item, pk_index(idx, col))
-                      for idx, col in enumerate(pk_cols))))
+            sa.and_(col == item[pk_index(idx, col)]
+                    for idx, col in enumerate(pk_cols)))
 
     # Our final filter is an OR filter that ANDs each of the primary keys
     # from each model.

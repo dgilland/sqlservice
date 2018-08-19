@@ -6,7 +6,6 @@ import os
 import string
 import sys
 
-import pydash as pyd
 import pytest
 import mock
 
@@ -24,12 +23,19 @@ Model = declarative_base()
 DupModel = declarative_base()
 
 
+def unique_id():
+    if not hasattr(unique_id, '_id'):
+        unique_id._id = 0
+    unique_id._id += 1
+    return unique_id._id
+
+
 class AModel(Model):
     __tablename__ = 'test_a'
 
     id = sa.Column(sa.types.Integer(),
                    primary_key=True,
-                   default=lambda val: int(pyd.unique_id()))
+                   default=unique_id)
     name = sa.Column(sa.types.String(50))
     text = sa.Column(sa.types.String(50))
     c_id = sa.Column(sa.types.Integer(), sa.ForeignKey('test_c.id'))
@@ -46,10 +52,10 @@ class BModel(Model):
 
     id1 = sa.Column(sa.types.Integer(),
                     primary_key=True,
-                    default=lambda val: int(pyd.unique_id()))
+                    default=unique_id)
     id2 = sa.Column(sa.types.Integer(),
                     primary_key=True,
-                    default=lambda val: int(pyd.unique_id()))
+                    default=unique_id)
     name = sa.Column(sa.types.String(50))
 
 
@@ -58,7 +64,7 @@ class CModel(Model):
 
     id = sa.Column(sa.types.Integer(),
                    primary_key=True,
-                   default=lambda val: int(pyd.unique_id()))
+                   default=unique_id)
     name = sa.Column(sa.types.String(50))
 
 
@@ -67,7 +73,7 @@ class DModel(Model):
 
     id = sa.Column(sa.types.Integer(),
                    primary_key=True,
-                   default=lambda val: int(pyd.unique_id()))
+                   default=unique_id)
     name = sa.Column(sa.types.String(50))
     a_id = sa.Column(sa.types.Integer(), sa.ForeignKey('test_a.id'))
 

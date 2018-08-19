@@ -75,19 +75,19 @@ def test_model_to_dict(db, model, expected):
 
 
 @parametrize('adapters,data,expected', [
-    ({list: lambda models, col: [model.id for model in models]},
+    ({list: lambda models, col, _: [model.id for model in models]},
      {'ds': [DModel(id=1), DModel(id=2)]},
      {'ds': [1, 2]}),
-    ({'ds': lambda models, col: [model.id for model in models]},
+    ({'ds': lambda models, col, _: [model.id for model in models]},
      {'ds': [DModel(id=1), DModel(id=2)]},
      {'ds': [1, 2]}),
-    ({str: lambda val: val[0]},
+    ({str: lambda val, *_: val[0]},
      {'name': 'foo'},
      {'name': 'f'}),
-    ({'name': lambda val: val[0]},
+    ({'name': lambda val, *_: val[0]},
      {'name': 'foo'},
      {'name': 'f'}),
-    ({'CModel': lambda c: {'name': c.name}},
+    ({'CModel': lambda c, *_: {'name': c.name}},
      {'c': CModel(id=1, name='foo')},
      {'c': {'name': 'foo'}}),
 ])

@@ -54,6 +54,16 @@ def classonce(meth):
     return decorated
 
 
+def flatten(seq):
+    """Flatten `seq` a single level deep."""
+    for item in seq:
+        if is_sequence(item):
+            for itm in item:
+                yield itm
+        else:
+            yield item
+
+
 def is_sequence(value):
     """Test if `value` is a sequence but ``str``. This function is mainly used
     to determine if `value` can be treated like a ``list`` for iteration

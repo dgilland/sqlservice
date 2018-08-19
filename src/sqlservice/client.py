@@ -18,7 +18,7 @@ from sqlalchemy.engine.url import make_url
 from . import core
 from .model import declarative_base
 from .query import SQLQuery
-from ._compat import deprecated, iteritems, string_types
+from ._compat import iteritems, string_types
 from .utils import FrozenDict, is_sequence
 
 
@@ -420,10 +420,6 @@ class SQLClient(object):
         self.close_all()
         self.remove()
         self.engine.dispose()
-
-    @deprecated("Use 'disconnect' instead.")
-    def shutdown(self):  # pragma: no cover
-        self.disconnect()
 
     def commit(self):
         """Commit a session transaction but rollback if an error occurs. This
