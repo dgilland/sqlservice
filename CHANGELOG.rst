@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v1.0.2 (2018-08-20)
+-------------------
+
 - Minor optimization to ``SQLQuery.save()`` to not create an intermediate list when saving multiple items.
 
 
