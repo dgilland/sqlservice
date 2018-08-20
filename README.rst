@@ -37,7 +37,7 @@ This library is meant to enhance your usage of SQLAlchemy. SQLAlchemy is great a
 Requirements
 ------------
 
-- Python 2.7 or Python >= 3.4
+- Python >= 3.4
 - `SQLAlchemy <http://www.sqlalchemy.org/>`_ >= 1.0.0
 - `pydash <http://pydash.readthedocs.io>`_ >= 3.4.3
 
@@ -50,7 +50,7 @@ First, install using pip:
 
 ::
 
-    pip install sqlservice
+    pip3 install sqlservice
 
 
 Then, define some ORM models:
