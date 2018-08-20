@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v1.0.1 (2018-08-20)
+-------------------
+
 - Add missing handling for generators in ``SQLQuery.save()``.
 
 
