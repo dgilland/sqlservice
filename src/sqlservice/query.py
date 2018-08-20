@@ -119,7 +119,7 @@ class SQLQuery(orm.Query):
         """
         model_class = self._only_model_class_zero('save')
 
-        if isinstance(data, (list, tuple)):
+        if is_sequence(data):
             models = [model_class(item) if not isinstance(item, model_class)
                       else item
                       for item in data]

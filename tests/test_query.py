@@ -448,6 +448,18 @@ def test_save(db, model_query, models_pool, data_pool):
     assert len(dbmodels) == len(data)
 
 
+def test_save_with_generator(db):
+    """Test query save method using generator as input."""
+    names = [str(i) for i in range(5)]
+    models = (AModel({'name': name}) for name in names)
+    db.save(models)
+
+    dbmodels = db.query(AModel).order_by('name').all()
+
+    for i, model in enumerate(dbmodels):
+        assert model.name == names[i]
+
+
 @parametrize('identity', [
     lambda model: ((AModel.name, model.name),),
     core.make_identity(AModel.name)

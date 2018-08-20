@@ -346,6 +346,18 @@ def test_duplicate_model_class_name():
     del DupAModel
 
 
+def test_save_with_generator(db):
+    """Test save method using generator as input."""
+    names = [str(i) for i in range(5)]
+    models = (AModel({'name': name}) for name in names)
+    db.save(models)
+
+    dbmodels = db.query(AModel).order_by('name').all()
+
+    for i, model in enumerate(dbmodels):
+        assert model.name == names[i]
+
+
 @parametrize('value', [{}, [{}]])
 def test_save_invalid_type(db, value):
     """Test that save with an invalid type raises an exception."""
