@@ -303,6 +303,51 @@ def destroy(session, data, model_class=None, synchronize_session=False):
     return delete_count
 
 
+def bulk_insert(session, mapper, mappings):
+    """Perform a bulk insert into table/statement represented by `mapper`
+    while utilizing a special syntax that replaces the tradtional
+    ``executemany()`` DBAPI call with a multi-row VALUES clause for a
+    single INSERT statement.
+
+    See :meth:`bulk_insert_many` for bulk inserts using ``executemany()``.
+
+    Args:
+        session (Session): SQLAlchemy session object.
+        mapper: An ORM class or SQLAlchemy insert-statement object.
+        mappings (list): List of ``dict`` objects to insert.
+
+    Returns:
+        ResultProxy
+    """
+    if hasattr(mapper, '__table__'):
+        insert_stmt = mapper.__table__.insert()
+    else:
+        insert_stmt = mapper
+    return session.execute(insert_stmt.values(mappings))
+
+
+def bulk_insert_many(session, mapper, mappings):
+    """Perform a bulk insert into table/statement represented by `mapper`
+    while utilizing the ``executemany()`` DBAPI call.
+
+    See :meth:`bulk_insert` for bulk inserts using a multi-row VALUES
+    clause for a single INSERT statement.
+
+    Args:
+        session (Session): SQLAlchemy session object.
+        mapper: An ORM class or SQLAlchemy insert-statement object.
+        mappings (list): List of ``dict`` objects to insert.
+
+    Returns:
+        ResultProxy
+    """
+    if hasattr(mapper, '__table__'):
+        insert_stmt = mapper.__table__.insert()
+    else:
+        insert_stmt = mapper
+    return session.execute(insert_stmt.values(), mappings)
+
+
 def primary_key_filter(items, model_class):
     """Given a set of `items` that have their primary key(s) set and that
     may or may not exist in the database, return a filter that queries for

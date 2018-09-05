@@ -609,11 +609,9 @@ class SQLClient(object):
         Returns:
             ResultProxy
         """
-        if hasattr(mapper, '__table__'):
-            insert_stmt = mapper.__table__.insert()
-        else:
-            insert_stmt = mapper
-        return self.execute(insert_stmt.values(mappings))
+        return core.bulk_insert(self.session,
+                                mapper,
+                                mappings)
 
     def bulk_insert_many(self, mapper, mappings):
         """Perform a bulk insert into table/statement represented by `mapper`
@@ -629,11 +627,9 @@ class SQLClient(object):
         Returns:
             ResultProxy
         """
-        if hasattr(mapper, '__table__'):
-            insert_stmt = mapper.__table__.insert()
-        else:
-            insert_stmt = mapper
-        return self.execute(insert_stmt.values(), mappings)
+        return core.bulk_insert_many(self.session,
+                                     mapper,
+                                     mappings)
 
     @property
     def bulk_insert_mappings(self):

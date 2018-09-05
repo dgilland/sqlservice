@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Move logic in ``SQLClient.bulk_insert()`` and ``bulk_insert_many()`` to ``core.bulk_insert()`` and ``core.bulk_insert_many()`` respectively.
+
+
 v1.0.2 (2018-08-20)
 -------------------
 
