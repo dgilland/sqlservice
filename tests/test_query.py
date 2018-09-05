@@ -365,6 +365,175 @@ def test_bulk_insert_many(db, insert_stmt, mappings):
         assert db[AModel].filter_by(**mapping).one()
 
 
+@parametrize('case', [
+    {
+        'model': AModel,
+        'mapper': AModel,
+        'records': [
+            dict(id=1, name='1', text='A'),
+            dict(id=2, name='2', text='A'),
+            dict(id=3, name='3', text='A'),
+            dict(id=4, name='4', text='A'),
+            dict(id=5, name='5', text='A'),
+        ],
+        'mappings': [
+            dict(id=1, text='B'),
+            dict(id=2, text='B'),
+            dict(id=3, text='C'),
+            dict(id=4, text='C'),
+            dict(id=5, text='D'),
+        ],
+        'key_columns': AModel.id,
+        'expected': [
+            {'where_values': [(1,), (2,)],
+             'parameters': dict(text='B')},
+            {'where_values': [(3,), (4,)],
+             'parameters': dict(text='C')},
+            {'where_values': [(5,)],
+             'parameters': dict(text='D')},
+        ]
+    },
+    {
+        'model': AModel,
+        'mapper': AModel.__table__.update(),
+        'records': [
+            dict(id=1, name='1', text='A'),
+            dict(id=2, name='2', text='A'),
+            dict(id=3, name='3', text='A'),
+            dict(id=4, name='4', text='A'),
+            dict(id=5, name='5', text='A'),
+        ],
+        'mappings': [
+            dict(id=1, text='B'),
+            dict(id=2, text='B'),
+            dict(id=3, text='C'),
+            dict(id=4, text='C'),
+            dict(id=5, text='D'),
+        ],
+        'key_columns': AModel.id,
+        'expected': [
+            {'where_values': [(1,), (2,)],
+             'parameters': dict(text='B')},
+            {'where_values': [(3,), (4,)],
+             'parameters': dict(text='C')},
+            {'where_values': [(5,)],
+             'parameters': dict(text='D')},
+        ]
+    },
+    {
+        'model': AModel,
+        'mapper': AModel,
+        'records': [
+            dict(id=1, name='1', text='A'),
+            dict(id=2, name='2', text='A'),
+            dict(id=3, name='3', text='A'),
+            dict(id=4, name='4', text='A'),
+            dict(id=5, name='5', text='A'),
+        ],
+        'mappings': [
+            dict(id=1, name='1', text='B'),
+            dict(id=2, name='2', text='B'),
+            dict(id=3, name='3', text='C'),
+            dict(id=4, name='4', text='C'),
+            dict(id=5, name='5', text='D'),
+        ],
+        'key_columns': (AModel.id, AModel.name),
+        'expected': [
+            {'where_values': [(1, '1'), (2, '2')],
+             'parameters': dict(text='B')},
+            {'where_values': [(3, '3'), (4, '4')],
+             'parameters': dict(text='C')},
+            {'where_values': [(5, '5')],
+             'parameters': dict(text='D')},
+        ]
+    },
+])
+def test_bulk_common_update(db, case):
+    """Test SQLClient.bulk_common_update()."""
+    db.bulk_insert(case['model'], case['records'])
+
+    with mock.patch.object(db.session, 'execute') as mock_execute:
+        db.bulk_common_update(case['mapper'],
+                              case['key_columns'],
+                              case['mappings'])
+
+    assert len(mock_execute.call_args_list) == len(case['expected'])
+
+    for (stmt, *_), kargs in mock_execute.call_args_list:
+        assert isinstance(stmt, sa.sql.Update)
+
+        where_values = [
+            tuple(subclause.value for subclause in clause.element.clauses)
+            for clause in stmt._whereclause.right.element.clauses]
+
+        query = {'where_values': where_values,
+                 'parameters': stmt.parameters}
+
+        assert query in case['expected']
+
+
+@parametrize('case', [
+    {
+        'mapper': AModel,
+        'records': [
+            dict(id=1, name='1', text='A', label='L'),
+            dict(id=2, name='2', text='A', label='L'),
+            dict(id=3, name='3', text='A', label='L'),
+            dict(id=4, name='4', text='A', label='L'),
+            dict(id=5, name='5', text='A', label='L'),
+        ],
+        'mappings': [
+            dict(id=1, name='1', text='A'),
+            dict(id=2, name='2', text='B', label='M'),
+            dict(id=3, name='3', text='B', label='N'),
+            dict(id=4, name='4', text='C', label='O'),
+            dict(id=5, name='5', text='C', label='O'),
+            dict(id=6, name='6', text='D'),
+            dict(id=7, name='7', text='E'),
+        ],
+        'key_columns': AModel.id,
+        'expected': [
+            {'stmt_class': sa.sql.Update,
+             'where_values': [(2,)],
+             'parameters': dict(text='B', label='M')},
+            {'stmt_class': sa.sql.Update,
+             'where_values': [(3,)],
+             'parameters': dict(text='B', label='N')},
+            {'stmt_class': sa.sql.Update,
+             'where_values': [(4,), (5,)],
+             'parameters': dict(text='C', label='O')},
+            {'stmt_class': sa.sql.Insert,
+             'parameters': [dict(id=6, name='6', text='D'),
+                            dict(id=7, name='7', text='E')]},
+        ]
+    },
+])
+def test_bulk_diff_update(db, case):
+    """Test SQLClient.bulk_diff_update()."""
+    db.bulk_insert(case['mapper'], case['records'])
+
+    with mock.patch.object(db.session, 'execute') as mock_execute:
+        db.bulk_diff_update(case['mapper'],
+                            case['key_columns'],
+                            case['records'],
+                            case['mappings'])
+
+    assert len(mock_execute.call_args_list) == len(case['expected'])
+
+    for (stmt, *_), kargs in mock_execute.call_args_list:
+        query = {'stmt_class': stmt.__class__,
+                 'parameters': stmt.parameters}
+
+        if stmt.__class__ == sa.sql.Update:
+            where_values = [
+                tuple(subclause.value for subclause in clause.element.clauses)
+                for clause in stmt._whereclause.right.element.clauses]
+
+            query['where_values'] = where_values
+
+        assert query in case['expected']
+
+
 def test_update_model(db, model_query, model_pool):
     """Test query model update."""
     model = model_pool[model_query.model_class]

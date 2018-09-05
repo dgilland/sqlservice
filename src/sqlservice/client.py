@@ -631,6 +631,58 @@ class SQLClient(object):
                                      mapper,
                                      mappings)
 
+    def bulk_common_update(self, mapper, key_columns, mappings):
+        """Perform a bulk UPDATE on common shared values among `mappings`. What
+        this means is that if multiple records are being updated to the same
+        values, then issue only a single update for that value-set using the
+        identity of the records in the WHERE clause.
+
+        Args:
+            mapper: An ORM class or SQLAlchemy insert-statement object.
+            key_columns (tuple): A tuple of SQLAlchemy columns that represent
+                the identity of each row (typically this would be a table's
+                primary key values but they can be any set of columns).
+            mappings (list): List of ``dict`` objects to update.
+
+        Returns:
+            list[ResultProxy]
+        """
+        return core.bulk_common_update(self.session,
+                                       mapper,
+                                       key_columns,
+                                       mappings)
+
+    def bulk_diff_update(self,
+                         mapper,
+                         key_columns,
+                         previous_mappings,
+                         mappings):
+        """Perform a bulk INSERT/UPDATE on the difference between `mappings`
+        and `previous_mappings` such that only the values that have changed are
+        included in the update. If a mapping in `mappings` doesn't exist in
+        `previous_mappings`, then it will be inclued in the bulk INSERT. The
+        bulk INSERT will be deferred to :meth:`bulk_insert`. The bulk UPDATE
+        will be deferred to :meth:`bulk_common_update`.
+
+        Args:
+            mapper: An ORM class or SQLAlchemy insert-statement object.
+            mappings (list): List of ``dict`` objects to update.
+            previous_mappings (list): List of ``dict`` objects that represent
+                the previous values of all mappings found for this update set
+                (i.e. these are the current database records).
+            key_columns (tuple): A tuple of SQLAlchemy columns that represent
+                the identity of each row (typically this would be a table's
+                primary key values but they can be any set of columns).
+
+        Returns:
+            list[ResultProxy]
+        """
+        return core.bulk_diff_update(self.session,
+                                     mapper,
+                                     key_columns,
+                                     previous_mappings,
+                                     mappings)
+
     @property
     def bulk_insert_mappings(self):
         """Proxy property to :meth:`session.bulk_insert_mappings`."""

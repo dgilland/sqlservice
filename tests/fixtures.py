@@ -37,6 +37,7 @@ class AModel(Model):
                    default=unique_id)
     name = sa.Column(sa.types.String(50))
     text = sa.Column(sa.types.String(50))
+    label = sa.Column(sa.types.String(50))
     c_id = sa.Column(sa.types.Integer(), sa.ForeignKey('test_c.id'))
 
     c = sa.orm.relation('CModel')

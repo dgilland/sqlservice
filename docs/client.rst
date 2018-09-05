@@ -319,3 +319,46 @@ destroy()
     # Destroy using primary key only.
     db.destroy(3618, model_class=User)
     db.destroy(3618, model_class=User, synchronize_session=True)
+
+
+Bulk Inserts and Updates
+------------------------
+
+Several bulk methods are available on ``SQLClient``:
+
+- :meth:`sqlservice.client.SQLClient.bulk_insert`: Similar to ``session.bulk_insert_mappings`` except it supports SQLAlchemy insert-statement objects for the mapper value.
+- :meth:`sqlservice.client.SQLClient.bulk_insert_many`: Like :meth:`sqlservice.client.SQLClient.bulk_insert` expect that it will use a multi-row VALUES clause for a single INSERT statement instead of the DBAPI ``executemany()`` method.
+- :meth:`sqlservice.client.SQLClient.bulk_common_update`: Group common updates by a set of columns that define the row identity (typically primary keys) into the fewest number of update statements.
+- :meth:`sqlservice.client.SQLClient.bulk_diff_update`: Given a list of previous mappings with old values and a list of current mappings with new values, only update or insert rows that have changed.
+
+Each of these methods expects at least a mapper (e.g. ORM object class) and a list of mappings (list of dictionaries).
+
+.. code-block:: python
+
+    # Bulk insert
+    db.bulk_insert(User, [{'name': 'aaa'}, {'name': 'bbb'}, {'name': 'ccc'}])
+
+    # Bulk insert many
+    db.bulk_insert_many(User, [{'name': 'aaa'}, {'name': 'bbb'}, {'name': 'ccc'}])
+
+    # Bulk common update
+    # would result in 2 UPDATE statements where ids 1+2 and 3+4 are grouped together.
+    db.bulk_common_update(User,
+                          User.id,
+                          [{'id': 1, 'phone': '1234567890'},
+                           {'id': 2, 'phone': '1234567890'},
+                           {'id': 3, 'phone': '0987654321'},
+                           {'id': 4, 'phone': '0987654321'}])
+
+    # Bulk diff update
+    # would result in 2 UPDATE statements [(id=1, name='AA'), (id=2, name='CC')]
+    # and 1 INSERT statement [(id=4, name='D')].
+    db.bulk_diff_update(User,
+                        User.id,
+                        previous_mappings=[{'id': 1, 'name': 'A'},
+                                           {'id': 2, 'name': 'B'},
+                                           {'id': 3, 'name': 'C'}],
+                        mappings=[{'id': 1, 'name': 'AA'},
+                                  {'id': 2, 'name': 'B'},
+                                  {'id': 3, 'name': 'CC'},
+                                  {'id': 4, 'name': 'D'])

@@ -348,6 +348,131 @@ def bulk_insert_many(session, mapper, mappings):
     return session.execute(insert_stmt.values(), mappings)
 
 
+def bulk_common_update(session, mapper, key_columns, mappings):
+    """Perform a bulk UPDATE on common shared values among `mappings`. What
+    this means is that if multiple records are being updated to the same
+    values, then issue only a single update for that value-set using the
+    identity of the records in the WHERE clause.
+
+    Args:
+        session (Session): SQLAlchemy session object.
+        mapper: An ORM class or SQLAlchemy insert-statement object.
+        key_columns (tuple): A tuple of SQLAlchemy columns that represent
+            the identity of each row (typically this would be a table's
+            primary key values but they can be any set of columns).
+        mappings (list): List of ``dict`` objects to update.
+
+    Returns:
+        list[ResultProxy]
+    """
+    if not isinstance(key_columns, (list, tuple)):
+        key_columns = (key_columns,)
+
+    if hasattr(mapper, '__table__'):
+        update_stmt = mapper.__table__.update()
+    else:
+        update_stmt = mapper
+
+    key_col_tuple = sa.tuple_(*key_columns)
+    key_col_names = tuple(col.key for col in key_columns)
+    identity = _bulk_identity_factory(key_columns)
+
+    updates = defaultdict(list)
+
+    for mapping in mappings:
+        data_key = tuple((key, val) for key, val in mapping.items()
+                         if key not in key_col_names)
+        updates[data_key].append(identity(mapping))
+
+    results = []
+    with transaction(session):
+        for data_key, identities in updates.items():
+            data = dict(data_key)
+            stmt = (update_stmt
+                    .where(key_col_tuple.in_(identities))
+                    .values(data))
+            results.append(session.execute(stmt))
+
+    return results
+
+
+def bulk_diff_update(session,
+                     mapper,
+                     key_columns,
+                     previous_mappings,
+                     mappings):
+    """Perform a bulk INSERT/UPDATE on the difference between `mappings`
+    and `previous_mappings` such that only the values that have changed are
+    included in the update. If a mapping in `mappings` doesn't exist in
+    `previous_mappings`, then it will be inclued in the bulk INSERT. The
+    bulk INSERT will be deferred to :func:`bulk_insert`. The bulk UPDATE
+    will be deferred to :func:`bulk_common_update`.
+
+    Args:
+        session (Session): SQLAlchemy session object.
+        mapper: An ORM class or SQLAlchemy insert-statement object.
+        key_columns (tuple): A tuple of SQLAlchemy columns that represent
+            the identity of each row (typically this would be a table's
+            primary key values but they can be any set of columns).
+        previous_mappings (list): List of ``dict`` objects that represent
+            the previous values of all mappings found for this update set
+            (i.e. these are the current database records).
+        mappings (list): List of ``dict`` objects to update.
+
+    Returns:
+        list[ResultProxy]
+    """
+    if not isinstance(key_columns, (list, tuple)):
+        key_columns = (key_columns,)
+
+    key_col_names = tuple(col.key for col in key_columns)
+    identity = _bulk_identity_factory(key_columns)
+    previous_mappings_by_key = {identity(previous_mapping): previous_mapping
+                                for previous_mapping in previous_mappings}
+
+    ins_mappings = []
+    upd_mappings = []
+
+    for mapping in mappings:
+        previous_mapping = previous_mappings_by_key.get(identity(mapping))
+
+        if previous_mapping:
+            changed = {key: value for key, value in mapping.items()
+                       if previous_mapping.get(key) != value}
+
+            if not changed:
+                continue
+
+            mapping = {key: value for key, value in mapping.items()
+                       if key in changed or key in key_col_names}
+
+            upd_mappings.append(mapping)
+        else:
+            ins_mappings.append(mapping)
+
+    results = []
+    with transaction(session):
+        if upd_mappings:
+            result = bulk_common_update(session,
+                                        mapper,
+                                        key_columns,
+                                        upd_mappings)
+
+        if ins_mappings:
+            result = [bulk_insert(session, mapper, ins_mappings)]
+
+        results.extend(result)
+
+    return results
+
+
+def _bulk_identity_factory(key_columns):
+    """Return a function that accepts a dict mapping and returns its identity
+    corresponding its key values mapped by `key_columns`.
+    """
+    return lambda mapping: tuple(mapping.get(col.key) for col in key_columns)
+
+
 def primary_key_filter(items, model_class):
     """Given a set of `items` that have their primary key(s) set and that
     may or may not exist in the database, return a filter that queries for
