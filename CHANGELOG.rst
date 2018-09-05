@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v1.1.0 (2018-09-05)
+-------------------
+
 - Add ``SQLClient.bulk_common_update()`` and ``core.bulk_common_update()``.
 - Add ``SQLClient.bulk_diff_update()`` and ``core.bulk_diff_update()``.
 - Move logic in ``SQLClient.bulk_insert()`` and ``bulk_insert_many()`` to ``core.bulk_insert()`` and ``core.bulk_insert_many()`` respectively.
