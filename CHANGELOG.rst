@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Fix mishandling of case where new mappings passed to ``SQLClient.bulk_diff_update()`` aren't different than previous mappings.
+
+
 v1.1.0 (2018-09-05)
 -------------------
 

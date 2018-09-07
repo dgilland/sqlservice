@@ -422,6 +422,11 @@ def bulk_diff_update(session,
     Returns:
         list[ResultProxy]
     """
+    results = []
+
+    if not mappings:  # pragma: no cover
+        return results
+
     if not isinstance(key_columns, (list, tuple)):
         key_columns = (key_columns,)
 
@@ -450,7 +455,9 @@ def bulk_diff_update(session,
         else:
             ins_mappings.append(mapping)
 
-    results = []
+    if not any((ins_mappings, upd_mappings)):
+        return results
+
     with transaction(session):
         if upd_mappings:
             result = bulk_common_update(session,

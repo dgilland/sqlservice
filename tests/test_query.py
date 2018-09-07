@@ -507,6 +507,25 @@ def test_bulk_common_update(db, case):
                             dict(id=7, name='7', text='E')]},
         ]
     },
+    {
+        'mapper': AModel,
+        'records': [
+            dict(id=1, name='1', text='A', label='L'),
+            dict(id=2, name='2', text='A', label='L'),
+            dict(id=3, name='3', text='A', label='L'),
+            dict(id=4, name='4', text='A', label='L'),
+            dict(id=5, name='5', text='A', label='L'),
+        ],
+        'mappings': [
+            dict(id=1, name='1', text='A', label='L'),
+            dict(id=2, name='2', text='A', label='L'),
+            dict(id=3, name='3', text='A', label='L'),
+            dict(id=4, name='4', text='A', label='L'),
+            dict(id=5, name='5', text='A', label='L'),
+        ],
+        'key_columns': AModel.id,
+        'expected': []
+    },
 ])
 def test_bulk_diff_update(db, case):
     """Test SQLClient.bulk_diff_update()."""
