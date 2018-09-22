@@ -349,8 +349,11 @@ def _get_dict_adapter(key, value, default, adapters, class_registry):
             if isinstance(cls, str) and cls in class_registry:
                 cls = class_registry[cls]
 
-            if isinstance(value, cls):
-                adapter = _adapter
-                break
+            try:
+                if isinstance(value, cls):
+                    adapter = _adapter
+                    break
+            except TypeError:
+                pass
 
     return adapter
