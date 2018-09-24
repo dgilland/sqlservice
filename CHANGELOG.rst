@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v1.1.2 (2018-09-23)
+-------------------
+
 - Fix handling of string keys in ``Model.__dict_args__['adapters']`` that resulted in an unhandled ``TypeError`` exception in some cases.
 
 
