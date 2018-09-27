@@ -207,13 +207,22 @@ class ModelBase(object):
             session.refresh(self)
             data = self.descriptors_to_dict()
 
-        for key, value in data.items():
+        # Convert data.items() to tuple since we may delete dict keys while
+        # iterating.
+        for key, value in tuple(data.items()):
             adapter = _get_dict_adapter(key,
                                         value,
                                         default_adapter,
                                         adapters,
                                         class_registry)
-            data[key] = adapter(value, key, self)
+
+            # Only serialize key if it's adapter is not None (i.e. an adapter
+            # value of None indicates that the key should be excluded from
+            # serialization).
+            if adapter is None:
+                del data[key]
+            else:
+                data[key] = adapter(value, key, self)
 
         return data
 

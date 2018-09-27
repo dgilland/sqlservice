@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- If a key in ``Model.__dict_args__['adapters']`` is ``None``, then don't serialize that key when calling ``Model.to_dict()``.
+
+
 v1.1.2 (2018-09-23)
 -------------------
 
