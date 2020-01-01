@@ -14,8 +14,7 @@ Before we get to the good stuff, let's first start by creating our client databa
     # with a declarative base named Model.
     from models import Model
 
-    config = {'SQL_DATABASE_URI': 'sqlite://'}
-    db = SQLClient(config, model_class=Model)
+    db = SQLClient("sqlite://", model_class=Model)
 
 
 .. note:: For details on the available configuration values, see :class:`sqlservice.client.SQLClient`.
@@ -96,7 +95,7 @@ You can filter, paginate, and order results in a single method call with ``searc
 
     # Criteria is passed in by position and can be a dict-mapping to query.filter_by()
     # or a query expression.
-    db.query(User).search({'name': 'Bob'}, User.email.like('%@gmail.com')).all()
+    db.query(User).search({"name": "Bob"}, User.email.like("%@gmail.com")).all()
 
     # Pagination and ordering is by keyword argument.
     db.query(User).search(per_page=25, page=2, order_by=User.name).all()
@@ -116,9 +115,11 @@ Some times you may find yourself with several methods that are all self-containe
         with db.transaction():
             db.save(Company(data))
 
+
     def insert_company_ledger(db, data):
         with db.transaction():
             db.save(CompanyLedger(data))
+
 
     def insert_initial_order(db, data):
         with db.transaction():
@@ -130,18 +131,20 @@ In all cases, you want to ensure that any of these methods called in isolation w
 
     def create_company(db, data):
         with db.transaction():
-            insert_company(db, data['company'])
+            insert_company(db, data["company"])
+
 
     def create_company_and_ledger(db, data):
         with db.transaction():
-            insert_company(db, data['company'])
-            insert_company_ledger(db, data['ledger'])
+            insert_company(db, data["company"])
+            insert_company_ledger(db, data["ledger"])
+
 
     def create_company_and_ledger_and_order(db, data):
         with db.transaction():
-            insert_company(db, data['company'])
-            insert_company_ledger(db, data['ledger'])
-            insert_initial_order(db, data['ledger'])
+            insert_company(db, data["company"])
+            insert_company_ledger(db, data["ledger"])
+            insert_initial_order(db, data["ledger"])
 
 
 But you don't want each transaction context to commit if it's a nested transaction.
@@ -196,14 +199,14 @@ ORM model queries are accessible via attribute access which provides a shorthand
 
 .. code-block:: python
 
-    db.User.<ModelClass>
+    # db.User.<ModelClass>
 
 
 So now you can easily query models:
 
 .. code-block:: python
 
-    users = db.User.filter(User.name.like('Mc%')).all()
+    users = db.User.filter(User.name.like("Mc%")).all()
 
 
 You can save a model:
@@ -211,10 +214,10 @@ You can save a model:
 .. code-block:: python
 
     # Using a dict.
-    user = db.User.save({'name': 'Elliot', 'email': 'mr@example.com'})
+    user = db.User.save({"name": "Elliot", "email": "mr@example.com"})
 
     # Using a model.
-    user['name'] += ' Alderson'
+    user["name"] += " Alderson"
     db.User.save(user)
 
     # Using multiple dicts and models.
@@ -229,13 +232,13 @@ You can destroy a model:
     db.User.destroy(134)
 
     # Using a dict with the primary key.
-    db.User.destroy({'id': 134})
+    db.User.destroy({"id": 134})
 
     # Using a model.
     db.User.destroy(user)
 
     # Using multiple values.
-    db.User.destroy([134, {'id': 135}, user])
+    db.User.destroy([134, {"id": 135}, user])
 
 
 For more details, see the :mod:`sqlservice.query` module.
@@ -261,8 +264,10 @@ You can save any ORM model instance with ``db.save()``:
     def before_save_user(model, is_new):
         pass
 
+
     def after_save_user(model, is_new):
         pass
+
 
     # Save a single user while calling before_save_user() before user is saved
     # and after_save_user() after user is saved.
@@ -291,8 +296,7 @@ If you wanted to upsert using a combination of the user's email address and thei
 .. code-block:: python
 
     def user_identity_by_email_name(model):
-        return ((User.email, model.email),
-                (User.name, model.name))
+        return ((User.email, model.email), (User.name, model.name))
 
 
 You would then pass one of these functions to ``save()``:
@@ -336,29 +340,39 @@ Each of these methods expects at least a mapper (e.g. ORM object class) and a li
 .. code-block:: python
 
     # Bulk insert
-    db.bulk_insert(User, [{'name': 'aaa'}, {'name': 'bbb'}, {'name': 'ccc'}])
+    db.bulk_insert(User, [{"name": "aaa"}, {"name": "bbb"}, {"name": "ccc"}])
 
     # Bulk insert many
-    db.bulk_insert_many(User, [{'name': 'aaa'}, {'name': 'bbb'}, {'name': 'ccc'}])
+    db.bulk_insert_many(User, [{"name": "aaa"}, {"name": "bbb"}, {"name": "ccc"}])
 
     # Bulk common update
     # would result in 2 UPDATE statements where ids 1+2 and 3+4 are grouped together.
-    db.bulk_common_update(User,
-                          User.id,
-                          [{'id': 1, 'phone': '1234567890'},
-                           {'id': 2, 'phone': '1234567890'},
-                           {'id': 3, 'phone': '0987654321'},
-                           {'id': 4, 'phone': '0987654321'}])
+    db.bulk_common_update(
+        User,
+        User.id,
+        [
+            {"id": 1, "phone": "1234567890"},
+            {"id": 2, "phone": "1234567890"},
+            {"id": 3, "phone": "0987654321"},
+            {"id": 4, "phone": "0987654321"},
+        ],
+    )
 
     # Bulk diff update
     # would result in 2 UPDATE statements [(id=1, name='AA'), (id=2, name='CC')]
     # and 1 INSERT statement [(id=4, name='D')].
-    db.bulk_diff_update(User,
-                        User.id,
-                        previous_mappings=[{'id': 1, 'name': 'A'},
-                                           {'id': 2, 'name': 'B'},
-                                           {'id': 3, 'name': 'C'}],
-                        mappings=[{'id': 1, 'name': 'AA'},
-                                  {'id': 2, 'name': 'B'},
-                                  {'id': 3, 'name': 'CC'},
-                                  {'id': 4, 'name': 'D'])
+    db.bulk_diff_update(
+        User,
+        User.id,
+        previous_mappings=[
+            {"id": 1, "name": "A"},
+            {"id": 2, "name": "B"},
+            {"id": 3, "name": "C"},
+        ],
+        mappings=[
+            {"id": 1, "name": "AA"},
+            {"id": 2, "name": "B"},
+            {"id": 3, "name": "CC"},
+            {"id": 4, "name": "D"},
+        ],
+    )

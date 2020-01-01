@@ -13,9 +13,11 @@ The general approach to using ``sqlservice.ModelBase`` is to use it as the base 
 
     metadata = MetaData()
 
+
     @as_declarative(metadata=metadata)
     class Model(ModelBase):
         pass
+
 
     # Or using the declarative_base function...
     # Model = declarative_base(ModelBase, metadata=metadata)
@@ -32,8 +34,9 @@ From there you can use ``Model`` as the base class for your ORM model classes.
 
     from .base import Model
 
+
     class User(Model):
-        __tablename__ = 'user'
+        __tablename__ = "user"
 
         id = Column(types.Integer(), primary_key=True)
         name = Column(types.String(100))
@@ -49,8 +52,8 @@ Create a new instance from a ``dict`` or keyword arguments:
 
 .. code-block:: python
 
-    user = User({'name': 'Bob', 'email': 'bob@example.com})
-    user = User(name='Bob', email='bob@example.com')
+    user = User({"name": "Bob", "email": "bob@example.com"})
+    user = User(name="Bob", email="bob@example.com")
 
 
 .. note:: Under the hood ``ModelBase.__init__`` calls ``update()`` so anything ``update()`` does, ``__init__`` does too.
@@ -60,16 +63,16 @@ Update using attribute or item setters:
 
 .. code-block:: python
 
-    user.name = 'Bob Paulson'
-    user['name'] = 'Robert Paulson'
+    user.name = "Bob Paulson"
+    user["name"] = "Robert Paulson"
 
 
 Update an instance using a ``dict`` or keyword arguments:
 
 .. code-block:: python
 
-    user.update(name='Bob Smith')
-    user.update({'email': 'bobsmith@example.com'})
+    user.update(name="Bob Smith")
+    user.update({"email": "bobsmith@example.com"})
 
 
 The ``update()`` method is powerful enough to work with relationships and nested relationships. Consider the following:
@@ -81,39 +84,41 @@ The ``update()`` method is powerful enough to work with relationships and nested
 
     from .base import Model
 
+
     class User(Model):
-        __tablename__ = 'user'
+        __tablename__ = "user"
 
         id = Column(types.Integer(), primary_key=True)
         name = Column(types.String(100))
         email = Column(types.String(100))
 
-        about = orm.relation('UserAbout', uselist=False)
-        devices = orm.relation('UserDevice')
+        about = orm.relation("UserAbout", uselist=False)
+        devices = orm.relation("UserDevice")
+
 
     class UserAbout(Model):
-        __tablename__ = 'user_about'
+        __tablename__ = "user_about"
 
-        user_id = Column(types.Integer(), ForeignKey('user.id'), primary_key=True)
+        user_id = Column(types.Integer(), ForeignKey("user.id"), primary_key=True)
         nickname = Column(types.String(100))
         hometown = Column(types.String(100))
 
+
     class UserDevice(Model):
-        __tablename__ = 'user_device'
+        __tablename__ = "user_device"
 
         id = Column(types.Integer(), primary_key=True)
-        user_id = Column(types.Integer(), ForeignKey('user.id'), nullable=False)
+        user_id = Column(types.Integer(), ForeignKey("user.id"), nullable=False)
         name = Column(types.String(100))
 
-        keys = orm.relation('UserDeviceKey')
+        keys = orm.relation("UserDeviceKey")
+
 
     class UserDeviceKey(Model):
-        __tablename__ = 'user_device_key'
+        __tablename__ = "user_device_key"
 
         id = Column(types.Integer(), primary_key=True)
-        device_id = Column(types.Integer(),
-                           ForeignKey('user_device.id'),
-                           nullable=False))
+        device_id = Column(types.Integer(), ForeignKey("user_device.id"), nullable=False)
         key = Column(types.String(100))
 
 
@@ -122,16 +127,13 @@ You can now easily create a user, user devices, and device keys with a single da
 .. code-block:: python
 
     data = {
-        'name': 'Bob Smith',
-        'email': 'bobsmith@example.com',
-        'about': {
-            'nickname': 'Bobby',
-            'hometown': 'Example City'
-        },
-        'devices': [
-            {'name': 'device1', 'keys': [{'key': 'key1a'}, {'key': 'key1b'}]},
-            {'name': 'device2', 'keys': [{'key': 'key2a'}, {'key': 'key2b'}]}
-        ]
+        "name": "Bob Smith",
+        "email": "bobsmith@example.com",
+        "about": {"nickname": "Bobby", "hometown": "Example City"},
+        "devices": [
+            {"name": "device1", "keys": [{"key": "key1a"}, {"key": "key1b"}]},
+            {"name": "device2", "keys": [{"key": "key2a"}, {"key": "key2b"}]},
+        ],
     }
     user = User(data)
 
@@ -143,15 +145,15 @@ You can now easily create a user, user devices, and device keys with a single da
 
     user.devices
     # [<UserDevice(id=None, user_id=None, name='device1')>,
-       <UserDevice(id=None, user_id=None, name='device2')>]
+    #  <UserDevice(id=None, user_id=None, name='device2')>]
 
     user.devices[0].keys
     # [<UserDeviceKey(id=None, device_id=None, key='key1a')>,
-       <UserDeviceKey(id=None, device_id=None, key='key1b')>]
+    #  <UserDeviceKey(id=None, device_id=None, key='key1b')>]
 
     user.devices[1].keys
     # [<UserDeviceKey(id=None, device_id=None, key='key2a')>,
-       <UserDeviceKey(id=None, device_id=None, key='key2b')>]
+    #  <UserDeviceKey(id=None, device_id=None, key='key2b')>]
 
 
 This is because ``ModelBase.update()`` works really hard to map ``dict`` keys to the correct relationship model class to automatically create new model instances from those ``dict`` objects. It works for relationships that are ``1:1`` or ``1:M``.
@@ -160,7 +162,7 @@ In addition, when you update the model with relationship data, it will nest call
 
 .. code-block:: python
 
-    user.update({'about': {'nickname': 'Bo'}})
+    user.update({"about": {"nickname": "Bo"}})
     user.about
     # <UserAbout(user_id=None, nickname='Bo', hometown='Example City')>
 
@@ -171,7 +173,7 @@ In addition, when you update the model with relationship data, it will nest call
 
     .. code-block:: python
 
-        user.update({'devices': [{'name': 'device3'}]})
+        user.update({"devices": [{"name": "device3"}]})
         db.save(user)
 
         # sqlalchemy.exc.IntegrityError: (raised as a result of Query-invoked autoflush;
@@ -190,11 +192,16 @@ Want to serialize your models to ``dict`` objects?
 
     user.to_dict()
     dict(user)
-    # {'id': 1,
-       'name': 'Bob Smith',
-       'email': 'bobsmith@example.com',
-       'about': {'nickname': 'Bo', 'hometown': 'Example City'},
-       'devices': [{'id': 1, 'name': 'device1', 'user_id': 1}, {'id': 2, 'name': 'device2', 'user_id': 1}]}
+    # {
+    #     "id": 1,
+    #     "name": "Bob Smith",
+    #     "email": "bobsmith@example.com",
+    #     "about": {"nickname": "Bo", "hometown": "Example City"},
+    #     "devices": [
+    #         {"id": 1, "name": "device1", "user_id": 1},
+    #         {"id": 2, "name": "device2", "user_id": 1},
+    #     ],
+    # }
 
 
 As you can see, relationships are serialized too.
@@ -208,23 +215,27 @@ Need to serialize certain types differently? Add some adapters using ``__dict_ar
     class User(Model):
         ...
         __dict_args__ = {
-            'adapters': {
-                UserAbout: lambda model, *_: {'nickname': model.nickname},
+            "adapters": {
+                UserAbout: lambda model, *_: {"nickname": model.nickname},
                 # identical to above but using string name for Model...
                 # 'UserAbout': lambda model, *_: {'nickname': model.nickname},
-                'devices': lambda devices, *_: [(device.name, device.keys) for device in devices],
+                "devices": lambda devices, *_: [
+                    (device.name, device.keys) for device in devices
+                ],
                 list: lambda items, col, *_: [item.name for item in items],
-                (int, str): lambda value, col: col + ':' + str(value)
+                (int, str): lambda value, col: col + ":" + str(value),
             }
         }
 
+
     dict(user)
-    # {'id': 'id:1',
-       'name': 'name:Bob Smith',
-       'email': 'email:bobsmith@example.com',
-       'about': {'nickname': 'Bo'},
-       'devices': [('device1', ['key1a', 'key1b']),
-                   ('device2', ['key2a', 'key2b'])]}
+    # {
+    #     "id": "id:1",
+    #     "name": "name:Bob Smith",
+    #     "email": "email:bobsmith@example.com",
+    #     "about": {"nickname": "Bo"},
+    #     "devices": [("device1", ["key1a", "key1b"]), ("device2", ["key2a", "key2b"])],
+    # }
 
 
 The ``adapaters`` argument is expected to be a mapping to serializers where each key can be one of:
@@ -266,15 +277,15 @@ The ``Model`` class includes other useful methods as well:
 
     User.columns()
     # (Column('id', Integer(), table=<user>, primary_key=True, nullable=False),
-       Column('name', String(length=100), table=<user>),
-       Column('email', String(length=100), table=<user>))
+    #  Column('name', String(length=100), table=<user>),
+    #  Column('email', String(length=100), table=<user>))
 
     User.pk_columns()
     # (Column('id', Integer(), table=<user>, primary_key=True, nullable=False),)
 
     User.relationships()
     # (<RelationshipProperty at 0x7fd9ead007b8; about>,
-       <RelationshipProperty at 0x7fd9e7421f28; devices>)
+    #  <RelationshipProperty at 0x7fd9e7421f28; devices>)
 
     for descriptor in User.descriptors():
         (str(descriptor), repr(descriptor))
