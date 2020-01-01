@@ -20,31 +20,141 @@ from .query import SQLQuery
 from .utils import FrozenDict, is_sequence
 
 
+class SQLClientSettings:
+    """Container class for :class:`SQLClient` configuration options for SQLAlchemy
+    engine and session objects.
+    """
+    def __init__(
+        self,
+        database_uri,
+        autocommit=None,
+        autoflush=None,
+        expire_on_commit=None,
+        isolation_level=None,
+        pool_size=None,
+        pool_timeout=None,
+        pool_recycle=None,
+        pool_pre_ping=None,
+        max_overflow=None,
+        encoding=None,
+        convert_unicode=None,
+        echo=None,
+        echo_pool=None,
+        engine_options=None,
+        session_options=None,
+    ):
+        self.database_uri = database_uri
+        self.autocommit = autocommit
+        self.autoflush = autoflush
+        self.expire_on_commit = expire_on_commit
+        self.isolation_level = isolation_level
+        self.pool_size = pool_size
+        self.pool_timeout = pool_timeout
+        self.pool_recycle = pool_recycle
+        self.pool_pre_ping = pool_pre_ping
+        self.max_overflow = max_overflow
+        self.encoding = encoding
+        self.convert_unicode = convert_unicode
+        self.echo = echo
+        self.echo_pool = echo_pool
+        self._extra_engine_options = engine_options or {}
+        self._extra_session_options = session_options or {}
+
+    @classmethod
+    def from_config(cls, config, engine_options=None, session_options=None):
+        keymap = {
+            "SQL_DATABASE_URI": "database_uri",
+            "SQL_AUTOCOMMIT": "autocommit",
+            "SQL_AUTOFLUSH": "autoflush",
+            "SQL_EXPIRE_ON_COMMIT": "expire_on_commit",
+            "SQL_ISOLATION_LEVEL": "isolation_level",
+            "SQL_POOL_SIZE": "pool_size",
+            "SQL_POOL_TIMEOUT": "pool_timeout",
+            "SQL_POOL_RECYCLE": "pool_recycle",
+            "SQL_POOL_PRE_PING": "pool_pre_ping",
+            "SQL_MAX_OVERFLOW": "max_overflow",
+            "SQL_ECHO": "echo",
+            "SQL_ECHO_POOL": "echo_pool",
+        }
+        settings = _make_options(config, keymap)
+        return cls(**settings, engine_options=engine_options, session_options=session_options)
+
+    @property
+    def config(self):
+        return {
+            "SQL_DATABASE_URI": self.database_uri,
+            "SQL_AUTOCOMMIT": self.autocommit,
+            "SQL_AUTOFLUSH": self.autoflush,
+            "SQL_EXPIRE_ON_COMMIT": self.expire_on_commit,
+            "SQL_ISOLATION_LEVEL": self.isolation_level,
+            "SQL_POOL_SIZE": self.pool_size,
+            "SQL_POOL_TIMEOUT": self.pool_timeout,
+            "SQL_POOL_RECYCLE": self.pool_recycle,
+            "SQL_POOL_PRE_PING": self.pool_pre_ping,
+            "SQL_MAX_OVERFLOW": self.max_overflow,
+            "SQL_ECHO": self.echo,
+            "SQL_ECHO_POOL": self.echo_pool,
+        }
+
+    @property
+    def engine_options(self):
+        return _make_options(
+            {
+                "echo": self.echo,
+                "echo_pool": self.echo_pool,
+                "encoding": self.encoding,
+                "convert_unicode": self.convert_unicode,
+                "isolation_level": self.isolation_level,
+                "pool_size": self.pool_size,
+                "pool_timeout": self.pool_timeout,
+                "pool_recycle": self.pool_recycle,
+                "pool_pre_ping": self.pool_pre_ping,
+                "max_overflow": self.max_overflow,
+                **self._extra_engine_options,
+            }
+        )
+
+    @property
+    def session_options(self):
+        return _make_options(
+            {
+                "autocommit": self.autocommit,
+                "autoflush": self.autoflush,
+                "expire_on_commit": self.expire_on_commit,
+                **self._extra_session_options,
+            }
+        )
+
+
 class SQLClient:
     """Database client for interacting with a database.
 
     The following configuration values can be passed into a new
-    :class:`SQLClient` instance as a ``dict``. Alternatively, this class can
-    be subclassed and :attr:`DEFAULT_CONFIG` overridden with a custom defaults.
+    :class:`SQLClient` instance as a ``dict`` or as keyword arguments (see Args below).
+    Alternatively, this class can be subclassed and :attr:`DEFAULT_CONFIG` overridden
+    with custom defaults. The order or precedence is
+    :attr:`DEFAULT_CONFIG` -> ``config`` dict -> keyword arguments (where keyword
+    arguments have the highest precedence).
 
     ========================  =================================================
     **SQL_DATABASE_URI**      URI used to connect to the database. Defaults
-                              to ``sqlite://``.
-    **SQL_ECHO**              When ``True`` have SQLAlchemy log all SQL
-                              statements. Defaults to ``False``.
-    **SQL_ECHO_POOL**         When ``True`` have SQLAlchemy log all log all
-                              checkouts/checkins of the connection pool.
-                              Defaults to ``False``.
-    **SQL_ENCODING**          The string encoding used by SQLAlchemy for string
-                              encode/decode operations which occur within
-                              SQLAlchemy, outside of the DBAPI. Defaults to
-                              `utf-8`.
-    **SQL_CONVERT_UNICODE**   When ``True`` it sets the default behavior of
-                              ``convert_unicode`` on the ``String`` type to
-                              ``True``, regardless of a setting of ``False`` on
-                              an individual ``String`` type, thus causing all
-                              ``String`` -based columns to accommodate Python
-                              unicode objects.
+                              to ``sqlite://`` (an in-memory sqlite database).
+    **SQL_AUTOCOMMIT**        When ``True``, the ``Session`` does not keep a
+                              persistent transaction running, and will acquire
+                              connections from the engine on an as-needed
+                              basis, returning them immediately after their
+                              use. Defaults to ``False``.
+    **SQL_AUTOFLUSH**         When ``True``, all query operations will issue a
+                              ``flush()`` call to the ``Session`` before
+                              proceeding. This is a convenience feature so that
+                              ``flush()`` need not be called repeatedly in
+                              order for database queries to retrieve results.
+                              Defaults to ``True``.
+    **SQL_EXPIRE_ON_COMMIT**  When ``True`` all instances will be fully expired
+                              after each ``commit()``, so that all
+                              attribute/object access subsequent to a completed
+                              transaction will load from the most recent
+                              database state. Defaults to ``True``.
     **SQL_ISOLATION_LEVEL**   String parameter interpreted by various dialects
                               in order to affect the transaction isolation
                               level of the database connection. The parameter
@@ -61,29 +171,29 @@ class SQLClient:
                               Defaults to ``10``.
     **SQL_POOL_RECYCLE**      Number of seconds after which a connection is
                               automatically recycled.
-    **SQL_MAX_OVERFLOW**      Controls the number of connections that can be
-                              created after the pool reached its maximum size.
-                              When those additional connections are returned to
-                              the pool, they are disconnected and discarded.
-    **SQL_AUTOCOMMIT**        When ``True``, the ``Session`` does not keep a
-                              persistent transaction running, and will acquire
-                              connections from the engine on an as-needed
-                              basis, returning them immediately after their
-                              use. Defaults to ``False``.
-    **SQL_AUTOFLUSH**         When ``True``, all query operations will issue a
-                              ``flush()`` call to the ``Session`` before
-                              proceeding. This is a convenience feature so that
-                              ``flush()`` need not be called repeatedly in
-                              order for database queries to retrieve results.
-    **SQL_EXPIRE_ON_COMMIT**  When ``True`` all instances will be fully expired
-                              after each ``commit()``, so that all
-                              attribute/object access subsequent to a completed
-                              transaction will load from the most recent
-                              database state. Defaults to ``True``.
     **SQL_POOL_PRE_PING**     When ``True` will enable SQLAlchemy's connection
                               pool “pre-ping” feature that tests connections
                               for liveness upon each checkout. Defaults to
                               ``False``. Requires SQLAlchemy >= 1.2.
+    **SQL_MAX_OVERFLOW**      Controls the number of connections that can be
+                              created after the pool reached its maximum size.
+                              When those additional connections are returned to
+                              the pool, they are disconnected and discarded.
+    **SQL_ENCODING**          The string encoding used by SQLAlchemy for string
+                              encode/decode operations which occur within
+                              SQLAlchemy, outside of the DBAPI. Defaults to
+                              `utf-8`.
+    **SQL_CONVERT_UNICODE**   When ``True`` it sets the default behavior of
+                              ``convert_unicode`` on the ``String`` type to
+                              ``True``, regardless of a setting of ``False`` on
+                              an individual ``String`` type, thus causing all
+                              ``String`` -based columns to accommodate Python
+                              unicode objects.
+    **SQL_ECHO**              When ``True`` have SQLAlchemy log all SQL
+                              statements. Defaults to ``False``.
+    **SQL_ECHO_POOL**         When ``True`` have SQLAlchemy log all log all
+                              checkouts/checkins of the connection pool.
+                              Defaults to ``False``.
     ========================  =================================================
 
     Args:
@@ -97,7 +207,24 @@ class SQLClient:
             use by the session maker.
         session_options (dict, optional): Additional session options use when
             creating the database session.
+        engine_options (dict, optional): Additional engine options use when
+            creating the database engine.
+        database_uri (str, optional): See configuration table above.
+        autocommit (bool, optional): See configuration table above.
+        autoflush (bool, optional): See configuration table above.
+        expire_on_commit (bool, optional): See configuration table above.
+        isolation_level (str, optional): See configuration table above.
+        pool_size (int, optional): See configuration table above.
+        pool_timeout (int|float, optional): See configuration table above.
+        pool_recycle (int|float, optional): See configuration table above.
+        pool_pre_ping (bool, optional): See configuration table above.
+        max_overflow (int, optional): See configuration table above.
+        encoding (str, optional): See configuration table above.
+        convert_unicode (bool, optional): See configuration table above.
+        echo (bool, optional): See configuration table above.
+        echo_pool (bool, optional): See configuration table above.
     """
+
     #: The default client configuration for this class. Override in a subclass
     #: to set new class-wide defaults.
     DEFAULT_CONFIG = FrozenDict({
@@ -123,37 +250,66 @@ class SQLClient:
                  query_class=SQLQuery,
                  session_class=Session,
                  session_options=None,
-                 engine_options=None):
-        if isinstance(config, str):
-            config = {'SQL_DATABASE_URI': config}
-
+                 engine_options=None,
+                 database_uri=None,
+                 autocommit=None,
+                 autoflush=None,
+                 expire_on_commit=None,
+                 isolation_level=None,
+                 pool_size=None,
+                 pool_timeout=None,
+                 pool_recycle=None,
+                 pool_pre_ping=None,
+                 max_overflow=None,
+                 sql_echo=None,
+                 sql_echo_pool=None):
         if model_class is None:  # pragma: no cover
             model_class = declarative_base()
 
+        if isinstance(config, str):
+            config = {'SQL_DATABASE_URI': config}
+
+        override_config = _make_options(
+            {
+                "SQL_DATABASE_URI": database_uri,
+                "SQL_AUTOCOMMIT": autocommit,
+                "SQL_AUTOFLUSH": autoflush,
+                "SQL_EXPIRE_ON_COMMIT": expire_on_commit,
+                "SQL_ISOLATION_LEVEL": isolation_level,
+                "SQL_POOL_SIZE": pool_size,
+                "SQL_POOL_TIMEOUT": pool_timeout,
+                "SQL_POOL_RECYCLE": pool_recycle,
+                "SQL_POOL_PRE_PING": pool_pre_ping,
+                "SQL_MAX_OVERFLOW": max_overflow,
+                "SQL_ECHO": sql_echo,
+                "SQL_ECHO_POOL": sql_echo_pool,
+            }
+        )
+        config = {**self.DEFAULT_CONFIG, **(config or {}), **override_config}
+
+        self.settings = SQLClientSettings.from_config(
+            config, engine_options=engine_options, session_options=session_options
+        )
         self.model_class = model_class
         self.query_class = query_class
         self.session_class = session_class
-
-        self.config = self.DEFAULT_CONFIG.copy()
-
-        self.config.update(config or {})
-
-        engine_options = self.make_engine_options(engine_options)
-        session_options = self.make_session_options(session_options)
-
-        self.engine = self.create_engine(self.config['SQL_DATABASE_URI'],
-                                         engine_options)
-        self.session = self.create_session(self.engine,
-                                           session_options,
-                                           session_class=self.session_class,
-                                           query_class=self.query_class)
+        self.engine = self.create_engine(
+            self.settings.database_uri, self.settings.engine_options
+        )
+        self.session = self.create_session(
+            self.engine,
+            self.settings.session_options,
+            session_class=self.session_class,
+            query_class=self.query_class
+        )
         self.update_models_registry()
 
     def create_engine(self, uri, options=None):
         """Factory function to create a database engine using `config` options.
 
         Args:
-            config (dict): Database client configuration.
+            uri (str): Database URI string.
+            options (dict, optional): Engine configuration options.
 
         Returns:
             Engine: SQLAlchemy engine instance.
@@ -163,11 +319,13 @@ class SQLClient:
 
         return sa.create_engine(make_url(uri), **options)
 
-    def create_session(self,
-                       bind,
-                       options=None,
-                       session_class=Session,
-                       query_class=SQLQuery):
+    def create_session(
+        self,
+        bind,
+        options=None,
+        session_class=Session,
+        query_class=SQLQuery
+    ):
         """Factory function to create a scoped session using `bind`.
 
         Args:
@@ -183,6 +341,8 @@ class SQLClient:
         """
         if options is None:  # pragma: no cover
             options = {}
+        else:
+            options = options.copy()
 
         if query_class:
             options['query_cls'] = query_class
@@ -193,53 +353,6 @@ class SQLClient:
                                            **options)
 
         return orm.scoped_session(session_factory, scopefunc=scopefunc)
-
-    def make_engine_options(self, extra_options=None):
-        """Return engine options from :attr:`config` for use in
-        ``sqlalchemy.create_engine``.
-        """
-        options = self._make_options((
-            ('SQL_ECHO', 'echo'),
-            ('SQL_ECHO_POOL', 'echo_pool'),
-            ('SQL_ENCODING', 'encoding'),
-            ('SQL_CONVERT_UNICODE', 'convert_unicode'),
-            ('SQL_ISOLATION_LEVEL', 'isolation_level'),
-            ('SQL_POOL_SIZE', 'pool_size'),
-            ('SQL_POOL_TIMEOUT', 'pool_timeout'),
-            ('SQL_POOL_RECYCLE', 'pool_recycle'),
-            ('SQL_MAX_OVERFLOW', 'max_overflow'),
-            ('SQL_POOL_PRE_PING', 'pool_pre_ping'),
-        ))
-
-        if extra_options:
-            options.update(extra_options)
-
-        return options
-
-    def make_session_options(self, extra_options=None):
-        """Return session options from :attr:`config` for use in
-        ``sqlalchemy.orm.sessionmaker``.
-        """
-        options = self._make_options((
-            ('SQL_AUTOCOMMIT', 'autocommit'),
-            ('SQL_AUTOFLUSH', 'autoflush'),
-            ('SQL_EXPIRE_ON_COMMIT', 'expire_on_commit')
-        ))
-
-        if extra_options:
-            options.update(extra_options)
-
-        return options
-
-    def _make_options(self, key_mapping):
-        """Return mapped :attr:`config` options using `key_mapping` which is a
-        tuple having the form ``((<config_key>, <sqlalchemy_key>), ...)``.
-        Where ``<sqlalchemy_key>`` is the corresponding option keyword for a
-        SQLAlchemy function.
-        """
-        return {opt_key: self.config[cfg_key]
-                for cfg_key, opt_key in key_mapping
-                if self.config.get(cfg_key) is not None}
 
     def update_models_registry(self):
         """Update :attr:`models` registry as computed from :attr:`model_class`.
@@ -275,6 +388,11 @@ class SQLClient:
                 models[name] = model
 
         return models
+
+    @property
+    def config(self):
+        """Proxy property to configuration settings."""
+        return self.settings.config
 
     @property
     def url(self):
@@ -415,7 +533,6 @@ class SQLClient:
 
     def disconnect(self):
         """Disconnect all database sessions and connections."""
-        self.close_all()
         self.remove()
         self.engine.dispose()
 
@@ -781,3 +898,9 @@ class SQLClient:
                         ', '.join(self.models)))
 
         return self.query(self.models[attr])
+
+
+def _make_options(obj, keymap=None):
+    if keymap is None:
+        keymap = dict(zip(obj.keys(), obj.keys()))
+    return {new: obj[old] for old, new in keymap.items() if obj.get(old) is not None}
