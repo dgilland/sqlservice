@@ -2,6 +2,10 @@ Changelog
 =========
 
 
+- Fix issue where all sessions in memory were closed in ``SQLClient.disconnect()``.
+- Add configuration keyword arguments to ``SQLClient.__init__()``.
+
+
 v1.1.3 (2018-09-26)
 -------------------
 
