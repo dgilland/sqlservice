@@ -1,4 +1,3 @@
-"""Project version information.
-"""
+"""Project version information."""
 
-__version__ = '1.1.3'
+__version__ = "1.1.3"
