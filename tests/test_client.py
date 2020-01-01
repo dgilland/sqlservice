@@ -45,6 +45,7 @@ def test_sql_client_proxy_property(db, proxy, attr):
     'add',
     'add_all',
     'close',
+    'close_all',
     'invalidate',
     'commit',
     'delete',

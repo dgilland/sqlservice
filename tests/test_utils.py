@@ -26,6 +26,13 @@ def test_frozendict_iter():
     assert list(iter(frozen_d)) == list(iter(frozen_d._dict))
 
 
+def test_frozendict_copy():
+    frozen_d = FrozenDict({'a': 1})
+    frozen_d_copy = frozen_d.copy()
+    assert isinstance(frozen_d_copy, dict)
+    assert frozen_d_copy == {'a': 1}
+
+
 def test_frozendict_len():
     frozen_d = FrozenDict({'a': 1})
     assert len(frozen_d) == len(frozen_d._dict)
