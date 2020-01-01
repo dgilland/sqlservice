@@ -20,7 +20,7 @@ from .query import SQLQuery
 from .utils import FrozenDict, is_sequence
 
 
-class SQLClient(object):
+class SQLClient:
     """Database client for interacting with a database.
 
     The following configuration values can be passed into a new

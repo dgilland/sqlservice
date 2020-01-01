@@ -35,7 +35,7 @@ class ModelMeta(DeclarativeMeta):
             event.register(cls, dct)
 
 
-class ModelBase(object):
+class ModelBase:
     """Declarative base for all ORM model classes."""
     @declared_attr
     def __dict_args__(cls):

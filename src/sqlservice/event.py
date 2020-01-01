@@ -8,7 +8,7 @@ The event module with declarative ORM event decorators and event registration.
 from sqlalchemy.event import listen
 
 
-class Event(object):
+class Event:
     """Universal event class used when registering events."""
     def __init__(self, name, attribute, listener, kargs):
         self.name = name
@@ -17,7 +17,7 @@ class Event(object):
         self.kargs = kargs
 
 
-class EventDecorator(object):
+class EventDecorator:
     """Base class for event decorators that attaches metadata to function
     object so that :func:`register` can find the event definition.
     """

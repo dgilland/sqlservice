@@ -30,7 +30,7 @@ def test_declarative_base():
 def test_as_declarative():
     """Test as_declarative()."""
     @as_declarative()
-    class Model(object):
+    class Model:
         pass
 
     assert Model.metaclass is ModelMeta
