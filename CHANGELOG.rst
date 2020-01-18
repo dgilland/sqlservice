@@ -2,6 +2,7 @@ Changelog
 =========
 
 
+- Rename ``data`` argument to ``_data`` in ``ModelBase.__init__()`` and ``ModelBase.update()`` to avoid conflict when an ORM model has a column attribute named ``"data"``.
 - Add official support for Python 3.8.
 
 
@@ -15,13 +16,13 @@ v1.2.0 (2020-01-01)
 v1.1.3 (2018-09-26)
 -------------------
 
-- If a key in ``Model.__dict_args__['adapters']`` is ``None``, then don't serialize that key when calling ``Model.to_dict()``.
+- If a key in ``ModelBase.__dict_args__['adapters']`` is ``None``, then don't serialize that key when calling ``Model.to_dict()``.
 
 
 v1.1.2 (2018-09-23)
 -------------------
 
-- Fix handling of string keys in ``Model.__dict_args__['adapters']`` that resulted in an unhandled ``TypeError`` exception in some cases.
+- Fix handling of string keys in ``ModelBase.__dict_args__['adapters']`` that resulted in an unhandled ``TypeError`` exception in some cases.
 
 
 v1.1.1 (2018-09-07)

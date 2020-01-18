@@ -42,10 +42,10 @@ class ModelBase:
         """Per model configuration of :meth:`to_dict` serialization options."""
         return {"adapters": {}}
 
-    def __init__(self, data=None, **kargs):
-        self.update(data, **kargs)
+    def __init__(self, _data=None, **kargs):
+        self.update(_data, **kargs)
 
-    def update(self, data=None, **kargs):
+    def update(self, _data=None, **kargs):
         """
         Update model by positional ``dict`` or keyword arguments.
 
@@ -54,25 +54,25 @@ class ModelBase:
             arguments take precedence.
 
         Args:
-            data (dict, optional): Data to update model with.
+            _data (dict, optional): Data to update model with.
             **kargs (optional): Mapping of attributes to values to update model
                 with.
 
         Raises:
             - TypeError: If `data` is not ``None`` or not a ``dict``.
         """
-        if data is None:
-            data = {}
+        if _data is None:
+            _data = {}
 
-        if not isinstance(data, dict):  # pragma: no cover
+        if not isinstance(_data, dict):  # pragma: no cover
             raise TypeError(
                 "Positional argument must be a dict for {0}".format(
                     self.__class__.__name__
                 )
             )
 
-        data = data.copy()
-        data.update(kargs)
+        _data = _data.copy()
+        _data.update(kargs)
 
         relations = self.relationships().keys()
         field_order = deque()
@@ -80,7 +80,7 @@ class ModelBase:
         # Collect and order data fields in a pseudo-deterministic order where
         # column updates occur before relationship updates but order within
         # those types is indeterministic.
-        for field, value in data.items():
+        for field, value in _data.items():
             if field in relations:
                 # Set relationships last.
                 field_order.append((field, value))
