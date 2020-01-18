@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+- Add official support for Python 3.8.
+
+
 v1.2.0 (2020-01-01)
 -------------------
 
