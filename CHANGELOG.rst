@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v1.2.1 (2020-01-17)
+-------------------
+
 - Rename ``data`` argument to ``_data`` in ``ModelBase.__init__()`` and ``ModelBase.update()`` to avoid conflict when an ORM model has a column attribute named ``"data"``.
 - Add official support for Python 3.8.
 
