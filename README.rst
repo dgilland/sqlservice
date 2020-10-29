@@ -36,7 +36,7 @@ This library is meant to enhance your usage of SQLAlchemy. SQLAlchemy is great a
 Requirements
 ------------
 
-- Python >= 3.4
+- Python >= 3.6
 - `SQLAlchemy <http://www.sqlalchemy.org/>`_ >= 1.0.0
 
 
