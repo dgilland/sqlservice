@@ -1,10 +1,7 @@
 Event
 =====
 
-SQLAlchemy features an ORM event API but one thing that is lacking is a way to
-register event handlers in a declarative way inside the Model's class
-definition. To bridge this gap, this module contains a collection of decorators
-that enable this kind of functionality.
+SQLAlchemy features an ORM event API but one thing that is lacking is a way to register event handlers in a declarative way inside the Model's class definition. To bridge this gap, this module contains a collection of decorators that enable this kind of functionality.
 
 Instead of having to write event registration like this:
 
@@ -21,12 +18,12 @@ Instead of having to write event registration like this:
 
 
     def set_email_listener(target, value, oldvalue, initiator):
-        print('received "set" event for target: {0}'.format(target))
+        print("received 'set' event for target: {0}".format(target))
         return value
 
 
     def before_insert_listener(mapper, connection, target):
-        print('received "before_insert" event for target: {0}'.format(target))
+        print("received 'before_insert' event for target: {0}".format(target))
 
 
     event.listen(User.email, "set", set_email_listener, retval=True)
@@ -53,7 +50,7 @@ Model Events allows one to write event registration more succinctly as:
 
         @event.before_insert()
         def before_insert(mapper, connection, target):
-            print ('received "before_insert" event for target: {0}'.format(target))
+            print ("received 'before_insert' event for target: {0}".format(target))
 
 For details on each event type's expected function signature, see
 `SQLAlchemy's ORM Events <http://docs.sqlalchemy.org/en/latest/orm/events.html>`_.

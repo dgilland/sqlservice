@@ -9,10 +9,10 @@ from contextlib import contextmanager
 
 import sqlalchemy as sa
 from sqlalchemy import orm
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.declarative.clsregistry import _MultipleClassMarker
 from sqlalchemy.orm.exc import UnmappedError
 from sqlalchemy.orm.session import Session
-from sqlalchemy.engine.url import make_url
 
 from . import core
 from .model import declarative_base
@@ -21,8 +21,8 @@ from .utils import FrozenDict, is_sequence
 
 
 class SQLClientSettings:
-    """Container class for :class:`SQLClient` configuration options for SQLAlchemy
-    engine and session objects."""
+    """Container class for :class:`SQLClient` configuration options for SQLAlchemy engine and
+    session objects."""
 
     def __init__(
         self,
@@ -77,9 +77,7 @@ class SQLClientSettings:
             "SQL_ECHO_POOL": "echo_pool",
         }
         settings = _make_options(config, keymap)
-        return cls(
-            engine_options=engine_options, session_options=session_options, **settings
-        )
+        return cls(engine_options=engine_options, session_options=session_options, **settings)
 
     @property
     def config(self):
@@ -130,9 +128,9 @@ class SQLClient:
     """
     Database client for interacting with a database.
 
-    The following configuration values can be passed into a new :class:`SQLClient`
-    instance as a ``dict`` or as keyword arguments (see Args below). Alternatively, this
-    class can be subclassed and :attr:`DEFAULT_CONFIG` overridden with custom defaults.
+    The following configuration values can be passed into a new :class:`SQLClient` instance as a
+    ``dict`` or as keyword arguments (see Args below). Alternatively, this class can be subclassed
+    and :attr:`DEFAULT_CONFIG` overridden with custom defaults.
 
     The order or precedence for configuration sources is:
 
@@ -142,71 +140,63 @@ class SQLClient:
 
     Where keyword arguments have the highest precedence.
 
-    ========================  ==========================================================
-    **SQL_DATABASE_URI**      URI used to connect to the database. Defaults to
-                              ``sqlite://`` (an in-memory sqlite database).
-    **SQL_AUTOCOMMIT**        When ``True``, the ``Session`` does not keep a persistent
-                              transaction running, and will acquire connections from the
-                              engine on an as-needed basis, returning them immediately
-                              after their use. Defaults to ``False``.
-    **SQL_AUTOFLUSH**         When ``True``, all query operations will issue a
-                              ``flush()`` call to the ``Session`` before proceeding.
-                              This is a convenience feature so that ``flush()`` need not
-                              be called repeatedly in order for database queries to
-                              retrieve results. Defaults to ``True``.
-    **SQL_EXPIRE_ON_COMMIT**  When ``True`` all instances will be fully expired after
-                              each ``commit()``, so that all attribute/object access
-                              subsequent to a completed transaction will load from the
-                              most recent database state. Defaults to ``True``.
-    **SQL_ISOLATION_LEVEL**   String parameter interpreted by various dialects in order
-                              to affect the transaction isolation level of the database
-                              connection. The parameter essentially accepts some subset
-                              of these string arguments: ``"SERIALIZABLE"``,
-                              ``"REPEATABLE_READ"``, ``"READ_COMMITTED"``,
-                              ``"READ_UNCOMMITTED"`` and ``"AUTOCOMMIT"``. Behavior here
-                              varies per backend, and individual dialects should be
-                              consulted directly. Defaults to ``None``.
-    **SQL_POOL_SIZE**         The size of the database pool. Defaults to the engine's
-                              default (usually ``5``).
-    **SQL_POOL_TIMEOUT**      Specifies the connection timeout for the pool. Defaults to
-                              ``10``.
-    **SQL_POOL_RECYCLE**      Number of seconds after which a connection is
-                              automatically recycled.
-    **SQL_POOL_PRE_PING**     When ``True` will enable SQLAlchemy's connection pool
-                              “pre-ping” feature that tests connections for liveness
-                              upon each checkout. Defaults to ``False``. Requires
-                              SQLAlchemy >= 1.2.
-    **SQL_MAX_OVERFLOW**      Controls the number of connections that can be created
-                              after the pool reached its maximum size. When those
-                              additional connections are returned to the pool, they are
-                              disconnected and discarded.
-    **SQL_ENCODING**          The string encoding used by SQLAlchemy for string
-                              encode/decode operations which occur within SQLAlchemy,
-                              outside of the DBAPI. Defaults to `utf-8`.
-    **SQL_CONVERT_UNICODE**   When ``True`` it sets the default behavior of
-                              ``convert_unicode`` on the ``String`` type to ``True``,
-                              regardless of a setting of ``False`` on an individual
-                              ``String`` type, thus causing all ``String`` -based
-                              columns to accommodate Python unicode objects.
-    **SQL_ECHO**              When ``True`` have SQLAlchemy log all SQL statements.
-                              Defaults to ``False``.
-    **SQL_ECHO_POOL**         When ``True`` have SQLAlchemy log all log all
-                              checkouts/checkins of the connection pool. Defaults to
+    ========================  ======================================================================
+    **SQL_DATABASE_URI**      URI used to connect to the database. Defaults to ``sqlite://`` (an
+                              in-memory sqlite database).
+    **SQL_AUTOCOMMIT**        When ``True``, the ``Session`` does not keep a persistent transaction
+                              running, and will acquire connections from the engine on an as-needed
+                              basis, returning them immediately after their use. Defaults to
                               ``False``.
-    ========================  ==========================================================
+    **SQL_AUTOFLUSH**         When ``True``, all query operations will issue a ``flush()`` call to
+                              the ``Session`` before proceeding. This is a convenience feature so
+                              that ``flush()`` need not be called repeatedly in order for database
+                              queries to retrieve results. Defaults to ``True``.
+    **SQL_EXPIRE_ON_COMMIT**  When ``True`` all instances will be fully expired after each
+                              ``commit()``, so that all attribute/object access subsequent to a
+                              completed transaction will load from the most recent database state.
+                              Defaults to ``True``.
+    **SQL_ISOLATION_LEVEL**   String parameter interpreted by various dialects in order to affect
+                              the transaction isolation level of the database connection. The
+                              parameter essentially accepts some subset of these string arguments:
+                              ``"SERIALIZABLE"``, ``"REPEATABLE_READ"``, ``"READ_COMMITTED"``,
+                              ``"READ_UNCOMMITTED"`` and ``"AUTOCOMMIT"``. Behavior here varies per
+                              backend, and individual dialects should be consulted directly.
+                              Defaults to ``None``.
+    **SQL_POOL_SIZE**         The size of the database pool. Defaults to the engine's default
+                              (usually ``5``).
+    **SQL_POOL_TIMEOUT**      Specifies the connection timeout for the pool. Defaults to ``10``.
+    **SQL_POOL_RECYCLE**      Number of seconds after which a connection is automatically recycled.
+    **SQL_POOL_PRE_PING**     When ``True` will enable SQLAlchemy's connection pool “pre-ping”
+                              feature that tests connections for liveness upon each checkout.
+                              Defaults to ``False``. Requires SQLAlchemy >= 1.2.
+    **SQL_MAX_OVERFLOW**      Controls the number of connections that can be created after the pool
+                              reached its maximum size. When those additional connections are
+                              returned to the pool, they are disconnected and discarded.
+    **SQL_ENCODING**          The string encoding used by SQLAlchemy for string encode/decode
+                              operations which occur within SQLAlchemy, outside of the DBAPI.
+                              Defaults to `utf-8`.
+    **SQL_CONVERT_UNICODE**   When ``True`` it sets the default behavior of ``convert_unicode`` on
+                              the ``String`` type to ``True``, regardless of a setting of ``False``
+                              on an individual ``String`` type, thus causing all ``String`` -based
+                              columns to accommodate Python unicode objects.
+    **SQL_ECHO**              When ``True`` have SQLAlchemy log all SQL statements. Defaults to
+                              ``False``.
+    **SQL_ECHO_POOL**         When ``True`` have SQLAlchemy log all log all checkouts/checkins of
+                              the connection pool. Defaults to ``False``.
+    ========================  ======================================================================
 
     Args:
-        config (dict|str): Database engine configuration options or database URI string.
-            Defaults to ``None`` which uses an in-memory SQLite database.
+        config (dict|str): Database engine configuration options or database URI string. Defaults to
+            ``None`` which uses an in-memory SQLite database.
         model_class (object): A SQLAlchemy ORM declarative base model.
-        query_class (Query, optional): SQLAlchemy Query derived class to use as the
-            default class when creating a new query object.
-        session_class (Session, optional): SQLAlchemy Session derived class to use by
-            the session maker.
-        session_options (dict, optional): Additional session options use when creating
-            the database session.
-        engine_options (dict, optional): Additional engine options use when creating the
-            database engine.
+        query_class (Query, optional): SQLAlchemy Query derived class to use as the default class
+            when creating a new query object.
+        session_class (Session, optional): SQLAlchemy Session derived class to use by the session
+            maker.
+        session_options (dict, optional): Additional session options use when creating the database
+            session.
+        engine_options (dict, optional): Additional engine options use when creating the database
+            engine.
         database_uri (str, optional): See configuration table above.
         autocommit (bool, optional): See configuration table above.
         autoflush (bool, optional): See configuration table above.
@@ -223,8 +213,8 @@ class SQLClient:
         echo_pool (bool, optional): See configuration table above.
     """
 
-    #: The default client configuration for this class. Override in a subclass
-    #: to set new class-wide defaults.
+    #: The default client configuration for this class. Override in a subclass to set new class-wide
+    #: defaults.
     DEFAULT_CONFIG = FrozenDict(
         {
             "SQL_DATABASE_URI": "sqlite://",
@@ -297,9 +287,7 @@ class SQLClient:
         self.model_class = model_class
         self.query_class = query_class
         self.session_class = session_class
-        self.engine = self.create_engine(
-            self.settings.database_uri, self.settings.engine_options
-        )
+        self.engine = self.create_engine(self.settings.database_uri, self.settings.engine_options)
         self.session = self.create_session(
             self.engine,
             self.settings.session_options,
@@ -324,19 +312,17 @@ class SQLClient:
 
         return sa.create_engine(make_url(uri), **options)
 
-    def create_session(
-        self, bind, options=None, session_class=Session, query_class=SQLQuery
-    ):
+    def create_session(self, bind, options=None, session_class=Session, query_class=SQLQuery):
         """
         Factory function to create a scoped session using `bind`.
 
         Args:
             bind (Engine|Connection): Database engine or connection instance.
             options (dict, optional): Session configuration options.
-            session_class (obj, optional): Session class to use when creating new
-                session instances. Defaults to :class:`.Session`.
-            query_class (obj, optional): Query class used for ``session.query``
-                instances. Defaults to :class:`.SQLQuery`.
+            session_class (obj, optional): Session class to use when creating new session instances.
+                Defaults to :class:`.Session`.
+            query_class (obj, optional): Query class used for ``session.query`` instances. Defaults
+                to :class:`.SQLQuery`.
 
         Returns:
             Session: SQLAlchemy session instance bound to `bind`.
@@ -359,8 +345,8 @@ class SQLClient:
         self.models = self.create_models_registry(self.model_class)
 
     def create_models_registry(self, model_class):
-        """Return model registry ``dict`` with model names as keys and corresponding
-        model classes as values."""
+        """Return model registry ``dict`` with model names as keys and corresponding model classes
+        as values."""
         models = {}
         class_registry = getattr(model_class, "_decl_class_registry", None)
 
@@ -403,8 +389,8 @@ class SQLClient:
         return self.engine.url.database
 
     def get_metadata(self):
-        """Return `MetaData` from :attr:`model` or raise an exception if :attr:`model`
-        was never given."""
+        """Return `MetaData` from :attr:`model` or raise an exception if :attr:`model` was never
+        given."""
         if self.metadata is None:  # pragma: no cover
             raise UnmappedError("Missing declarative base model")
         return self.metadata
@@ -416,8 +402,8 @@ class SQLClient:
 
     @property
     def tables(self):
-        """Return ``dict`` of table instances found in :attr:`metadata` with table names
-        as keys and corresponding table objects as values."""
+        """Return ``dict`` of table instances found in :attr:`metadata` with table names as keys and
+        corresponding table objects as values."""
         return self.metadata.tables
 
     def create_all(self):
@@ -438,11 +424,11 @@ class SQLClient:
         Proxy to threadlocal session object returned by scoped session object.
 
         Note:
-            Generally, the scoped session is sufficient to work with directly. However,
-            the scoped session doesn't provide access to the custom session class used
-            by the session factory. This property returns an instance of our custom
-            session class. Multiple calls to the scoped session always returns the same
-            active theadlocal session (i.e. ``self._Session() is self._Session()``).
+            Generally, the scoped session is sufficient to work with directly. However, the scoped
+            session doesn't provide access to the custom session class used by the session factory.
+            This property returns an instance of our custom session class. Multiple calls to the
+            scoped session always returns the same active threadlocal session (i.e.
+            ``self._Session() is self._Session()``).
 
         See Also:
             http://docs.sqlalchemy.org/en/latest/orm/contextual.html
@@ -533,7 +519,7 @@ class SQLClient:
         """
         Commit a session transaction but rollback if an error occurs.
 
-        This helps ensure that the session is not left in an unsable state.
+        This helps ensure that the session is not left in an unstable state.
         """
         try:
             self.session.commit()
@@ -594,25 +580,23 @@ class SQLClient:
             bool: ``True`` when connection check passes.
 
         Raises:
-            sqlalche.exc.SQLAlchemyError: When the connection check fails.
+            sqlalchemy.exc.SQLAlchemyError: When the connection check fails.
         """
         conn = self.engine.connect()
 
-        # Run a SELECT 1. Use a sa.select() so that the SELECT of a scalar
-        # value without a table is appropriately formatted for the backend.
+        # Run a SELECT 1. Use a sa.select() so that the SELECT of a scalar value without a table is
+        # appropriately formatted for the backend.
         try:
             conn.scalar(sa.select([1]))
         except sa.exc.DBAPIError as exc:
-            # Catch SQLAlchemy's DBAPIError, which is a wrapper for the DBAPI's
-            # exception. It includes a "connection_invalidated" attribute which
-            # specifies if this connection is a "disconnect" condition, which
-            # is based on inspection of the original exception by the dialect
-            # in use.
+            # Catch SQLAlchemy's DBAPIError, which is a wrapper for the DBAPI's exception. It
+            # includes a "connection_invalidated" attribute which specifies if this connection is a
+            # "disconnect" condition, which is based on inspection of the original exception by the
+            # dialect in use.
             if exc.connection_invalidated:
-                # Run the same SELECT again. The connection will re-validate
-                # itself and establish a new connection. The disconnect
-                # detection here also causes the whole connection pool to be
-                # invalidated so that all stale connections are discarded.
+                # Run the same SELECT again. The connection will re-validate itself and establish a
+                # new connection. The disconnect detection here also causes the whole connection
+                # pool to be invalidated so that all stale connections are discarded.
                 conn.scalar(sa.select([1]))
             else:
                 raise
@@ -624,26 +608,25 @@ class SQLClient:
     @contextmanager
     def transaction(self, commit=True, rollback=False, autoflush=None):
         """
-        Nestable session transaction context manager where only a single commit will be
-        issued once all contexts have been exited. If an exception occurs either at
-        commit time or before, the transaction will be rolled back and the original
-        exception re-raised.
+        Nestable session transaction context manager where only a single commit will be issued once
+        all contexts have been exited.
+
+        If an exception occurs either at commit time or before, the transaction will be rolled back
+        and the original exception re-raised.
 
         Args:
-            commit (bool, optional): Whether to commit the transaction or leave it open.
-                Defaults to ``True``.
-            rollback (bool, optional): Whether to rollback the transaction. Defaults to
-                ``False``. WARNING: This overrides `commit`.
-            autoflush (bool, optional): Whether to override ``session.autoflush``.
-                Original ``session.autoflush`` will be restored after transaction.
-                Defaults to ``None`` which doesn't modify ``session.autoflush``.
+            commit (bool, optional): Whether to commit the transaction or leave it open. Defaults to
+                ``True``.
+            rollback (bool, optional): Whether to rollback the transaction. Defaults to ``False``.
+                WARNING: This overrides `commit`.
+            autoflush (bool, optional): Whether to override ``session.autoflush``. Original
+                ``session.autoflush`` will be restored after transaction. Defaults to ``None`` which
+                doesn't modify ``session.autoflush``.
 
         Yields:
             :attr:`session`
         """
-        with core.transaction(
-            self.session, commit=commit, rollback=rollback, autoflush=autoflush
-        ):
+        with core.transaction(self.session, commit=commit, rollback=rollback, autoflush=autoflush):
             yield self.session
 
     def save(self, models, before=None, after=None, identity=None):
@@ -658,14 +641,12 @@ class SQLClient:
         Args:
             models (mixed): Models to save to database.
             before (function, optional): Function to call before each model is saved via
-                ``session.add``. Function should have signature
-                ``before(model, is_new)``.
+                ``session.add``. Function should have signature ``before(model, is_new)``.
             after (function, optional): Function to call after each model is saved via
-                ``session.add``. Function should have signature
-                ``after(model, is_new)``.
-            identity (function, optional): Function used to return an idenity map for a
-                given model. Function should have the signature ``identity(model)``. By
-                default :func:`.core.primary_identity_map` is used.
+                ``session.add``. Function should have signature ``after(model, is_new)``.
+            identity (function, optional): Function used to return an idenity map for a given model.
+                Function should have the signature ``identity(model)``. Defaults to
+                :func:`.core.primary_identity_map`.
 
         Returns:
             Model: If a single item passed in.
@@ -691,11 +672,9 @@ class SQLClient:
                     idx_msg = ""
 
                 raise TypeError(
-                    "Type of value given to save() method is not a recognized "
-                    "SQLALchemy declarative class that derives from {0}. {1} {2!r} is"
-                    "an instance of {3!r}.".format(
-                        self.model_class, idx_msg, model, model.__class__
-                    )
+                    "Type of value given to save() method is not a recognized SQLALchemy"
+                    " declarative class that derives from {0}. {1} {2!r} is an instance of"
+                    " {3!r}.".format(self.model_class, idx_msg, model, model.__class__)
                 )
 
         return core.save(
@@ -708,9 +687,9 @@ class SQLClient:
 
     def bulk_insert(self, mapper, mappings):
         """
-        Perform a bulk insert into table/statement represented by `mapper` while
-        utilizing a special syntax that replaces the tradtional ``executemany()`` DBAPI
-        call with a multi-row VALUES clause for a single INSERT statement.
+        Perform a bulk insert into table/statement represented by `mapper` while utilizing a special
+        syntax that replaces the tradtional ``executemany()`` DBAPI call with a multi-row VALUES
+        clause for a single INSERT statement.
 
         See :meth:`bulk_insert_many` for bulk inserts using ``executemany()``.
 
@@ -725,11 +704,11 @@ class SQLClient:
 
     def bulk_insert_many(self, mapper, mappings):
         """
-        Perform a bulk insert into table/statement represented by `mapper` while
-        utilizing the ``executemany()`` DBAPI call.
+        Perform a bulk insert into table/statement represented by `mapper` while utilizing the
+        ``executemany()`` DBAPI call.
 
-        See :meth:`bulk_insert` for bulk inserts using a multi-row VALUES clause for a
-        single INSERT statement.
+        See :meth:`bulk_insert` for bulk inserts using a multi-row VALUES clause for a single
+        INSERT statement.
 
         Args:
             mapper: An ORM class or SQLAlchemy insert-statement object.
@@ -742,16 +721,17 @@ class SQLClient:
 
     def bulk_common_update(self, mapper, key_columns, mappings):
         """
-        Perform a bulk UPDATE on common shared values among `mappings`. What this means
-        is that if multiple records are being updated to the same values, then issue
-        only a single update for that value-set using the identity of the records in the
-        WHERE clause.
+        Perform a bulk UPDATE on common shared values among `mappings`.
+
+        What this means is that if multiple records are being updated to the same values, then issue
+        only a single update for that value-set using the identity of the records in the WHERE
+        clause.
 
         Args:
             mapper: An ORM class or SQLAlchemy insert-statement object.
-            key_columns (tuple): A tuple of SQLAlchemy columns that represent the
-                identity of each row (typically this would be a table's primary key
-                values but they can be any set of columns).
+            key_columns (tuple): A tuple of SQLAlchemy columns that represent the identity of each
+                row (typically this would be a table's primary key values but they can be any set of
+                columns).
             mappings (list): List of ``dict`` objects to update.
 
         Returns:
@@ -761,29 +741,27 @@ class SQLClient:
 
     def bulk_diff_update(self, mapper, key_columns, previous_mappings, mappings):
         """
-        Perform a bulk INSERT/UPDATE on the difference between `mappings` and
-        `previous_mappings` such that only the values that have changed are included in
-        the update. If a mapping in `mappings` doesn't exist in `previous_mappings`,
-        then it will be inclued in the bulk INSERT. The bulk INSERT will be deferred to
-        :meth:`bulk_insert`. The bulk UPDATE will be deferred to
-        :meth:`bulk_common_update`.
+        Perform a bulk INSERT/UPDATE on the difference between `mappings` and `previous_mappings`
+        such that only the values that have changed are included in the update.
+
+        If a mapping in `mappings` doesn't exist in `previous_mappings`, then it will be inclued in
+        the bulk INSERT. The bulk INSERT will be deferred to :meth:`bulk_insert`. The bulk UPDATE
+        will be deferred to :meth:`bulk_common_update`.
 
         Args:
             mapper: An ORM class or SQLAlchemy insert-statement object.
             mappings (list): List of ``dict`` objects to update.
-            previous_mappings (list): List of ``dict`` objects that represent the
-                previous values of all mappings found for this update set (i.e. these
-                are the current database records).
-            key_columns (tuple): A tuple of SQLAlchemy columns that represent the
-                identity of each row (typically this would be a table's primary key
-                values but they can be any set of columns).
+            previous_mappings (list): List of ``dict`` objects that represent the previous values of
+                all mappings found for this update set (i.e. these are the current database
+                records).
+            key_columns (tuple): A tuple of SQLAlchemy columns that represent the identity of each
+                row (typically this would be a table's primary key values but they can be any set of
+                columns).
 
         Returns:
             list[ResultProxy]
         """
-        return core.bulk_diff_update(
-            self.session, mapper, key_columns, previous_mappings, mappings
-        )
+        return core.bulk_diff_update(self.session, mapper, key_columns, previous_mappings, mappings)
 
     @property
     def bulk_insert_mappings(self):
@@ -811,8 +789,7 @@ class SQLClient:
         - ``list``/``tuple`` of ``dict`` objects
         - ``list``/``tuple`` of :attr:`model_class` instances
 
-        If a ``dict`` or ``list`` of ``dict`` is passed in, then `model_class`
-        must be provided
+        If a ``dict`` or ``list`` of ``dict`` is passed in, then `model_class` must be provided.
 
         Args:
             data (mixed): Data to delete from database.
@@ -839,8 +816,7 @@ class SQLClient:
             item (str): Attribute corresponding to string name of model class.
 
         Returns:
-            :attr:`service_class`: Instance of :attr:`service_class` initialized with
-                model class.
+            :attr:`service_class`: Instance of :attr:`service_class` initialized with model class.
 
         Raises:
             AttributeError: When item doesn't correspond to model class name found in
@@ -860,12 +836,11 @@ class SQLClient:
             attr (str): Attribute corresponding to string name of model class.
 
         Returns:
-            :attr:`service_class`: Instance of :attr:`service_class` initialized with
-            model class.
+            :attr:`service_class`: Instance of :attr:`service_class` initialized with model class.
 
         Raises:
-            AttributeError: When attribute doesn't correspond to model class name found
-                in :attr:`metadata`.
+            AttributeError: When attribute doesn't correspond to model class name found in
+                :attr:`metadata`.
         """
         if attr not in self.models:  # pragma: no cover
             # Potentially, this model could have been imported after creation
@@ -875,11 +850,10 @@ class SQLClient:
 
         if attr not in self.models:  # pragma: no cover
             raise AttributeError(
-                "The attribute {0!r} is not an attribute of {1} nor is it a unique "
-                "model class name in the declarative model class registry of {2}. "
-                "Valid model names are: {3}. If a model name is shown as a full module"
-                "path, then that model class name is not unique and cannot be "
-                "referenced via attribute access.".format(
+                "The attribute {0!r} is not an attribute of {1} nor is it a unique model class"
+                " name in the declarative model class registry of {2}. Valid model names are: {3}."
+                " If a model name is shown as a full module path, then that model class name is not"
+                " unique and cannot be referenced via attribute access.".format(
                     attr,
                     self.__class__.__name__,
                     self.model_class,

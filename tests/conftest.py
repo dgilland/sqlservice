@@ -1,1 +1,1 @@
-from .fixtures import db, filedb, commit_event, rollback_event
+from .fixtures import commit_event, db, filedb, rollback_event

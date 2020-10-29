@@ -1,12 +1,11 @@
 from collections import deque
-import random
 import os
+import random
 import string
 import sys
 from unittest import mock
 
 import pytest
-
 import sqlalchemy as sa
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -39,9 +38,7 @@ class AModel(Model):
 
     c = sa.orm.relation("CModel")
     ds = sa.orm.relation("DModel")
-    d_map = sa.orm.relation(
-        "DModel", collection_class=attribute_mapped_collection("id")
-    )
+    d_map = sa.orm.relation("DModel", collection_class=attribute_mapped_collection("id"))
 
 
 class BModel(Model):
@@ -101,8 +98,7 @@ def filedb(tmpdir):
 @pytest.fixture
 def commit_event(db):
     """
-    Test fixture that uses a ``MagicMock`` as an event listener for database session
-    commits.
+    Test fixture that uses a ``MagicMock`` as an event listener for database session commits.
 
     Useful for counting commit events using ``commit_event.call_count``.
     """
@@ -114,8 +110,7 @@ def commit_event(db):
 @pytest.fixture
 def rollback_event(db):
     """
-    Test fixture that uses a ``MagicMock`` as an event listener for database session
-    rollbacks.
+    Test fixture that uses a ``MagicMock`` as an event listener for database session rollbacks.
 
     Useful for counting rollback events using ``rollback_event.call_count``.
     """
@@ -125,8 +120,8 @@ def rollback_event(db):
 
 
 class MyTestError(Exception):
-    """Test error that can be used to raise inside a test function so that you can do
-    pytest.raises and know that this exception was the one that was raised."""
+    """Test error that can be used to raise inside a test function so that you can do pytest.raises
+    and know that this exception was the one that was raised."""
 
     pass
 

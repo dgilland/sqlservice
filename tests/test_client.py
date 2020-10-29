@@ -5,19 +5,11 @@ import sqlalchemy as sa
 
 from sqlservice import SQLClient
 
-from .fixtures import (
-    AModel,
-    DupModel,
-    DupAModel,
-    MyTestError,
-    parametrize,
-    random_alpha,
-)
+from .fixtures import AModel, DupAModel, DupModel, MyTestError, parametrize, random_alpha
 
 
 def getattr_path(obj, path):
-    """Get nested `obj` attributes using dot-path syntax (e.g.
-    path='some.nested.attr')."""
+    """Get nested `obj` attributes using dot-path syntax (e.g. path='some.nested.attr')."""
     attr = obj
 
     for item in path.split("."):
@@ -85,9 +77,7 @@ def test_ping(filedb):
 def test_ping_exception(db):
     """Test that SQLClient.ping() raises and exception on failure."""
     mocked_engine = mock.Mock()
-    mocked_conn = mock.Mock(
-        scalar=mock.Mock(side_effect=sa.exc.DBAPIError(None, None, None))
-    )
+    mocked_conn = mock.Mock(scalar=mock.Mock(side_effect=sa.exc.DBAPIError(None, None, None)))
     mocked_engine.connect.return_value = mocked_conn
 
     with mock.patch.object(db, "engine", new=mocked_engine):
@@ -96,8 +86,7 @@ def test_ping_exception(db):
 
 
 def test_ping_exception_invalidated(db):
-    """Test that SQLClient.ping() raises and exception on failure with an invalidated
-    connection."""
+    """Test that SQLClient.ping() raises and exception on failure with an invalidated connection."""
     mocked_engine = mock.Mock()
     mocked_conn = mock.Mock(
         scalar=mock.Mock(
@@ -164,15 +153,14 @@ def test_transaction_nested_single_rollback_on_rollback(db, rollback_event):
 
 
 def test_transaction_nested_single_rollback_before_commit(db, rollback_event):
-    """Test that a nested transaction results in a single rollback when an exception
-    occurs before commit is issued."""
+    """Test that a nested transaction results in a single rollback when an exception occurs before
+    commit is issued."""
     with pytest.raises(MyTestError):
         with db.transaction():
             with db.transaction():
                 with db.transaction():
                     raise MyTestError(
-                        "Exception occurs at the bottom-most "
-                        "context before commit issued."
+                        "Exception occurs at the bottom-most context before commit issued."
                     )
 
     assert rollback_event.call_count == 1
@@ -188,8 +176,7 @@ def test_transaction_commit_false(db, commit_event, rollback_event):
 
 
 def test_transaction_nested_outer_commit_false(db, commit_event, rollback_event):
-    """Test that a commit transaction nested inside a no-commit transaction doesn't
-    commit."""
+    """Test that a commit transaction nested inside a no-commit transaction doesn't commit."""
     with db.transaction(commit=False):
         with db.transaction():
             db.add(AModel())
@@ -199,8 +186,7 @@ def test_transaction_nested_outer_commit_false(db, commit_event, rollback_event)
 
 
 def test_transaction_nested_inner_commit_false(db, commit_event, rollback_event):
-    """Test that a no-commit transaction nested inside a write transaction does
-    commit."""
+    """Test that a no-commit transaction nested inside a write transaction does commit."""
     with db.transaction():
         with db.transaction(commit=False):
             db.add(AModel())
@@ -219,8 +205,7 @@ def test_transaction_rollback(db, commit_event, rollback_event):
 
 
 def test_transaction_nested_outer_rollback(db, commit_event, rollback_event):
-    """Test that a commit transaction nested inside a rollback transaction rolls
-    back."""
+    """Test that a commit transaction nested inside a rollback transaction rolls back."""
     with db.transaction(rollback=True):
         with db.transaction():
             db.add(AModel())
@@ -230,8 +215,7 @@ def test_transaction_nested_outer_rollback(db, commit_event, rollback_event):
 
 
 def test_transaction_nested_inner_rollback(db, commit_event, rollback_event):
-    """Test that a rollback transaction nested inside a write transaction does
-    commit."""
+    """Test that a rollback transaction nested inside a write transaction does commit."""
     with db.transaction():
         with db.transaction(rollback=True):
             db.add(AModel())
@@ -270,8 +254,7 @@ def test_transaction_autoflush_false(config_autoflush, autoflush, expected):
 
 
 def test_reflect(filedb):
-    """Test that table metadata can be reflected with an explicit declarative base
-    model."""
+    """Test that table metadata can be reflected with an explicit declarative base model."""
     rdb = SQLClient(filedb.config)
 
     assert len(rdb.tables) == 0
@@ -313,8 +296,7 @@ def test_engine_options():
 
 
 def test_duplicate_model_class_name():
-    """Test that duplicate model class names are supported by SQLClient model
-    registry."""
+    """Test that duplicate model class names are supported by SQLClient model registry."""
     # Since we're going to shadow the same model name, we need an alias to it
     # for testing.
     global DupAModel

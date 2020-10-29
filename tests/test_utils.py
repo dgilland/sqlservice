@@ -11,7 +11,7 @@ def test_frozendict_getitem():
 def test_frozendict_immutability():
     frozen_d = FrozenDict()
     with pytest.raises(TypeError):
-        frozen_d["a"] = 1
+        frozen_d["a"] = 1  # pylint: disable=unsupported-assignment-operation
 
 
 def test_frozendict_contains():

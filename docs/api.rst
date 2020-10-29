@@ -19,7 +19,8 @@ The sqlservice package imports commonly used objects into it's top-level namespa
         event,
         make_identity,
         save,
-        transaction)
+        transaction,
+    )
 
 
 .. automodule:: sqlservice.client

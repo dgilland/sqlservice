@@ -67,25 +67,25 @@ Then, define some ORM models:
     Model = declarative_base()
 
     class User(Model):
-        __tablename__ = 'user'
+        __tablename__ = "user"
 
         id = Column(types.Integer(), primary_key=True)
         name = Column(types.String(100))
         email = Column(types.String(100))
         phone = Column(types.String(10))
 
-        roles = orm.relation('UserRole')
+        roles = orm.relation("UserRole")
 
-        @event.on_set('phone', retval=True)
+        @event.on_set("phone", retval=True)
         def on_set_phone(self, value, oldvalue, initator):
             # Strip non-numeric characters from phone number.
-            return re.sub('[^0-9]', '', value)
+            return re.sub("[^0-9]", "", value)
 
     class UserRole(Model):
-        __tablename__ = 'user_role'
+        __tablename__ = "user_role"
 
         id = Column(types.Integer(), primary_key=True)
-        user_id = Column(types.Integer(), ForeignKey('user.id'), nullable=False)
+        user_id = Column(types.Integer(), ForeignKey("user.id"), nullable=False)
         role = Column(types.String(25), nullable=False)
 
 
@@ -96,18 +96,18 @@ Next, configure the database client:
     from sqlservice import SQLClient
 
     config = {
-        'SQL_DATABASE_URI': 'sqlite:///db.sql',
-        'SQL_ISOLATION_LEVEL': 'SERIALIZABLE',
-        'SQL_ECHO': True,
-        'SQL_ECHO_POOL': False,
-        'SQL_CONVERT_UNICODE': True,
-        'SQL_POOL_SIZE': 5,
-        'SQL_POOL_TIMEOUT': 30,
-        'SQL_POOL_RECYCLE': 3600,
-        'SQL_MAX_OVERFLOW': 10,
-        'SQL_AUTOCOMMIT': False,
-        'SQL_AUTOFLUSH': True,
-        'SQL_EXPIRE_ON_COMMIT': True
+        "SQL_DATABASE_URI": "sqlite:///db.sql",
+        "SQL_ISOLATION_LEVEL": "SERIALIZABLE",
+        "SQL_ECHO": True,
+        "SQL_ECHO_POOL": False,
+        "SQL_CONVERT_UNICODE": True,
+        "SQL_POOL_SIZE": 5,
+        "SQL_POOL_TIMEOUT": 30,
+        "SQL_POOL_RECYCLE": 3600,
+        "SQL_MAX_OVERFLOW": 10,
+        "SQL_AUTOCOMMIT": False,
+        "SQL_AUTOFLUSH": True,
+        "SQL_EXPIRE_ON_COMMIT": True
     }
 
     db = SQLClient(config, model_class=Model)
@@ -143,10 +143,12 @@ Serialize to a ``dict``:
 
 .. code-block:: python
 
-    assert user.to_dict() == {'id': 1,
-                              'name': 'Jenny',
-                              'email': 'jenny@example.com',
-                              'phone': '5558675309'}
+    assert user.to_dict() == {
+        "id": 1,
+        "name": "Jenny",
+        "email": "jenny@example.com",
+        "phone": "5558675309"
+    }
 
     assert dict(user) == user.to_dict()
 
@@ -163,10 +165,14 @@ Upsert on primary key automatically:
 
 .. code-block:: python
 
-    assert user is db.User({'id': 1,
-                            'name': 'Jenny',
-                            'email': 'jenny@example.com',
-                            'phone': '5558675309'})
+    assert user is db.User(
+        {
+            "id": 1,
+            "name": "Jenny",
+            "email": "jenny@example.com",
+            "phone": "5558675309"
+        }
+    )
 
 
 Destroy the model record:

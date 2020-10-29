@@ -37,12 +37,9 @@ def test_as_declarative():
     assert Model.metaclass is ModelMeta
 
 
-@parametrize(
-    "model,expected", [(AModel({"id": 1, "name": "a"}), ((AModel.columns()["id"], 1),))]
-)
+@parametrize("model,expected", [(AModel({"id": 1, "name": "a"}), ((AModel.columns()["id"], 1),))])
 def test_model_identity_map(model, expected):
-    """Test that model has an identity map equal to its primary key columns and
-    values."""
+    """Test that model has an identity map equal to its primary key columns and values."""
     assert model.identity_map() == expected
 
 
@@ -110,8 +107,8 @@ def test_model_to_dict(db, model, expected):
     ],
 )
 def test_model_to_dict_args_adapters(db, adapters, data, expected):
-    """Test that Model.__dict_args__['exclude_sequence_types'] can be used to skip
-    nested dict serialization of those types."""
+    """Test that Model.__dict_args__['exclude_sequence_types'] can be used to skip nested dict
+    serialization of those types."""
     args = {"adapters": adapters}
     expected = data if expected is True else expected
 

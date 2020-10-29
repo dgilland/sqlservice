@@ -43,8 +43,7 @@ def data_pool(request):
 
 @pytest.fixture(params=DATASET)
 def model_pool(request, db):
-    """Test fixture that parametrizes model records while inserting them into the
-    database first."""
+    """Test fixture that parametrizes model records while inserting them into the database first."""
     _model = {}
     for model_class, data in request.param.items():
         _model[model_class] = model_class(data)
@@ -57,16 +56,14 @@ def model_pool(request, db):
 @pytest.fixture(params=[{AModel: 10, BModel: 10}])
 def models_pool(request, db):
     """
-    Test fixture that parametrizes multiple model records while inserting them into the
-    database first.
+    Test fixture that parametrizes multiple model records while inserting them into the database
+    first.
 
     Mainly used for bulk loading of data.
     """
     _models = {}
     for model_class, count in request.param.items():
-        _models[model_class] = [
-            model_class({"name": random_alpha()}) for _ in range(count)
-        ]
+        _models[model_class] = [model_class({"name": random_alpha()}) for _ in range(count)]
         db.add_all(_models[model_class])
     db.commit()
     return _models
@@ -113,8 +110,7 @@ def test_find_criteria_as_filter(model_query, models_pool):
 
     for model in models:
         criteria = (
-            getattr(model_query.model_class, key) == model[key]
-            for key in model.columns().keys()
+            getattr(model_query.model_class, key) == model[key] for key in model.columns().keys()
         )
         ret = model_query.find(*criteria)
 
@@ -128,8 +124,7 @@ def test_find_one_criteria_as_filter(model_query, models_pool):
 
     for model in models:
         criteria = (
-            getattr(model_query.model_class, key) == model[key]
-            for key in model.columns().keys()
+            getattr(model_query.model_class, key) == model[key] for key in model.columns().keys()
         )
         ret = model_query.find_one(*criteria)
 
@@ -155,8 +150,8 @@ def test_find_criteria_as_filter_by_on_join(db, model_pool):
 
 
 def test_find_criteria_as_filter_by_with_entities(model_query, models_pool):
-    """Test that find criteria can be passed in as a filter-by dict when using a subset
-    of model entities for the query."""
+    """Test that find criteria can be passed in as a filter-by dict when using a subset of model
+    entities for the query."""
     model_class = model_query.model_class
     models = models_pool[model_query.model_class]
 
@@ -179,56 +174,44 @@ def test_find_one_criteria_as_filter_by(model_query, models_pool):
 
 
 def test_find_criteria_as_filter_and_filter_by(model_query, models_pool):
-    """Test that find criteria can be passed as both filter expression and filter-by
-    dict."""
+    """Test that find criteria can be passed as both filter expression and filter-by dict."""
     models = models_pool[model_query.model_class]
 
     for model in models:
-        ret = model_query.find(
-            {"name": model.name}, model_query.model_class.name == model.name
-        )
+        ret = model_query.find({"name": model.name}, model_query.model_class.name == model.name)
 
         assert len(ret) == 1
         assert ret[0] is model
 
 
 def test_find_one_criteria_as_filter_and_filter_by(model_query, models_pool):
-    """Test that find_one criteria can be passed as both filter expression and filter-by
-    dict."""
+    """Test that find_one criteria can be passed as both filter expression and filter-by dict."""
     models = models_pool[model_query.model_class]
 
     for model in models:
-        ret = model_query.find_one(
-            {"name": model.name}, model_query.model_class.name == model.name
-        )
+        ret = model_query.find_one({"name": model.name}, model_query.model_class.name == model.name)
 
         assert ret is model
 
 
 def test_find_criteria_as_list_of_lists(model_query, models_pool):
-    """Test that find criteria can be passed as both filter expression and filter-by
-    dict."""
+    """Test that find criteria can be passed as both filter expression and filter-by dict."""
     models = models_pool[model_query.model_class]
 
     for model in models:
-        ret = model_query.find(
-            [{"name": model.name}, model_query.model_class.name == model.name]
-        )
+        ret = model_query.find([{"name": model.name}, model_query.model_class.name == model.name])
 
         assert len(ret) == 1
         assert ret[0] is model
 
-        ret = model_query.find(
-            [{"name": model.name}], [model_query.model_class.name == model.name]
-        )
+        ret = model_query.find([{"name": model.name}], [model_query.model_class.name == model.name])
 
         assert len(ret) == 1
         assert ret[0] is model
 
 
 def test_find_one_criteria_as_list_of_lists(model_query, models_pool):
-    """Test that find_one criteria can be passed as both filter expression and filter-by
-    dict."""
+    """Test that find_one criteria can be passed as both filter expression and filter-by dict."""
     models = models_pool[model_query.model_class]
 
     for model in models:
@@ -276,9 +259,7 @@ def test_find_order_by(model_query, models_pool, order_by):
     """Test that find and order results."""
     order_by = order_by[model_query.model_class]
 
-    recs = model_query.order_by(
-        *([order_by] if not isinstance(order_by, list) else order_by)
-    ).all()
+    recs = model_query.order_by(*([order_by] if not isinstance(order_by, list) else order_by)).all()
     ret = model_query.find(order_by=order_by)
 
     assert ret == recs
@@ -477,7 +458,7 @@ def test_bulk_common_update(db, case):
 
     assert len(mock_execute.call_args_list) == len(case["expected"])
 
-    for (stmt, *_), kargs in mock_execute.call_args_list:
+    for (stmt, *_), _kwargs in mock_execute.call_args_list:
         assert isinstance(stmt, sa.sql.Update)
 
         where_values = [
@@ -563,13 +544,11 @@ def test_bulk_diff_update(db, case):
     db.bulk_insert(case["mapper"], case["records"])
 
     with mock.patch.object(db.session, "execute") as mock_execute:
-        db.bulk_diff_update(
-            case["mapper"], case["key_columns"], case["records"], case["mappings"]
-        )
+        db.bulk_diff_update(case["mapper"], case["key_columns"], case["records"], case["mappings"])
 
     assert len(mock_execute.call_args_list) == len(case["expected"])
 
-    for (stmt, *_), kargs in mock_execute.call_args_list:
+    for (stmt, *_), _kwargs in mock_execute.call_args_list:
         query = {"stmt_class": stmt.__class__, "parameters": stmt.parameters}
 
         if stmt.__class__ == sa.sql.Update:
@@ -699,8 +678,8 @@ def test_save_by_identity(db, identity):
     ],
 )
 def test_save_duplicate_primary_key_error(db, model_query, data):
-    """Test that IntegrityError raised when duplicate primary key records are added at
-    the same time."""
+    """Test that IntegrityError raised when duplicate primary key records are added at the same
+    time."""
     data = data[model_query.model_class]
 
     with pytest.raises(sa.exc.IntegrityError):
@@ -827,14 +806,14 @@ def test_model_contains():
     assert len(columns) > 0
 
     for col in columns:
-        assert col.name in model
+        assert col.name in model  # pylint: disable=unsupported-membership-test
 
 
 def test_model_get_set_item():
     """Test that models can be modified using get/set item syntax."""
     model = AModel()
-    model["name"] = "foo"
-    assert model["name"] == "foo"
+    model["name"] = "foo"  # pylint: disable=unsupported-assignment-operation
+    assert model["name"] == "foo"  # pylint: disable=unsubscriptable-object
 
 
 @parametrize("value", [{}, [], False, None, 0])

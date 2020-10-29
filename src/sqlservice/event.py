@@ -31,8 +31,8 @@ class EventDecorator:
 
     def __call__(self, func):
         """
-        Function decorator that attaches an `__events__` attribute hook which is
-        expected when registering a method as an event handler.
+        Function decorator that attaches an `__events__` attribute hook which is expected when
+        registering a method as an event handler.
 
         See :func:`register` for details on how this is implemented.
         """
@@ -42,8 +42,7 @@ class EventDecorator:
 
         # Attach event objects to function for register() for find.
         func.__events__.extend(
-            Event(name, self.attribute, func, self.event_kargs)
-            for name in self.event_names
+            Event(name, self.attribute, func, self.event_kargs) for name in self.event_names
         )
 
         # Return function so that it's passed on to sa.event.listen().

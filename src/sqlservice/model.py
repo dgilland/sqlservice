@@ -50,25 +50,22 @@ class ModelBase:
         Update model by positional ``dict`` or keyword arguments.
 
         Note:
-            If both `data` and keyword arguments are passed in, the keyword
-            arguments take precedence.
+            If both `data` and keyword arguments are passed in, the keyword arguments take
+            precedence.
 
         Args:
             _data (dict, optional): Data to update model with.
-            **kargs (optional): Mapping of attributes to values to update model
-                with.
+            **kargs (optional): Mapping of attributes to values to update model with.
 
         Raises:
-            - TypeError: If `data` is not ``None`` or not a ``dict``.
+            TypeError: If `data` is not ``None`` or not a ``dict``.
         """
         if _data is None:
             _data = {}
 
         if not isinstance(_data, dict):  # pragma: no cover
             raise TypeError(
-                "Positional argument must be a dict for {0}".format(
-                    self.__class__.__name__
-                )
+                "Positional argument must be a dict for {0}".format(self.__class__.__name__)
             )
 
         _data = _data.copy()
@@ -77,9 +74,8 @@ class ModelBase:
         relations = self.relationships().keys()
         field_order = deque()
 
-        # Collect and order data fields in a pseudo-deterministic order where
-        # column updates occur before relationship updates but order within
-        # those types is indeterministic.
+        # Collect and order data fields in a pseudo-deterministic order where column updates occur
+        # before relationship updates but order within those types is indeterministic.
         for field, value in _data.items():
             if field in relations:
                 # Set relationships last.
@@ -114,16 +110,14 @@ class ModelBase:
 
             # Convert each value instance to relationship class.
             value = [
-                relation_class(val) if not isinstance(val, relation_class) else val
-                for val in value
+                relation_class(val) if not isinstance(val, relation_class) else val for val in value
             ]
         elif value and isinstance(value, dict):
             # Convert single value object to relationship class.
             value = relation_class(value)
         elif not value and isinstance(value, dict):
-            # If value is {} and we're trying to update a relationship
-            # attribute, then we need to set to None to nullify relationship
-            # value.
+            # If value is {} and we're trying to update a relationship attribute, then we need to
+            # set to None to nullify relationship value.
             value = None
 
         setattr(self, field, value)
@@ -137,8 +131,8 @@ class ModelBase:
     @classmethod
     @classonce
     def class_registry(cls):
-        """Returns declarative class registry containing declarative model class names
-        mapped to class objects."""
+        """Returns declarative class registry containing declarative model class names mapped to
+        class objects."""
         items = getattr(cls, "_decl_class_registry", {}).items()
         return {key: value for key, value in items if not key.startswith("_sa_")}
 
@@ -165,38 +159,34 @@ class ModelBase:
     def descriptors(cls):
         """Return all ORM descriptors."""
         dscrs = cls.class_mapper().all_orm_descriptors
-        return ImmutableProperties(
-            {key: dscr for key, dscr in dscrs.items() if not dscr.is_mapper}
-        )
+        return ImmutableProperties({key: dscr for key, dscr in dscrs.items() if not dscr.is_mapper})
 
     def descriptors_to_dict(self):
         """
-        Return a ``dict`` that maps data loaded in :attr:`__dict__` to this model's
-        descriptors. The data contained in :attr:`__dict__` represents the model's state
-        that has been loaded from the database. Accessing values in :attr:`__dict__`
-        will prevent SQLAlchemy from issuing database queries for any ORM data that
-        hasn't been loaded from the database already.
+        Return a ``dict`` that maps data loaded in :attr:`__dict__` to this model's descriptors.
+
+        The data contained in :attr:`__dict__` represents the model's state that has been loaded
+        from the database. Accessing values in :attr:`__dict__` will prevent SQLAlchemy from issuing
+        database queries for any ORM data that hasn't been loaded from the database already.
 
         Note:
-            The ``dict`` returned will contain model instances for any
-            relationship data that is loaded. To get a ``dict`` containing all
-            non-ORM objects, use :meth:`to_dict`.
+            The ``dict`` returned will contain model instances for any relationship data that is
+            loaded. To get a ``dict`` containing all non-ORM objects, use :meth:`to_dict`.
 
         Returns:
             dict
         """
         descriptors = self.descriptors()
-        return {
-            key: value for key, value in self.__dict__.items() if key in descriptors
-        }
+        return {key: value for key, value in self.__dict__.items() if key in descriptors}
 
     def to_dict(self):
         """
-        Return a ``dict`` of the current model's state (i.e. data returned is limited to
-        data already fetched from the database) if some state is loaded. If no state is
-        loaded, perform a session refresh on the model which will result in a database
-        query. For any relationship data that is loaded, ``to_dict`` be called
-        recursively for those objects.
+        Return a ``dict`` of the current model's state (i.e. data returned is limited to data
+        already fetched from the database) if some state is loaded.
+
+        If no state is loaded, perform a session refresh on the model which will result in a
+        database query. For any relationship data that is loaded, ``to_dict`` be called recursively
+        for those objects.
 
         Returns:
             dict
@@ -213,16 +203,12 @@ class ModelBase:
             session.refresh(self)
             data = self.descriptors_to_dict()
 
-        # Convert data.items() to tuple since we may delete dict keys while
-        # iterating.
+        # Convert data.items() to tuple since we may delete dict keys while iterating.
         for key, value in tuple(data.items()):
-            adapter = _get_dict_adapter(
-                key, value, default_adapter, adapters, class_registry
-            )
+            adapter = _get_dict_adapter(key, value, default_adapter, adapters, class_registry)
 
-            # Only serialize key if it's adapter is not None (i.e. an adapter
-            # value of None indicates that the key should be excluded from
-            # serialization).
+            # Only serialize key if it's adapter is not None (i.e. an adapter value of None
+            # indicates that the key should be excluded from serialization).
             if adapter is None:
                 del data[key]
             else:
@@ -234,15 +220,14 @@ class ModelBase:
         """
         Return primary key identity of model instance.
 
-        If there is only a single primary key defined, this method returns the primary
-        key value. If there are multiple primary keys, a tuple containing the primary
-        key values is returned.
+        If there is only a single primary key defined, this method returns the primary key value. If
+        there are multiple primary keys, a tuple containing the primary key values is returned.
         """
         return core.primary_identity_value(self)
 
     def identity_map(self):
-        """Return primary key identity map of model instance as an ordered dict mapping
-        each primary key column to the corresponding primary key value."""
+        """Return primary key identity map of model instance as an ordered dict mapping each primary
+        key column to the corresponding primary key value."""
         return core.primary_identity_map(self)
 
     def __getitem__(self, key):
@@ -283,20 +268,18 @@ def declarative_base(cls=ModelBase, metadata=None, metaclass=ModelMeta, **kargs)
     Function that converts a normal class into a SQLAlchemy declarative base class.
 
     Args:
-        cls (type): A type to use as the base for the generated declarative base class.
-            May be a class or tuple of classes. Defaults to :class:`ModelBase`.
-        metadata (MetaData, optional): An optional MetaData instance. All Table objects
-            implicitly declared by subclasses of the base will share this MetaData. A
-            MetaData instance will be created if none is provided. If not passed in,
-            `cls.metadata` will be used if set. Defaults to ``None``.
-        metaclass (DeclarativeMeta, optional): A metaclass or ``__metaclass__``
-            compatible callable to use as the meta type of the generated declarative
-            base class. If not passed in, `cls.metaclass` will be used if set. Defaults
-            to :class:`ModelMeta`.
+        cls (type): A type to use as the base for the generated declarative base class. May be a
+            class or tuple of classes. Defaults to :class:`ModelBase`.
+        metadata (MetaData, optional): An optional MetaData instance. All Table objects implicitly
+            declared by subclasses of the base will share this MetaData. A MetaData instance will be
+            created if none is provided. If not passed in, `cls.metadata` will be used if set.
+            Defaults to ``None``.
+        metaclass (DeclarativeMeta, optional): A metaclass or ``__metaclass__`` compatible callable
+            to use as the meta type of the generated declarative base class. If not passed in,
+            `cls.metaclass` will be used if set. Defaults to :class:`ModelMeta`.
 
     Keyword Args:
-        All other keyword arguments are passed to
-        ``sqlalchemy.ext.declarative.declarative_base``.
+        All other keyword arguments are passed to ``sqlalchemy.ext.declarative.declarative_base``.
 
     Returns:
         class: Declarative base class
@@ -332,8 +315,8 @@ def as_declarative(**kargs):
 
 
 def default_dict_adapter(value, key, model):
-    """Default :meth:`ModelBase.to_dict` adapter that handles nested serialization of
-    model objects."""
+    """Default :meth:`ModelBase.to_dict` adapter that handles nested serialization of model
+    objects."""
     if hasattr(value, "to_dict"):
         # Nest call to child to_dict methods.
         value = value.to_dict()
@@ -342,19 +325,11 @@ def default_dict_adapter(value, key, model):
         value = [val.to_dict() if hasattr(val, "to_dict") else val for val in value]
     elif isinstance(value, dict):
         # Nest calls to child to_dict methods for dict values.
-        value = {
-            ky: val.to_dict() if hasattr(val, "to_dict") else val
-            for ky, val in value.items()
-        }
-    elif (
-        value is None
-        and callable(getattr(model, "relationships"))
-        and key in model.relationships()
-    ):
-        # Instead of returning a null relationship value as ``None``, return it
-        # as an empty dict. This gives a more consistent representation of the
-        # relationship value type (i.e. a non-null relationship value would be
-        # a dict).
+        value = {ky: val.to_dict() if hasattr(val, "to_dict") else val for ky, val in value.items()}
+    elif value is None and callable(model.relationships) and key in model.relationships():
+        # Instead of returning a null relationship value as ``None``, return it as an empty dict.
+        # This gives a more consistent representation of the relationship value type (i.e. a
+        # non-null relationship value would be a dict).
         value = {}
     return value
 

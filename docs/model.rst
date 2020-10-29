@@ -218,7 +218,7 @@ Need to serialize certain types differently? Add some adapters using ``__dict_ar
             "adapters": {
                 UserAbout: lambda model, *_: {"nickname": model.nickname},
                 # identical to above but using string name for Model...
-                # 'UserAbout': lambda model, *_: {'nickname': model.nickname},
+                # "UserAbout": lambda model, *_: {"nickname": model.nickname},
                 "devices": lambda devices, *_: [
                     (device.name, device.keys) for device in devices
                 ],

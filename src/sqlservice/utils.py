@@ -14,8 +14,8 @@ class FrozenDict(Mapping):
     """
     A frozen dictionary implementation that prevents the object from being mutated.
 
-    This is primarily used when defining a dict-like object as a class attribute that
-    shouldn't be mutated by subclasses.
+    This is primarily used when defining a dict-like object as a class attribute that shouldn't be
+    mutated by subclasses.
     """
 
     def __init__(self, *args, **kwargs):
@@ -41,8 +41,8 @@ class FrozenDict(Mapping):
 
 
 def classonce(meth):
-    """Decorator that executes a class method once, stores the results at the class
-    level, and subsequently returns those results for every future method call."""
+    """Decorator that executes a class method once, stores the results at the class level, and
+    subsequently returns those results for every future method call."""
 
     @wraps(meth)
     def decorated(cls, *args, **kargs):
@@ -69,12 +69,10 @@ def is_sequence(value):
     """
     Test if `value` is a sequence but ``str``.
 
-    This function is mainly used to determine if `value` can be treated like a ``list``
-    for iteration purposes.
+    This function is mainly used to determine if `value` can be treated like a ``list`` for
+    iteration purposes.
     """
-    return is_generator(value) or (
-        isinstance(value, Sequence) and not isinstance(value, str)
-    )
+    return is_generator(value) or (isinstance(value, Sequence) and not isinstance(value, str))
 
 
 def is_generator(value):
