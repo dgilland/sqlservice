@@ -1,7 +1,7 @@
 Installation
 ============
 
-SQLService requires Python >= 3.4.
+sqlservice requires Python >= 3.6.
 
 To install from `PyPI <https://pypi.python.org/pypi/sqlservice>`_:
 

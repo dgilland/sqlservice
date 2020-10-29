@@ -61,10 +61,10 @@ Ready to contribute? Here's how to set up ``sqlservice`` for local development.
 
     $ git clone git@github.com:your_name_here/sqlservice.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenv installed, this is how you set up your fork for local development::
+3. Install Python dependencies into a virtualenv::
 
     $ cd sqlservice
-    $ pip install -r requirements-dev.txt
+    $ pip install -r requirements.txt
 
 4. Create a branch for local development::
 
@@ -72,19 +72,23 @@ Ready to contribute? Here's how to set up ``sqlservice`` for local development.
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass linting and all unit tests by testing with tox across all supported Python versions::
+5. Autoformat code::
 
-    $ invoke tox
+    $ inv fmt
 
-6. Add yourself to ``AUTHORS.rst``.
+6. When you're done making changes, check that your changes pass all unit tests by testing with ``tox`` across all supported Python versions::
 
-7. Commit your changes and push your branch to GitHub::
+    $ tox
+
+7. Add yourself to ``AUTHORS.rst``.
+
+8. Commit your changes and push your branch to GitHub::
 
     $ git add .
-    $ git commit -m "Detailed description of your changes."
-    $ git push origin name-of-your-bugfix-or-feature
+    $ git commit -m "<Detailed description of your changes>"
+    $ git push origin name-of-your-bugfix-or-feature-branch
 
-8. Submit a pull request through the GitHub website.
+9. Submit a pull request through GitHub.
 
 
 Pull Request Guidelines
@@ -93,9 +97,4 @@ Pull Request Guidelines
 Before you submit a pull request, check that it meets these guidelines:
 
 1. The pull request should include tests.
-2. If the pull request adds functionality, the docs should be updated. Put your new functionality into a function with a docstring, and add the feature to the README.rst.
-3. The pull request should work for Python 2.7, 3.4, and 3.5. Check https://travis-ci.org/dgilland/sqlservice/pull_requests and make sure that the tests pass for all supported Python versions.
-
-
-.. _Dead Snakes PPA: https://launchpad.net/~fkrull/+archive/deadsnakes
-.. _PEP8: http://legacy.python.org/dev/peps/pep-0008/
+2. The pull request should work for all versions Python that this project supports.

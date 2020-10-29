@@ -1,8 +1,7 @@
-**********
 sqlservice
 **********
 
-|version| |travis| |coveralls| |license|
+|version| |build| |coveralls| |license|
 
 
 The missing SQLAlchemy ORM interface.
@@ -14,7 +13,7 @@ Links
 - Project: https://github.com/dgilland/sqlservice
 - Documentation: http://sqlservice.readthedocs.io
 - PyPI: https://pypi.python.org/pypi/sqlservice/
-- TravisCI: https://travis-ci.org/dgilland/sqlservice
+- Github Actions: https://github.com/dgilland/sqlservice/actions
 
 
 Introduction
@@ -39,7 +38,6 @@ Requirements
 
 - Python >= 3.4
 - `SQLAlchemy <http://www.sqlalchemy.org/>`_ >= 1.0.0
-- `pydash <http://pydash.readthedocs.io>`_ >= 3.4.3
 
 
 Quickstart
@@ -194,8 +192,8 @@ For more details, please see the full documentation at http://sqlservice.readthe
 .. |version| image:: http://img.shields.io/pypi/v/sqlservice.svg?style=flat-square
     :target: https://pypi.python.org/pypi/sqlservice/
 
-.. |travis| image:: http://img.shields.io/travis/dgilland/sqlservice/master.svg?style=flat-square
-    :target: https://travis-ci.org/dgilland/sqlservice
+.. |build| image:: https://img.shields.io/github/workflow/status/dgilland/sqlservice/Main/master?style=flat-square
+    :target: https://github.com/dgilland/sqlservice/actions
 
 .. |coveralls| image:: http://img.shields.io/coveralls/dgilland/sqlservice/master.svg?style=flat-square
     :target: https://coveralls.io/r/dgilland/sqlservice
