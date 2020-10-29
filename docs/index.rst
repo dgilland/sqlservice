@@ -13,6 +13,7 @@ Guide
     event
     client
     api
+    devguide
 
 
 Project Info
