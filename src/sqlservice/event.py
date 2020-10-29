@@ -11,11 +11,11 @@ from sqlalchemy.event import listen
 class Event:
     """Universal event class used when registering events."""
 
-    def __init__(self, name, attribute, listener, kargs):
+    def __init__(self, name, attribute, listener, kwargs):
         self.name = name
         self.attribute = attribute
         self.listener = listener
-        self.kargs = kargs
+        self.kwargs = kwargs
 
 
 class EventDecorator:
@@ -25,9 +25,9 @@ class EventDecorator:
 
     event_names = ()
 
-    def __init__(self, **event_kargs):
+    def __init__(self, **event_kwargs):
         self.attribute = None
-        self.event_kargs = event_kargs
+        self.event_kwargs = event_kwargs
 
     def __call__(self, func):
         """
@@ -42,7 +42,7 @@ class EventDecorator:
 
         # Attach event objects to function for register() for find.
         func.__events__.extend(
-            Event(name, self.attribute, func, self.event_kargs) for name in self.event_names
+            Event(name, self.attribute, func, self.event_kwargs) for name in self.event_names
         )
 
         # Return function so that it's passed on to sa.event.listen().
@@ -52,9 +52,9 @@ class EventDecorator:
 class AttributeEventDecorator(EventDecorator):
     """Base class for an attribute event decorators."""
 
-    def __init__(self, attribute, **event_kargs):
+    def __init__(self, attribute, **event_kwargs):
         self.attribute = attribute
-        self.event_kargs = event_kargs
+        self.event_kwargs = event_kwargs
 
 
 def register(cls, dct):
@@ -70,7 +70,7 @@ def register(cls, dct):
 
     for event in events:
         obj = getattr(cls, event.attribute) if event.attribute else cls
-        listen(obj, event.name, event.listener, **event.kargs)
+        listen(obj, event.name, event.listener, **event.kwargs)
 
 
 ##

@@ -41,10 +41,10 @@ class ModelBase:
         """Per model configuration of :meth:`to_dict` serialization options."""
         return {"adapters": {}}
 
-    def __init__(self, _data=None, **kargs):
-        self.update(_data, **kargs)
+    def __init__(self, _data=None, **kwargs):
+        self.update(_data, **kwargs)
 
-    def update(self, _data=None, **kargs):
+    def update(self, _data=None, **kwargs):
         """
         Update model by positional ``dict`` or keyword arguments.
 
@@ -54,7 +54,7 @@ class ModelBase:
 
         Args:
             _data (dict, optional): Data to update model with.
-            **kargs (optional): Mapping of attributes to values to update model with.
+            **kwargs (optional): Mapping of attributes to values to update model with.
 
         Raises:
             TypeError: If `data` is not ``None`` or not a ``dict``.
@@ -68,7 +68,7 @@ class ModelBase:
             )
 
         _data = _data.copy()
-        _data.update(kargs)
+        _data.update(kwargs)
 
         relations = self.relationships().keys()
         field_order = deque()
@@ -262,7 +262,7 @@ class ModelBase:
         return "<{0}({1})>".format(self.__class__.__name__, values)
 
 
-def declarative_base(cls=ModelBase, metadata=None, metaclass=ModelMeta, **kargs):
+def declarative_base(cls=ModelBase, metadata=None, metaclass=ModelMeta, **kwargs):
     """
     Function that converts a normal class into a SQLAlchemy declarative base class.
 
@@ -283,19 +283,19 @@ def declarative_base(cls=ModelBase, metadata=None, metaclass=ModelMeta, **kargs)
     Returns:
         class: Declarative base class
     """
-    kargs["cls"] = cls
-    kargs.setdefault("name", cls.__name__)
+    kwargs["cls"] = cls
+    kwargs.setdefault("name", cls.__name__)
 
     if hasattr(cls, "__init__"):
-        kargs.setdefault("constructor", cls.__init__)
+        kwargs.setdefault("constructor", cls.__init__)
 
     if metadata:
-        kargs["metadata"] = metadata
+        kwargs["metadata"] = metadata
 
     if metaclass:
-        kargs["metaclass"] = metaclass
+        kwargs["metaclass"] = metaclass
 
-    Base = _declarative_base(**kargs)
+    Base = _declarative_base(**kwargs)
 
     if metaclass:
         Base.metaclass = metaclass
@@ -303,12 +303,12 @@ def declarative_base(cls=ModelBase, metadata=None, metaclass=ModelMeta, **kargs)
     return Base
 
 
-def as_declarative(**kargs):
+def as_declarative(**kwargs):
     """Decorator version of :func:`declarative_base`."""
 
     def decorated(cls):
-        kargs["cls"] = cls
-        return declarative_base(**kargs)
+        kwargs["cls"] = cls
+        return declarative_base(**kwargs)
 
     return decorated
 

@@ -189,7 +189,7 @@ class SQLQuery(orm.Query):
 
         return query
 
-    def search(self, *criterion, **kargs):
+    def search(self, *criterion, **kwargs):
         """
         Return search query object.
 
@@ -205,9 +205,9 @@ class SQLQuery(orm.Query):
         Returns:
             Query: New :class:`Query` instance with criteria and parameters applied.
         """
-        order_by = kargs.get("order_by")
-        page = kargs.get("page")
-        per_page = kargs.get("per_page")
+        order_by = kwargs.get("order_by")
+        page = kwargs.get("page")
+        per_page = kwargs.get("per_page")
 
         model_class = self.model_class
 
@@ -241,23 +241,23 @@ class SQLQuery(orm.Query):
 
         return query
 
-    def find_one(self, *criterion, **criterion_kargs):
+    def find_one(self, *criterion, **criterion_kwargs):
         """
         Return a single model or ``None`` given `criterion` ``dict`` or keyword arguments.
 
         Args:
             criterion (dict, optional): Filter-by dict.
-            **criterion_kargs (optional): Mapping of filter-by arguments.
+            **criterion_kwargs (optional): Mapping of filter-by arguments.
 
         Returns:
             :attr:`model_class`: When filtered record exists.
             None: When filtered record does not exist.
         """
-        criterion = list(criterion) + [criterion_kargs]
+        criterion = list(criterion) + [criterion_kwargs]
 
         return self.search(*criterion).first()
 
-    def find(self, *criterion, **kargs):
+    def find(self, *criterion, **kwargs):
         """
         Return list of models matching `criterion`.
 
@@ -273,4 +273,4 @@ class SQLQuery(orm.Query):
         Returns:
             list: List of :attr:`model_class`
         """
-        return self.search(*criterion, **kargs).all()
+        return self.search(*criterion, **kwargs).all()

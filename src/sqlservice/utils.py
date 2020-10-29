@@ -45,10 +45,10 @@ def classonce(meth):
     subsequently returns those results for every future method call."""
 
     @wraps(meth)
-    def decorated(cls, *args, **kargs):
+    def decorated(cls, *args, **kwargs):
         cached_attr = "__{0}".format(meth.__name__)
         if not hasattr(cls, cached_attr):
-            result = meth(cls, *args, **kargs)
+            result = meth(cls, *args, **kwargs)
             setattr(cls, cached_attr, result)
         return getattr(cls, cached_attr)
 
