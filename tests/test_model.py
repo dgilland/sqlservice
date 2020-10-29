@@ -1,7 +1,6 @@
 from unittest import mock
 
 import pydash as pyd
-import pytest
 import sqlalchemy as sa
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -9,7 +8,7 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlservice import as_declarative, core, declarative_base
 from sqlservice.model import ModelBase, ModelMeta
 
-from .fixtures import AModel, CModel, DModel, Model, parametrize
+from .fixtures import AModel, CModel, DModel, parametrize
 
 
 def test_declarative_base():

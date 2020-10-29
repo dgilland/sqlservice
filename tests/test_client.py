@@ -297,8 +297,7 @@ def test_engine_options():
 
 def test_duplicate_model_class_name():
     """Test that duplicate model class names are supported by SQLClient model registry."""
-    # Since we're going to shadow the same model name, we need an alias to it
-    # for testing.
+    # Since we're going to shadow the same model name, we need an alias to it for testing.
     global DupAModel
     _DupAModel = DupAModel
 

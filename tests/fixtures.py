@@ -1,8 +1,6 @@
-from collections import deque
 import os
 import random
 import string
-import sys
 from unittest import mock
 
 import pytest

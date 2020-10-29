@@ -182,7 +182,6 @@ class SQLQuery(orm.Query):
 
         if per_page:
             # Disable false-positive until fixed upstream.
-            # pylint: disable=assignment-from-no-return
             query = query.limit(per_page)
 
         if page and page > 1 and per_page:
@@ -227,7 +226,6 @@ class SQLQuery(orm.Query):
                 query = query.filter_by(**criteria)
             else:
                 if not is_sequence(criteria):
-                    # pylint: disable=assignment-from-no-return
                     query = query.filter(criteria)
                 else:
                     query = query.filter(*criteria)

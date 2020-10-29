@@ -6,7 +6,6 @@ The declarative base model class for SQLAlchemy ORM.
 """
 
 from collections import deque
-from functools import partial
 
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import (

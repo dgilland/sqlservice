@@ -1,4 +1,3 @@
-import pytest
 import sqlalchemy as sa
 
 from sqlservice import event

@@ -799,10 +799,7 @@ class SQLClient:
             int: Number of deleted records.
         """
         return core.destroy(
-            self.session,
-            data,
-            model_class=model_class,
-            synchronize_session=synchronize_session,
+            self.session, data, model_class=model_class, synchronize_session=synchronize_session
         )
 
     def __repr__(self):
