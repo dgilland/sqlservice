@@ -1,6 +1,5 @@
 from unittest import mock
 
-import pydash as pyd
 import sqlalchemy as sa
 from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import DeclarativeMeta
@@ -8,7 +7,7 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlservice import as_declarative, core, declarative_base
 from sqlservice.model import ModelBase, ModelMeta
 
-from .fixtures import AModel, CModel, DModel, parametrize
+from .fixtures import AModel, CModel, DModel, is_subdict, parametrize
 
 
 def test_declarative_base():
@@ -73,8 +72,8 @@ def test_model_to_dict(db, model, expected):
         .first()
     )
 
-    assert pyd.is_match(model.to_dict(), expected)
-    assert pyd.is_match(dict(model), expected)
+    assert model.to_dict() == dict(model)
+    assert is_subdict(expected, model.to_dict())
 
 
 @parametrize(
