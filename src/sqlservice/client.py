@@ -366,7 +366,7 @@ class SQLClient:
                     models[name] = model[0]
                 else:
                     for obj in list(model):
-                        modobj = "{0}.{1}".format(obj.__module__, obj.__name__)
+                        modobj = f"{obj.__module__}.{obj.__name__}"
                         models[modobj] = obj
             else:
                 models[name] = model
@@ -667,14 +667,14 @@ class SQLClient:
 
             if model.__class__ not in self.models.values():
                 if as_list:
-                    idx_msg = "Item with index {0} and value ".format(idx)
+                    idx_msg = f"Item with index {idx} and value "
                 else:
                     idx_msg = ""
 
                 raise TypeError(
-                    "Type of value given to save() method is not a recognized SQLALchemy"
-                    " declarative class that derives from {0}. {1} {2!r} is an instance of"
-                    " {3!r}.".format(self.model_class, idx_msg, model, model.__class__)
+                    f"Type of value given to save() method is not a recognized SQLALchemy"
+                    f" declarative class that derives from {self.model_class}. {idx_msg} {model!r}"
+                    f" is an instance of {model.__class__!r}."
                 )
 
         return core.save(
@@ -803,7 +803,7 @@ class SQLClient:
         )
 
     def __repr__(self):
-        return "<{}({!r})>".format(self.__class__.__name__, repr(self.url))
+        return f"<{self.__class__.__name__}({repr(self.url)!r})>"
 
     def __getitem__(self, item):
         """
@@ -847,15 +847,11 @@ class SQLClient:
 
         if attr not in self.models:  # pragma: no cover
             raise AttributeError(
-                "The attribute {0!r} is not an attribute of {1} nor is it a unique model class"
-                " name in the declarative model class registry of {2}. Valid model names are: {3}."
-                " If a model name is shown as a full module path, then that model class name is not"
-                " unique and cannot be referenced via attribute access.".format(
-                    attr,
-                    self.__class__.__name__,
-                    self.model_class,
-                    ", ".join(self.models),
-                )
+                f"The attribute {attr!r} is not an attribute of {self.__class__.__name__} nor is"
+                f" it a unique model class name in the declarative model class registry of"
+                f" {self.model_class}. Valid model names are: {', '.join(self.models)}. If a model"
+                f" name is shown as a full module path, then that model class name is not unique"
+                f" and cannot be referenced via attribute access."
             )
 
         return self.query(self.models[attr])

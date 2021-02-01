@@ -268,11 +268,9 @@ def destroy(session, data, model_class=None, synchronize_session=False):
 
         if not isinstance(class_, DeclarativeMeta):
             raise TypeError(
-                "Type of value given to destory() function is not a valid SQLALchemy declarative"
-                " class and/or model class argument is not valid. Item with index {0} and with"
-                " value {1!r} is an instance of {2} and model class is {3}.".format(
-                    idx, item, item_class, model_class
-                )
+                f"Type of value given to destory() function is not a valid SQLALchemy declarative"
+                f" class and/or model class argument is not valid. Item with index {idx} and with"
+                f" value {item!r} is an instance of {item_class} and model class is {model_class}."
             )
 
         mapped_data[class_].append(item)

@@ -82,7 +82,7 @@ def db():
 @pytest.fixture
 def filedb(tmpdir):
     dbpath = str(tmpdir.mkdir(random_alpha()).join("file.db"))
-    config = {"SQL_DATABASE_URI": "sqlite:///{0}".format(dbpath)}
+    config = {"SQL_DATABASE_URI": f"sqlite:///{dbpath}"}
 
     _filedb = SQLClient(config, model_class=Model)
     _filedb.create_all()

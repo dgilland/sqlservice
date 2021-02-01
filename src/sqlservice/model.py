@@ -63,9 +63,7 @@ class ModelBase:
             _data = {}
 
         if not isinstance(_data, dict):  # pragma: no cover
-            raise TypeError(
-                "Positional argument must be a dict for {0}".format(self.__class__.__name__)
-            )
+            raise TypeError(f"Positional argument must be a dict for {self.__class__.__name__}")
 
         _data = _data.copy()
         _data.update(kwargs)
@@ -256,10 +254,8 @@ class ModelBase:
     def __repr__(self):  # pragma: no cover
         """Return representation of instance with mapped columns to values."""
         columns = self.columns()
-        values = ", ".join(
-            ["{0}={1}".format(col, repr(getattr(self, col))) for col in columns.keys()]
-        )
-        return "<{0}({1})>".format(self.__class__.__name__, values)
+        values = ", ".join(f"{col}={repr(getattr(self, col))}" for col in columns.keys())
+        return f"<{self.__class__.__name__}({values})>"
 
 
 def declarative_base(cls=ModelBase, metadata=None, metaclass=ModelMeta, **kwargs):

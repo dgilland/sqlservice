@@ -69,7 +69,7 @@ class SQLQuery(orm.Query):
 
         if not model_class:  # pragma: no cover
             raise sa.exc.InvalidRequestError(
-                "{0}() can only be used against " "a single mapped class.".format(methname)
+                f"{methname}() can only be used against " "a single mapped class."
             )
 
         return model_class

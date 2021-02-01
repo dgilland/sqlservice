@@ -46,7 +46,7 @@ def classonce(meth):
 
     @wraps(meth)
     def decorated(cls, *args, **kwargs):
-        cached_attr = "__{0}".format(meth.__name__)
+        cached_attr = f"__{meth.__name__}"
         if not hasattr(cls, cached_attr):
             result = meth(cls, *args, **kwargs)
             setattr(cls, cached_attr, result)
