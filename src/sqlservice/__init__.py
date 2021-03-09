@@ -1,6 +1,7 @@
 """The sqlservice package."""
 
-from .__version__ import __version__
+__version__ = "1.2.1"
+
 from .client import SQLClient
 from .core import destroy, make_identity, save, transaction
 from .model import ModelBase, as_declarative, declarative_base
