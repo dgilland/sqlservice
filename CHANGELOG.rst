@@ -2,6 +2,12 @@ Changelog
 =========
 
 
+v1.2.2 (2021-03-29)
+-------------------
+
+- Pin supported SQLAlchemy version to ``>=1.0,<1.4`` due to incompatibilities with SQAlchemy 1.4.
+
+
 v1.2.1 (2020-01-17)
 -------------------
 
