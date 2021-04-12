@@ -246,7 +246,9 @@ def destroy(session, data, model_class=None, synchronize_session=False):
     Args:
         session (Session): SQLAlchemy session object.
         data (mixed): Data to delete from database.
-        synchronize_session (bool|str): Argument passed to ``Query.delete``.
+        model_class (mixed, optional): Model class representing data. Required if data are not model
+            instances.
+        synchronize_session (bool|str, optional): Argument passed to ``Query.delete``.
 
     Returns:
         int: Number of deleted records.
