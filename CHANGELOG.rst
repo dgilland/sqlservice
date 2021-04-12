@@ -2,6 +2,18 @@ Changelog
 =========
 
 
+vX.Y.Z (YYYY-MM-DD)
+-------------------
+
+- Fix compatibility issues with SQLAlchemy 1.4.
+- The following features are incompatible with SQLAlchemy 1.4 and will raise an exception if used:
+
+  - ``sqlservice.Query.entities``
+  - ``sqlservice.Query.join_entities``
+  - ``sqlservice.Query.all_entities``
+  - ``sqlservice.SQLClient.prune``
+
+
 v1.2.2 (2021-03-29)
 -------------------
 

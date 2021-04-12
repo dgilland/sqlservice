@@ -9,26 +9,51 @@ import sqlalchemy as sa
 from sqlalchemy import orm
 
 from . import core
-from .utils import flatten, is_sequence
+from .utils import flatten, is_sequence, raise_for_class_if_not_supported
 
 
 class SQLQuery(orm.Query):
     """Extended SQLAlchemy query class."""
 
     @property
-    def entities(self):
-        """Return list of entity classes for query."""
-        return self._entities
+    @raise_for_class_if_not_supported
+    def entities(self):  # pragma: no cover
+        """
+        Return list of entity classes for query.
+
+        Warning:
+            This is no longer supported in SQLAlchemy>=1.4.
+        """
+        try:
+            return self._entities
+        except AttributeError:
+            return NotImplemented
 
     @property
-    def join_entities(self):
-        """Return list of the joined entity classes for query."""
-        return self._join_entities
+    @raise_for_class_if_not_supported
+    def join_entities(self):  # pragma: no cover
+        """
+        Return list of the joined entity classes for query.
+
+        Warning:
+            This is no longer supported in SQLAlchemy>=1.4.
+        """
+        try:
+            return self._join_entities
+        except AttributeError:
+            return NotImplemented
 
     @property
     def mapper_entities(self):
         """Return mapper entities for query."""
-        return tuple(self._mapper_entities)
+        try:
+            return tuple(self._mapper_entities)
+        except AttributeError:  # pragma: no cover
+            return tuple(
+                raw_col._annotations["parententity"]
+                for raw_col in self._raw_columns
+                if "parententity" in raw_col._annotations
+            )
 
     @property
     def model_class(self):
@@ -36,7 +61,7 @@ class SQLQuery(orm.Query):
         ``None`` otherwise."""
         try:
             entity = self._only_full_mapper_zero("")
-        except Exception:  # pragma: no cover
+        except Exception:
             class_ = None
         else:
             class_ = entity.mapper.class_
@@ -51,12 +76,28 @@ class SQLQuery(orm.Query):
     @property
     def join_model_classes(self):
         """Return model classes contained in joins for query."""
-        return tuple(enity.mapper.class_ for enity in self._join_entities if enity.mapper)
+        try:
+            return tuple(enity.mapper.class_ for enity in self._join_entities if enity.mapper)
+        except AttributeError:  # pragma: no cover
+            return tuple(
+                join[0]._annotations["parententity"].class_
+                for join in self._legacy_setup_joins
+                if "parententity" in join[0]._annotations
+            )
 
     @property
-    def all_entities(self):
-        """Return list of all entities for query."""
-        return tuple(list(self.entities) + list(self.join_entities))
+    @raise_for_class_if_not_supported
+    def all_entities(self):  # pragma: no cover
+        """
+        Return list of all entities for query.
+
+        Warning:
+            This is no longer supported in SQLAlchemy>=1.4.
+        """
+        try:
+            return tuple(list(self.entities) + list(self.join_entities))
+        except NotImplementedError:
+            return NotImplemented
 
     @property
     def all_model_classes(self):
@@ -69,7 +110,7 @@ class SQLQuery(orm.Query):
 
         if not model_class:  # pragma: no cover
             raise sa.exc.InvalidRequestError(
-                f"{methname}() can only be used against " "a single mapped class."
+                f"{methname}() can only be used against a single mapped class."
             )
 
         return model_class

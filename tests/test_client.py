@@ -5,7 +5,16 @@ import sqlalchemy as sa
 
 from sqlservice import SQLClient
 
-from .fixtures import AModel, DupAModel, DupModel, MyTestError, parametrize, random_alpha
+from .fixtures import (
+    AModel,
+    DupAModel,
+    DupModel,
+    MyTestError,
+    parametrize,
+    random_alpha,
+    skip_if_not_sqlalchemy_14_plus,
+    skip_if_sqlalchemy_14_plus,
+)
 
 
 def getattr_path(obj, path):
@@ -53,7 +62,6 @@ def test_sql_client_proxy_property(db, proxy, attr):
         "expire",
         "expire_all",
         "expunge_all",
-        "prune",
         "bulk_insert_mappings",
         "bulk_save_objects",
         "bulk_update_mappings",
@@ -67,6 +75,20 @@ def test_sql_client_property(db, attr):
     """Test that database manager's proxy attributes map to expected real attribute."""
     assert hasattr(db, attr)
     assert getattr(db, attr)
+
+
+@skip_if_sqlalchemy_14_plus()
+@parametrize("attr", ["prune"])
+def test_sql_client_property_pre_14_only(db, attr):
+    """Test that database manager's proxy attributes map to expected real attribute."""
+    assert hasattr(db, attr)
+    assert getattr(db, attr)
+
+
+@skip_if_not_sqlalchemy_14_plus()
+def test_sql_client_property_not_supported_14_plus(db):
+    with pytest.raises(NotImplementedError):
+        db.prune
 
 
 def test_ping(filedb):
@@ -110,11 +132,12 @@ def test_transaction_commit(db):
     assert db.query(AModel).get(model.id) is model
 
 
+@pytest.mark.filterwarnings("ignore:.*conflicts with persistent instance.*")
 def test_transaction_error_rollback(db):
     """Test that a non-nested transaction rolls back."""
     model = AModel(name=random_alpha())
 
-    with pytest.raises(sa.orm.exc.FlushError):
+    with pytest.raises((sa.exc.IntegrityError, sa.orm.exc.FlushError)):
         with db.transaction():
             db.add(model)
             db.flush()
@@ -157,6 +180,7 @@ def test_transaction_nested_single_rollback_before_commit(db, rollback_event):
     commit is issued."""
     with pytest.raises(MyTestError):
         with db.transaction():
+            db.add(AModel(id=1, name=random_alpha()))
             with db.transaction():
                 with db.transaction():
                     raise MyTestError(

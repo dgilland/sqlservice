@@ -5,7 +5,17 @@ import sqlalchemy as sa
 
 from sqlservice import core
 
-from .fixtures import AModel, BModel, CModel, DModel, parametrize, random_alpha
+from .fixtures import (
+    AModel,
+    BModel,
+    CModel,
+    DModel,
+    is_sqlalchemy_14_plus,
+    parametrize,
+    random_alpha,
+    skip_if_not_sqlalchemy_14_plus,
+    skip_if_sqlalchemy_14_plus,
+)
 
 
 DATASET = [
@@ -83,6 +93,7 @@ def test_model_query_classes(db):
     )
 
 
+@skip_if_sqlalchemy_14_plus()
 def test_query_entities(db):
     """Test SQLQuery.entities/join_entities/all_entities."""
     entities = [AModel.id]
@@ -93,6 +104,23 @@ def test_query_entities(db):
     assert [ent.expr for ent in query.entities] == entities
     assert [ent.mapper.class_ for ent in query.join_entities] == join_entities
     assert query.all_entities == tuple(list(query.entities) + list(query.join_entities))
+
+
+@skip_if_not_sqlalchemy_14_plus()
+def test_query_entities_not_supported_14_plus(db):
+    entities = [AModel.id]
+    join_entities = [CModel, DModel]
+
+    query = db.query(*entities).join(*join_entities)
+
+    with pytest.raises(NotImplementedError):
+        query.entities
+
+    with pytest.raises(NotImplementedError):
+        query.join_entities
+
+    with pytest.raises(NotImplementedError):
+        query.all_entities
 
 
 def test_find(model_query, models_pool):
@@ -278,12 +306,19 @@ def test_find_order_by(model_query, models_pool, order_by):
         ((15, -3), 15, None),
     ],
 )
-def test_query_paginate(db, pagination, limit, offset):
+def test_query_paginate_pre_14(db, pagination, limit, offset):
     """Test SQLQuery.paginate."""
     query = db.query(AModel).paginate(pagination)
 
-    assert query._limit == limit
-    assert query._offset == offset
+    if is_sqlalchemy_14_plus():
+        assert query._limit_clause.value == limit
+        if offset is None:
+            assert query._offset_clause is None
+        else:
+            assert query._offset_clause.value == offset
+    else:
+        assert query._limit == limit
+        assert query._offset == offset
 
 
 def test_insert_model(db, model_query, data_pool):
@@ -461,12 +496,17 @@ def test_bulk_common_update(db, case):
     for (stmt, *_), _kwargs in mock_execute.call_args_list:
         assert isinstance(stmt, sa.sql.Update)
 
-        where_values = [
-            tuple(subclause.value for subclause in clause.element.clauses)
-            for clause in stmt._whereclause.right.element.clauses
-        ]
+        if is_sqlalchemy_14_plus():
+            where_values = stmt.whereclause.right.value
+            parameters = {key: param.value for key, param in stmt._values.items()}
+        else:
+            where_values = [
+                tuple(subclause.value for subclause in clause.element.clauses)
+                for clause in stmt._whereclause.right.element.clauses
+            ]
+            parameters = stmt.parameters
 
-        query = {"where_values": where_values, "parameters": stmt.parameters}
+        query = {"where_values": where_values, "parameters": parameters}
 
         assert query in case["expected"]
 
@@ -549,14 +589,23 @@ def test_bulk_diff_update(db, case):
     assert len(mock_execute.call_args_list) == len(case["expected"])
 
     for (stmt, *_), _kwargs in mock_execute.call_args_list:
-        query = {"stmt_class": stmt.__class__, "parameters": stmt.parameters}
+        where_values = None
+        if is_sqlalchemy_14_plus():
+            if stmt.__class__ == sa.sql.Update:
+                parameters = {key: param.value for key, param in stmt._values.items()}
+                where_values = stmt.whereclause.right.value
+            else:
+                parameters = stmt._multi_values[0]
+        else:
+            parameters = stmt.parameters
+            if stmt.__class__ == sa.sql.Update:
+                where_values = [
+                    tuple(subclause.value for subclause in clause.element.clauses)
+                    for clause in stmt._whereclause.right.element.clauses
+                ]
 
-        if stmt.__class__ == sa.sql.Update:
-            where_values = [
-                tuple(subclause.value for subclause in clause.element.clauses)
-                for clause in stmt._whereclause.right.element.clauses
-            ]
-
+        query = {"stmt_class": stmt.__class__, "parameters": parameters}
+        if where_values is not None:
             query["where_values"] = where_values
 
         assert query in case["expected"]

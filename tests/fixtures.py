@@ -3,6 +3,7 @@ import random
 import string
 from unittest import mock
 
+from packaging import version
 import pytest
 import sqlalchemy as sa
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -36,7 +37,9 @@ class AModel(Model):
 
     c = sa.orm.relation("CModel")
     ds = sa.orm.relation("DModel")
-    d_map = sa.orm.relation("DModel", collection_class=attribute_mapped_collection("id"))
+    d_map = sa.orm.relation(
+        "DModel", collection_class=attribute_mapped_collection("id"), viewonly=True
+    )
 
 
 class BModel(Model):
@@ -141,3 +144,20 @@ def is_subdict(subset, superset):
 
     # Assume that subset is a plain value if none of the above match.
     return subset == superset
+
+
+def is_sqlalchemy_14_plus():
+    """Return whether the SQLAlchemy>=1.4."""
+    sa_ver = version.parse(sa.__version__)
+    sa_ver_14_plus = version.parse("1.4")
+    return sa_ver >= sa_ver_14_plus
+
+
+def skip_if_sqlalchemy_14_plus():
+    """Skip test if SQLAlchemy>=1.4."""
+    return pytest.mark.skipif(is_sqlalchemy_14_plus(), reason="Skip for SQLAlchemy>=1.4")
+
+
+def skip_if_not_sqlalchemy_14_plus():
+    """Skip test if SQLAlchemy<1.4."""
+    return pytest.mark.skipif(not is_sqlalchemy_14_plus(), reason="Skip for SQLAlchemy<1.4")

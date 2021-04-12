@@ -82,3 +82,23 @@ def is_generator(value):
         and hasattr(value, "__next__")
         and not hasattr(value, "__getitem__")
     )
+
+
+def raise_for_class_if_not_supported(func):  # pragma: no cover
+    """
+    Raise NotImplementedError if the version of SQLAlchemy installed doesn't supported a feature.
+
+    This is intented to be used on a class instance method/property so the first argument of the
+    wrapped function is assumed to be "self".
+    """
+
+    @wraps(func)
+    def _decorated(self, *args, **kwargs):
+        result = func(self, *args, **kwargs)
+        if result is NotImplemented:
+            raise NotImplementedError(
+                f"{self.__class__.__name__}.{func.__name__} is not supported for SQLAlchemy>=1.4"
+            )
+        return result
+
+    return _decorated

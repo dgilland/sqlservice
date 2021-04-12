@@ -10,14 +10,21 @@ from contextlib import contextmanager
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.engine.url import make_url
-from sqlalchemy.ext.declarative.clsregistry import _MultipleClassMarker
 from sqlalchemy.orm.exc import UnmappedError
 from sqlalchemy.orm.session import Session
 
 from . import core
-from .model import declarative_base
+from .model import declarative_base, get_model_class_registry
 from .query import SQLQuery
-from .utils import FrozenDict, is_sequence
+from .utils import FrozenDict, is_sequence, raise_for_class_if_not_supported
+
+
+try:
+    # sqlalchemy < 1.4
+    from sqlalchemy.ext.declarative.clsregistry import _MultipleClassMarker
+except ImportError:  # pragma: no cover
+    # sqlalchemy 1.4+
+    from sqlalchemy.orm.clsregistry import _MultipleClassMarker
 
 
 class SQLClientSettings:
@@ -348,8 +355,7 @@ class SQLClient:
         """Return model registry ``dict`` with model names as keys and corresponding model classes
         as values."""
         models = {}
-        class_registry = getattr(model_class, "_decl_class_registry", None)
-
+        class_registry = get_model_class_registry(model_class)
         if not class_registry:
             return models
 
@@ -563,9 +569,18 @@ class SQLClient:
         return self.session.expunge_all
 
     @property
-    def prune(self):
-        """Proxy property to :meth:`session.prune`."""
-        return self.session.prune
+    @raise_for_class_if_not_supported
+    def prune(self):  # pragma: no cover
+        """
+        Proxy property to :meth:`session.prune`.
+
+        Warning:
+            This is no longer supported in SQLAlchemy>=1.4.
+        """
+        try:
+            return self.session.prune
+        except AttributeError:
+            return NotImplemented
 
     @property
     def query(self):

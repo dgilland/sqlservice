@@ -130,8 +130,8 @@ class ModelBase:
     def class_registry(cls):
         """Returns declarative class registry containing declarative model class names mapped to
         class objects."""
-        items = getattr(cls, "_decl_class_registry", {}).items()
-        return {key: value for key, value in items if not key.startswith("_sa_")}
+        class_registry = get_model_class_registry(cls)
+        return {key: value for key, value in class_registry.items() if not key.startswith("_sa_")}
 
     @classmethod
     @classonce
@@ -349,3 +349,13 @@ def _get_dict_adapter(key, value, default, adapters, class_registry):
                 pass
 
     return adapter
+
+
+def get_model_class_registry(model_class):
+    """Return class registry for given model class."""
+    class_registry = getattr(model_class, "_decl_class_registry", {})
+    if not class_registry:
+        registry = getattr(model_class, "registry", {})
+        if registry:  # pragma: no cover
+            class_registry = registry._class_registry
+    return class_registry
