@@ -1,6 +1,6 @@
 """The sqlservice package."""
 
-__version__ = "1.2.2"
+__version__ = "1.3.0"
 
 from .client import SQLClient
 from .core import destroy, make_identity, save, transaction

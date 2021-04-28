@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-vX.Y.Z (YYYY-MM-DD)
+v1.3.0 (2021-04-28)
 -------------------
 
 - Fix compatibility issues with SQLAlchemy 1.4.
