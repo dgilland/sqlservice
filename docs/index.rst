@@ -9,9 +9,11 @@ Guide
     :maxdepth: 3
 
     installation
+    migration_2.0
+    database
+    session
     model
     event
-    client
     api
     devguide
 

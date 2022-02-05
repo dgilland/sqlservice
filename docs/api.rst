@@ -10,30 +10,24 @@ The sqlservice package imports commonly used objects into it's top-level namespa
 .. code-block:: python
 
     from sqlservice import (
+        Database,
         ModelBase,
-        SQLClient,
-        SQLQuery,
+        ModelMeta,
+        Session,
         as_declarative,
         declarative_base,
-        destroy,
-        event,
-        make_identity,
-        save,
-        transaction,
+        model_to_dict,
     )
 
 
-.. automodule:: sqlservice.client
+.. automodule:: sqlservice.database
     :members:
 
-.. automodule:: sqlservice.query
+.. automodule:: sqlservice.session
     :members:
 
 .. automodule:: sqlservice.model
     :members:
 
 .. automodule:: sqlservice.event
-    :members:
-
-.. automodule:: sqlservice.core
     :members:

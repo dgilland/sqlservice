@@ -5,18 +5,28 @@ Model
 The declarative base model class for SQLAlchemy ORM.
 """
 
-from collections import deque
+from abc import ABCMeta
+import typing as t
 
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import (
-    DeclarativeMeta,
-    declarative_base as _declarative_base,
-    declared_attr,
-)
-from sqlalchemy.util._collections import ImmutableProperties
+from sqlalchemy import MetaData, orm
+from sqlalchemy.orm import DeclarativeMeta, declarative_base as _declarative_base
+from sqlalchemy.sql import Delete, Insert, Select, Update
+from sqlalchemy.util.langhelpers import symbol
 
-from . import core, event
-from .utils import classonce, is_sequence
+from . import event
+from .utils import is_iterable_but_not_string
+
+
+NO_VALUE = symbol("NO_VALUE")
+
+
+class DeclarativeModel(metaclass=ABCMeta):
+    @classmethod
+    def __subclasshook__(cls, class_):
+        if cls is DeclarativeModel:
+            return isinstance(class_, DeclarativeMeta)
+        return NotImplemented  # pragma: no cover
 
 
 class ModelMeta(DeclarativeMeta):
@@ -36,326 +46,191 @@ class ModelMeta(DeclarativeMeta):
 class ModelBase:
     """Declarative base for all ORM model classes."""
 
-    @declared_attr
-    def __dict_args__(cls):
-        """Per model configuration of :meth:`to_dict` serialization options."""
-        return {"adapters": {}}
+    metadata: t.ClassVar[MetaData]
+    registry: t.ClassVar[orm.registry]
+    __table__: t.Optional[sa.Table]
 
-    def __init__(self, _data=None, **kwargs):
-        self.update(_data, **kwargs)
+    def __init__(self, **kwargs: t.Any):
+        self.set(**kwargs)
 
-    def update(self, _data=None, **kwargs):
+    def set(self, **kwargs: t.Any) -> None:
+        """Update model using keyword arguments."""
+        cls = type(self)
+        for k, v in kwargs.items():
+            if not hasattr(cls, k):
+                raise TypeError(f"{k!r} is an invalid keyword argument for {cls.__name__}")
+            setattr(self, k, v)
+
+    def pk(self) -> t.Tuple[t.Any, ...]:
+        """Return primary key identity of model instance."""
+        mapper: orm.Mapper = sa.inspect(type(self))
+        return mapper.primary_key_from_instance(self)
+
+    def to_dict(
+        self, *, exclude_relationships: bool = False, lazyload: bool = False
+    ) -> t.Dict[str, t.Any]:
         """
-        Update model by positional ``dict`` or keyword arguments.
+        Serialize ORM loaded data to dictionary.
 
-        Note:
-            If both `data` and keyword arguments are passed in, the keyword arguments take
-            precedence.
+        Only the loaded data, i.e. data previously fetched from the database, will be serialized.
+        Lazy-loaded columns and relationships will be excluded to avoid extra database queries.
 
-        Args:
-            _data (dict, optional): Data to update model with.
-            **kwargs (optional): Mapping of attributes to values to update model with.
-
-        Raises:
-            TypeError: If `data` is not ``None`` or not a ``dict``.
+        By default, only table columns will be included. To include relationship fields, set
+        ``include_relationships=True``. This will nest ``to_dict()`` calls to the relationship
+        models.
         """
-        if _data is None:
-            _data = {}
+        return model_to_dict(self, exclude_relationships=exclude_relationships, lazyload=lazyload)
 
-        if not isinstance(_data, dict):  # pragma: no cover
-            raise TypeError(f"Positional argument must be a dict for {self.__class__.__name__}")
+    def __getitem__(self, key: str) -> t.Any:
+        """Return model attribute using ``instance[key]``."""
+        try:
+            return getattr(self, key)
+        except (AttributeError, TypeError) as exc:
+            raise TypeError(f"{key!r} is not an attribute of {type(self)}") from exc
 
-        _data = _data.copy()
-        _data.update(kwargs)
-
-        relations = self.relationships().keys()
-        field_order = deque()
-
-        # Collect and order data fields in a pseudo-deterministic order where column updates occur
-        # before relationship updates but order within those types is indeterministic.
-        for field, value in _data.items():
-            if field in relations:
-                # Set relationships last.
-                field_order.append((field, value))
-            elif hasattr(self, field):
-                # Set non-relationships first.
-                field_order.appendleft((field, value))
-
-        for field, value in field_order:
-            self._set_field(field, value)
-
-    def _set_field(self, field, value):
-        """Set model field with value."""
-        model_attr = getattr(self, field, None)
-
-        if hasattr(model_attr, "update") and value and isinstance(value, dict):
-            model_attr.update(value)
-        elif field in self.relationships().keys():
-            self._set_relationship_field(field, value)
-        else:
-            setattr(self, field, value)
-
-    def _set_relationship_field(self, field, value):
-        """Set model relationships field with value."""
-        relation_attr = getattr(self.__class__, field)
-        uselist = relation_attr.property.uselist
-        relation_class = relation_attr.property.mapper.class_
-
-        if uselist:
-            if not isinstance(value, (list, tuple)):  # pragma: no cover
-                value = [value]
-
-            # Convert each value instance to relationship class.
-            value = [
-                relation_class(val) if not isinstance(val, relation_class) else val for val in value
-            ]
-        elif value and isinstance(value, dict):
-            # Convert single value object to relationship class.
-            value = relation_class(value)
-        elif not value and isinstance(value, dict):
-            # If value is {} and we're trying to update a relationship attribute, then we need to
-            # set to None to nullify relationship value.
-            value = None
-
-        setattr(self, field, value)
-
-    @classmethod
-    @classonce
-    def class_mapper(cls):
-        """Return class mapper instance of model."""
-        return sa.inspect(cls)
-
-    @classmethod
-    @classonce
-    def class_registry(cls):
-        """Returns declarative class registry containing declarative model class names mapped to
-        class objects."""
-        class_registry = get_model_class_registry(cls)
-        return {key: value for key, value in class_registry.items() if not key.startswith("_sa_")}
-
-    @classmethod
-    @classonce
-    def columns(cls):
-        """Return model columns as ``dict`` like ``OrderProperties`` object."""
-        return cls.class_mapper().columns
-
-    @classmethod
-    @classonce
-    def pk_columns(cls):
-        """Return tuple of primary key(s) for model."""
-        return cls.class_mapper().primary_key
-
-    @classmethod
-    @classonce
-    def relationships(cls):
-        """Return ORM relationships."""
-        return cls.class_mapper().relationships
-
-    @classmethod
-    @classonce
-    def descriptors(cls):
-        """Return all ORM descriptors."""
-        dscrs = cls.class_mapper().all_orm_descriptors
-        return ImmutableProperties({key: dscr for key, dscr in dscrs.items() if not dscr.is_mapper})
-
-    def descriptors_to_dict(self):
-        """
-        Return a ``dict`` that maps data loaded in :attr:`__dict__` to this model's descriptors.
-
-        The data contained in :attr:`__dict__` represents the model's state that has been loaded
-        from the database. Accessing values in :attr:`__dict__` will prevent SQLAlchemy from issuing
-        database queries for any ORM data that hasn't been loaded from the database already.
-
-        Note:
-            The ``dict`` returned will contain model instances for any relationship data that is
-            loaded. To get a ``dict`` containing all non-ORM objects, use :meth:`to_dict`.
-
-        Returns:
-            dict
-        """
-        descriptors = self.descriptors()
-        return {key: value for key, value in self.__dict__.items() if key in descriptors}
-
-    def to_dict(self):
-        """
-        Return a ``dict`` of the current model's state (i.e. data returned is limited to data
-        already fetched from the database) if some state is loaded.
-
-        If no state is loaded, perform a session refresh on the model which will result in a
-        database query. For any relationship data that is loaded, ``to_dict`` be called recursively
-        for those objects.
-
-        Returns:
-            dict
-        """
-        args = getattr(self, "__dict_args__", {})
-        adapters = args.get("adapters")
-        default_adapter = default_dict_adapter
-        class_registry = self.class_registry()
-
-        session = sa.orm.object_session(self)
-        data = self.descriptors_to_dict()
-
-        if not data and session:
-            session.refresh(self)
-            data = self.descriptors_to_dict()
-
-        # Convert data.items() to tuple since we may delete dict keys while iterating.
-        for key, value in tuple(data.items()):
-            adapter = _get_dict_adapter(key, value, default_adapter, adapters, class_registry)
-
-            # Only serialize key if it's adapter is not None (i.e. an adapter value of None
-            # indicates that the key should be excluded from serialization).
-            if adapter is None:
-                del data[key]
-            else:
-                data[key] = adapter(value, key, self)
-
-        return data
-
-    def identity(self):
-        """
-        Return primary key identity of model instance.
-
-        If there is only a single primary key defined, this method returns the primary key value. If
-        there are multiple primary keys, a tuple containing the primary key values is returned.
-        """
-        return core.primary_identity_value(self)
-
-    def identity_map(self):
-        """Return primary key identity map of model instance as an ordered dict mapping each primary
-        key column to the corresponding primary key value."""
-        return core.primary_identity_map(self)
-
-    def __getitem__(self, key):
-        """
-        Proxy getitem to getattr.
-
-        Allows for self[key] getters.
-        """
-        return getattr(self, key)
-
-    def __setitem__(self, key, value):
-        """
-        Proxy setitem to setattr.
-
-        Allows for self[key] setters.
-        """
+    def __setitem__(self, key: str, value: t.Any) -> None:
+        """Set model attribute using ``instance[key] = value``."""
+        if not isinstance(key, str) or not hasattr(self, key):
+            raise TypeError(f"{key!r} is not a valid attribute to set on {type(self)}")
         setattr(self, key, value)
 
     def __iter__(self):
         """Iterator that yields table columns as strings."""
         return iter(self.to_dict().items())
 
-    def __contains__(self, key):
-        """Return whether `key` is a model descriptor."""
-        return key in self.descriptors()
+    def __contains__(self, key: t.Any) -> bool:
+        """Return whether `key` is a model column or relationship."""
+        state: orm.state.InstanceState = sa.inspect(self)
+        return key in state.attrs
 
-    def __repr__(self):  # pragma: no cover
-        """Return representation of instance with mapped columns to values."""
-        columns = self.columns()
-        values = ", ".join(f"{col}={repr(getattr(self, col))}" for col in columns.keys())
-        return f"<{self.__class__.__name__}({values})>"
+    def __repr__(self) -> str:
+        """Return representation of model."""
+        data = model_to_dict(self, exclude_relationships=True)
+        values = ", ".join(f"{k}={v!r}" for k, v in data.items())
+        return f"{type(self).__name__}({values})"
+
+    @classmethod
+    def select(cls) -> Select:
+        """Return instance of ``sqlalchemy.select(Model)`` for use in querying."""
+        return sa.select(cls)
+
+    @classmethod
+    def insert(cls) -> Insert:
+        """Return instance of ``sqlalchemy.insert(Model)`` for use in querying."""
+        return sa.insert(cls)
+
+    @classmethod
+    def update(cls) -> Update:
+        """Return instance of ``sqlalchemy.update(Model)`` for use in querying."""
+        return sa.update(cls)
+
+    @classmethod
+    def delete(cls) -> Delete:
+        """Return instance of ``sqlalchemy.delete(Model)`` for use in querying."""
+        return sa.delete(cls)
 
 
-def declarative_base(cls=ModelBase, metadata=None, metaclass=ModelMeta, **kwargs):
+class ModelSerializer:
+    def __init__(self, *, exclude_relationships: bool = False, lazyload: bool = False):
+        self.exclude_relationships = exclude_relationships
+        self.lazyload = lazyload
+
+    def to_dict(self, model: ModelBase) -> t.Dict[str, t.Any]:
+        ctx: t.Dict[str, t.Any] = {"seen": set()}
+        return self.from_value(ctx, model)
+
+    def from_value(self, ctx: dict, value: t.Any) -> t.Any:
+        if isinstance(value, DeclarativeModel):
+            value = self.from_model(ctx, value)
+        elif isinstance(value, dict):
+            value = self.from_dict(ctx, value)
+        elif is_iterable_but_not_string(value):
+            value = self.from_iterable(ctx, value)
+        return value
+
+    def from_model(self, ctx: dict, value: t.Any) -> t.Dict[str, t.Any]:
+        ctx.setdefault("seen", set())
+        ctx["seen"].add(value)
+
+        state: orm.state.InstanceState = sa.inspect(value)
+        mapper: orm.Mapper = sa.inspect(type(value))
+
+        fields = mapper.columns.keys()
+        if not self.exclude_relationships:
+            fields += mapper.relationships.keys()
+
+        data = {}
+        for key in fields:
+            loaded_value = state.attrs[key].loaded_value
+            if loaded_value is NO_VALUE and self.lazyload:
+                loaded_value = state.attrs[key].value
+
+            if loaded_value is NO_VALUE or (
+                isinstance(loaded_value, DeclarativeModel) and loaded_value in ctx["seen"]
+            ):
+                continue
+
+            data[key] = self.from_value(ctx, loaded_value)
+
+        return data
+
+    def from_dict(self, ctx: dict, value: dict) -> dict:
+        return {k: self.from_value(ctx, v) for k, v in value.items()}
+
+    def from_iterable(self, ctx: dict, value: t.Iterable) -> list:
+        return [self.from_value(ctx, v) for v in value]
+
+
+def model_to_dict(
+    model: ModelBase, *, exclude_relationships: bool = False, lazyload: bool = False
+) -> t.Dict[str, t.Any]:
+    serializer = ModelSerializer(exclude_relationships=exclude_relationships, lazyload=lazyload)
+    return serializer.to_dict(model)
+
+
+def declarative_base(
+    cls: t.Type[ModelBase] = ModelBase,
+    *,
+    metadata: t.Optional[MetaData] = None,
+    metaclass: t.Optional[t.Type[DeclarativeMeta]] = None,
+    **kwargs: t.Any,
+) -> t.Type[ModelBase]:
     """
     Function that converts a normal class into a SQLAlchemy declarative base class.
 
     Args:
-        cls (type): A type to use as the base for the generated declarative base class. May be a
-            class or tuple of classes. Defaults to :class:`ModelBase`.
-        metadata (MetaData, optional): An optional MetaData instance. All Table objects implicitly
-            declared by subclasses of the base will share this MetaData. A MetaData instance will be
-            created if none is provided. If not passed in, `cls.metadata` will be used if set.
-            Defaults to ``None``.
-        metaclass (DeclarativeMeta, optional): A metaclass or ``__metaclass__`` compatible callable
-            to use as the meta type of the generated declarative base class. If not passed in,
-            `cls.metaclass` will be used if set. Defaults to :class:`ModelMeta`.
+        cls: A type to use as the base for the generated declarative base class. May be a class or
+            tuple of classes. Defaults to :class:`ModelBase`.
+        metadata: An optional MetaData instance. All Table objects implicitly declared by subclasses
+            of the base will share this MetaData. A MetaData instance will be created if none is
+            provided. Defaults to ``None`` which will associate a new metadata instance with the
+            returned declarative base class.
+        metaclass: A metaclass or ``__metaclass__`` compatible callable to use as the meta type of
+            the generated declarative base class. Defaults to :class:`ModelMeta`.
 
     Keyword Args:
         All other keyword arguments are passed to ``sqlalchemy.ext.declarative.declarative_base``.
-
-    Returns:
-        class: Declarative base class
     """
-    kwargs["cls"] = cls
+    if metaclass is None:
+        metaclass = ModelMeta
+
     kwargs.setdefault("name", cls.__name__)
 
     if hasattr(cls, "__init__"):
         kwargs.setdefault("constructor", cls.__init__)
 
-    if metadata:
-        kwargs["metadata"] = metadata
-
-    if metaclass:
-        kwargs["metaclass"] = metaclass
-
-    Base = _declarative_base(**kwargs)
-
-    if metaclass:
-        Base.metaclass = metaclass
-
-    return Base
+    return _declarative_base(cls=cls, metadata=metadata, metaclass=metaclass, **kwargs)
 
 
-def as_declarative(**kwargs):
+def as_declarative(
+    *,
+    metadata: t.Optional[MetaData] = None,
+    metaclass: t.Optional[t.Type[DeclarativeMeta]] = ModelMeta,
+    **kwargs: t.Any,
+) -> t.Callable[[t.Type[ModelBase]], t.Type[ModelBase]]:
     """Decorator version of :func:`declarative_base`."""
 
-    def decorated(cls):
-        kwargs["cls"] = cls
-        return declarative_base(**kwargs)
+    def decorate(cls):
+        return declarative_base(cls, metadata=metadata, metaclass=metaclass, **kwargs)
 
-    return decorated
-
-
-def default_dict_adapter(value, key, model):
-    """Default :meth:`ModelBase.to_dict` adapter that handles nested serialization of model
-    objects."""
-    if hasattr(value, "to_dict"):
-        # Nest call to child to_dict methods.
-        value = value.to_dict()
-    elif is_sequence(value):
-        # Nest calls to child to_dict methods for sequence values.
-        value = [val.to_dict() if hasattr(val, "to_dict") else val for val in value]
-    elif isinstance(value, dict):
-        # Nest calls to child to_dict methods for dict values.
-        value = {ky: val.to_dict() if hasattr(val, "to_dict") else val for ky, val in value.items()}
-    elif value is None and callable(model.relationships) and key in model.relationships():
-        # Instead of returning a null relationship value as ``None``, return it as an empty dict.
-        # This gives a more consistent representation of the relationship value type (i.e. a
-        # non-null relationship value would be a dict).
-        value = {}
-    return value
-
-
-def _get_dict_adapter(key, value, default, adapters, class_registry):
-    adapter = default
-
-    if key in adapters:
-        # Prioritize key mappings over isinstance mappings below.
-        adapter = adapters[key]
-    else:
-        for cls, _adapter in adapters.items():
-            # Map string model names to model class.
-            if isinstance(cls, str) and cls in class_registry:
-                cls = class_registry[cls]
-
-            try:
-                if isinstance(value, cls):
-                    adapter = _adapter
-                    break
-            except TypeError:
-                pass
-
-    return adapter
-
-
-def get_model_class_registry(model_class):
-    """Return class registry for given model class."""
-    class_registry = getattr(model_class, "_decl_class_registry", {})
-    if not class_registry:
-        registry = getattr(model_class, "registry", {})
-        if registry:  # pragma: no cover
-            class_registry = registry._class_registry
-    return class_registry
+    return decorate

@@ -1,9 +1,9 @@
 Model
 =====
 
-The ``Model`` is the basic ORM class that represents your database schema. SQLAlchemy provides a very basic default ORM model class when one calls ``sqlalchemy.ext.declarative.declarative_base``. SQLService does one better and provides the basic tools for handling your basic use cases.
+The ``Model`` is the base ORM class that represents your database schema. SQLAlchemy provides a very basic default ORM model class when one calls ``sqlalchemy.ext.declarative.declarative_base``. SQLService extends the basic ORM class to provide a few extra to handle some basic use cases.
 
-The general approach to using ``sqlservice.ModelBase`` is to use it as the base class for your own custom ``Model`` class that extends/overrides ``ModelBase`` to fit your specific needs.
+The general approach when using ``sqlservice.ModelBase`` is to use it as the base class for your own custom ``Model`` class that extends/overrides ``ModelBase`` to fit your specific needs.
 
 .. code-block:: python
 
@@ -13,19 +13,19 @@ The general approach to using ``sqlservice.ModelBase`` is to use it as the base 
 
     metadata = MetaData()
 
-
     @as_declarative(metadata=metadata)
     class Model(ModelBase):
         pass
-
 
     # Or using the declarative_base function...
     # Model = declarative_base(ModelBase, metadata=metadata)
 
 
-.. note:: All keyword arguments to ``sqlservice.as_declarative`` or ``sqlservice.declarative_base`` will be passed to ``sqlalchemy.ext.declarative.declarative_base``.
+.. note::
 
-From there you can use ``Model`` as the base class for your ORM model classes.
+    All keyword arguments to ``sqlservice.as_declarative`` and ``sqlservice.declarative_base`` will be passed to ``sqlalchemy.ext.declarative.declarative_base``.
+
+From here you can use ``Model`` as the base class for your ORM models.
 
 .. code-block:: python
 
@@ -33,57 +33,6 @@ From there you can use ``Model`` as the base class for your ORM model classes.
     from sqlalchemy import Column, types
 
     from .base import Model
-
-
-    class User(Model):
-        __tablename__ = "user"
-
-        id = Column(types.Integer(), primary_key=True)
-        name = Column(types.String(100))
-        email = Column(types.String(100))
-
-
-Instantiation and Updating
---------------------------
-
-What does ``ModelBase`` provide for you? Out of the box, you'll be able to do things like:
-
-Create a new instance from a ``dict`` or keyword arguments:
-
-.. code-block:: python
-
-    user = User({"name": "Bob", "email": "bob@example.com"})
-    user = User(name="Bob", email="bob@example.com")
-
-
-.. note:: Under the hood ``ModelBase.__init__`` calls ``update()`` so anything ``update()`` does, ``__init__`` does too.
-
-
-Update using attribute or item setters:
-
-.. code-block:: python
-
-    user.name = "Bob Paulson"
-    user["name"] = "Robert Paulson"
-
-
-Update an instance using a ``dict`` or keyword arguments:
-
-.. code-block:: python
-
-    user.update(name="Bob Smith")
-    user.update({"email": "bobsmith@example.com"})
-
-
-The ``update()`` method is powerful enough to work with relationships and nested relationships. Consider the following:
-
-.. code-block:: python
-
-    # in models/user.py
-    from sqlalchemy import Column, ForeignKey, types, orm
-
-    from .base import Model
-
 
     class User(Model):
         __tablename__ = "user"
@@ -122,49 +71,69 @@ The ``update()`` method is powerful enough to work with relationships and nested
         key = Column(types.String(100))
 
 
-You can now easily create a user, user devices, and device keys with a single data structure without having to use the relationship classes directly.
+Instantiation and Updating
+--------------------------
+
+What does ``ModelBase`` provide for you? Out of the box, you'll be able to do things like:
+
+Create a new instance from keyword arguments:
 
 .. code-block:: python
 
-    data = {
-        "name": "Bob Smith",
-        "email": "bobsmith@example.com",
-        "about": {"nickname": "Bobby", "hometown": "Example City"},
-        "devices": [
-            {"name": "device1", "keys": [{"key": "key1a"}, {"key": "key1b"}]},
-            {"name": "device2", "keys": [{"key": "key2a"}, {"key": "key2b"}]},
-        ],
-    }
-    user = User(data)
+    user = User(name="Bob", email="bob@example.com")
+
+
+.. note::
+
+    Under the hood ``ModelBase.__init__`` calls ``update()`` so anything ``update()`` does, ``__init__`` does too.
+
+
+Update using attribute or item setters:
+
+.. code-block:: python
+
+    user.name = "Bob Paulson"
+    user["name"] = "Robert Paulson"
+
+
+Update an instance using keyword arguments:
+
+.. code-block:: python
+
+    user.set(name="Bob Smith")
+
+
+Set relationship and nested relationships:
+
+.. code-block:: python
+
+    user = User(
+        name="Bob Smith",
+        email="bobsmith@example.com",
+        about=UserAbout(nickname="Bobby", hometown="Example City"),
+        devices=[
+            UserDevice(name="device1", keys=[UserDeviceKey(key="key1a"), UserDeviceKey(key="key1b")]),
+            UserDevice(name="device2", keys=[UserDeviceKey(key="key2a"), UserDeviceKey(key="key2b")]),
+        ]
+    )
 
     user
-    # <User(id=None, name='Bob Smith', email='bobsmith@example.com')>
+    # User(id=None, name='Bob Smith', email='bobsmith@example.com')
 
     user.about
-    # <UserAbout(user_id=None, nickname='Bobby', hometown='Example City')>
+    # UserAbout(user_id=None, nickname='Bobby', hometown='Example City')
 
     user.devices
-    # [<UserDevice(id=None, user_id=None, name='device1')>,
-    #  <UserDevice(id=None, user_id=None, name='device2')>]
+    # [UserDevice(id=None, user_id=None, name='device1'),
+    #  UserDevice(id=None, user_id=None, name='device2')]
 
     user.devices[0].keys
-    # [<UserDeviceKey(id=None, device_id=None, key='key1a')>,
-    #  <UserDeviceKey(id=None, device_id=None, key='key1b')>]
+    # [UserDeviceKey(id=None, device_id=None, key='key1a'),
+    #  UserDeviceKey(id=None, device_id=None, key='key1b')]
 
     user.devices[1].keys
-    # [<UserDeviceKey(id=None, device_id=None, key='key2a')>,
-    #  <UserDeviceKey(id=None, device_id=None, key='key2b')>]
-
-
-This is because ``ModelBase.update()`` works really hard to map ``dict`` keys to the correct relationship model class to automatically create new model instances from those ``dict`` objects. It works for relationships that are ``1:1`` or ``1:M``.
-
-In addition, when you update the model with relationship data, it will nest calls to the relationship class' ``update()`` methods.
-
-.. code-block:: python
-
-    user.update({"about": {"nickname": "Bo"}})
-    user.about
-    # <UserAbout(user_id=None, nickname='Bo', hometown='Example City')>
+    # [UserDeviceKey(id=None, device_id=None, key='key2a'),
+    #  UserDeviceKey(id=None, device_id=None, key='key2b')]
 
 
 .. warning::
@@ -173,8 +142,10 @@ In addition, when you update the model with relationship data, it will nest call
 
     .. code-block:: python
 
-        user.update({"devices": [{"name": "device3"}]})
-        db.save(user)
+        user.set(devices=[UserDevice(name="device3")])
+
+        with db.begin() as session:
+            session.save(user)
 
         # sqlalchemy.exc.IntegrityError: (raised as a result of Query-invoked autoflush;
         # consider using a session.no_autoflush block if this flush is occurring
@@ -190,8 +161,12 @@ Want to serialize your models to ``dict`` objects?
 
 .. code-block:: python
 
+    # Using to_dict() method.
     user.to_dict()
+
+    # Or using dict() builtin.
     dict(user)
+
     # {
     #     "id": 1,
     #     "name": "Bob Smith",
@@ -206,48 +181,12 @@ Want to serialize your models to ``dict`` objects?
 
 As you can see, relationships are serialized too.
 
-But how does this handle lazy loaded models? When serializing the only data that is serialized is what is already loaded. This is done to avoid triggerring a large number of individual queries on lazily loaded attributes. Essentially, ``Model.to_dict()`` only looks at what's already present in ``user.__dict__`` and never touches any attributes directly (which could lead to additional queries). So it's up to you to ensure that your model is loaded with the data you want to be serialized before calling ``to_dict()``.
+But how does this handle lazy loaded models? When serializing, the only data that is serialized is what is already loaded from that database and set on the model instance. This is done to avoid triggering a large number of individual queries on lazily loaded attributes. Essentially, ``Model.to_dict()`` by default only looks at what's already loaded in the object's state and never touches any attributes directly (which could lead to additional database queries). So it's up to you to ensure that your model is loaded with the data you want to be serialized before calling ``to_dict()``. However, as a convenience, if the potential performance impact of lazyloading data is not a concern, then ``Model.to_dict(lazyload=True)`` can be used serialize all columns and relationships regardless of their loaded state. To exclude relationships even if they are loaded, use ``Model.to_dict(exclude_relationships=True)``.
 
-Need to serialize certain types differently? Add some adapters using ``__dict_args__`` class attribute:
+Need to serialize things with more fine-grained control? Then it's recommended to use a separate serialization library like one of the following:
 
-.. code-block:: python
-
-    class User(Model):
-        ...
-        __dict_args__ = {
-            "adapters": {
-                UserAbout: lambda model, *_: {"nickname": model.nickname},
-                # identical to above but using string name for Model...
-                # "UserAbout": lambda model, *_: {"nickname": model.nickname},
-                "devices": lambda devices, *_: [
-                    (device.name, device.keys) for device in devices
-                ],
-                list: lambda items, col, *_: [item.name for item in items],
-                (int, str): lambda value, col: col + ":" + str(value),
-            }
-        }
-
-
-    dict(user)
-    # {
-    #     "id": "id:1",
-    #     "name": "name:Bob Smith",
-    #     "email": "email:bobsmith@example.com",
-    #     "about": {"nickname": "Bo"},
-    #     "devices": [("device1", ["key1a", "key1b"]), ("device2", ["key2a", "key2b"])],
-    # }
-
-
-The ``adapaters`` argument is expected to be a mapping to serializers where each key can be one of:
-
-- model class object (e.g. ``UserAbout``)
-- string name of model class (e.g. ``'UserAbout'``)
-- string name of model attribute (e.g. ``'about'`` which corresponds to ``User.about``)
-- other type (e.g. ``list``, ``int``, ``str``, etc.)
-- tuple of types (e.g. ``(int, float)``)
-- ``None`` to exclude the key from serialization.
-
-The serializer should be a callable that accepts three arguments: ``(value, column, model_instance)`` (the arguments passed in are based on the function definition and are automatically detected). The adapter serializer used when it's key matches the matches the value's type, descriptor name, or model class name. For relationships defined as a ``list`` or other list-like structure, the relationship class' ``__dict_args__`` will be used during nested serialization. If you need to reference classes that aren't defined yet (e.g. other model classes), you can make ``__dict_args__`` a ``@property`` or use the string class name if it's another model class.
+- `marshmallow <https://marshmallow.readthedocs.io>`_ with or without `marshmallow-sqlalchemy <https://marshmallow-sqlalchemy.readthedocs.io>`_
+- `pydantic <https://pydantic-docs.helpmanual.io/>`_ with or without `pydantic-sqlalchemy <https://github.com/tiangolo/pydantic-sqlalchemy>`_
 
 
 Object Identity
@@ -257,40 +196,33 @@ You can get the primary key identity of any model object:
 
 .. code-block:: python
 
-    user.identity()
+    user.pk()
     # 1
 
 
-.. note:: If the model has multiple primary keys, a tuple is returned
+.. note::
+
+    If the model has multiple primary keys, a tuple is returned.
 
 
-Class Methods and Properties
-----------------------------
+Core-style Querying
+-------------------
 
-The ``Model`` class includes other useful methods as well:
-
+As an alternative to using ``sqlalchemy.select(User)``, ``sqlalchemy.insert(User)``, ``sqlalchemy.update(User)``, and ``sqlalchemy.delete(User)`` to build a query, the class methods ``Model.select()``, ``Model.insert()``, ``Model.update()``, and ``Model.delete()`` can be used as shorthand instead.
 
 .. code-block:: python
 
-    User.class_mapper()
-    # <Mapper at 0x7fd9e7443b70; User>
+    import sqlalchemy as sa
 
-    User.columns()
-    # (Column('id', Integer(), table=<user>, primary_key=True, nullable=False),
-    #  Column('name', String(length=100), table=<user>),
-    #  Column('email', String(length=100), table=<user>))
+    with db.session() as session:
+        # Instead of this...
+        result = session.execute(sa.select(User).join(UserAbout))
+        session.execute(sa.insert(User).values(...))
+        session.execute(sa.update(User).values(...))
+        session.execute(sa.delete(User))
 
-    User.pk_columns()
-    # (Column('id', Integer(), table=<user>, primary_key=True, nullable=False),)
-
-    User.relationships()
-    # (<RelationshipProperty at 0x7fd9ead007b8; about>,
-    #  <RelationshipProperty at 0x7fd9e7421f28; devices>)
-
-    for descriptor in User.descriptors():
-        (str(descriptor), repr(descriptor))
-    # User.about, <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7fd9e743f728>
-    # User.devices, <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7fd9e743f780>
-    # User.name, <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7fd9e743f938>
-    # User.email, <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7fd9e743f9e8>
-    # User.id, <sqlalchemy.orm.attributes.InstrumentedAttribute object at 0x7fd9e743f888>
+        # You can do this...
+        result = session.execute(User.select().join(UserAbout))
+        session.execute(User.insert().values(...))
+        session.execute(User.update().values(...))
+        session.execute(User.delete())

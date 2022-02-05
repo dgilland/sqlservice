@@ -69,8 +69,7 @@ enable=E,F
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=C,R,W,not-callable,no-self-argument,no-member,no-value-for-parameter,method-hidden
-
+disable=C,R,W
 
 [REPORTS]
 

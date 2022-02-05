@@ -5,6 +5,8 @@ Event
 The event module with declarative ORM event decorators and event registration.
 """
 
+import typing as t
+
 from sqlalchemy.event import listen
 
 
@@ -23,9 +25,9 @@ class EventDecorator:
     :func:`register` can find the event definition.
     """
 
-    event_names = ()
+    event_names: t.Tuple[str, ...] = ()
 
-    def __init__(self, **event_kwargs):
+    def __init__(self, **event_kwargs: t.Any):
         self.attribute = None
         self.event_kwargs = event_kwargs
 
@@ -50,16 +52,17 @@ class EventDecorator:
 
 
 class AttributeEventDecorator(EventDecorator):
-    """Base class for an attribute event decorators."""
+    """Base class for attribute event decorators."""
 
-    def __init__(self, attribute, **event_kwargs):
+    def __init__(self, attribute: t.Any, **event_kwargs: t.Any):
+        super().__init__(**event_kwargs)
         self.attribute = attribute
         self.event_kwargs = event_kwargs
 
 
-def register(cls, dct):
+def register(cls: type, dct: dict) -> None:
     """Register events defined on a class during metaclass creation."""
-    events = []
+    events: t.List[Event] = []
 
     # Add events that were added via @<event> decorator
     for value in dct.values():

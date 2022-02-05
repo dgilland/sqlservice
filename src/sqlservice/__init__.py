@@ -1,8 +1,8 @@
 """The sqlservice package."""
 
-__version__ = "1.3.0"
+__version__ = "2.0.0a1"
 
-from .client import SQLClient
-from .core import destroy, make_identity, save, transaction
-from .model import ModelBase, as_declarative, declarative_base
-from .query import SQLQuery
+from . import event
+from .database import Database
+from .model import ModelBase, ModelMeta, as_declarative, declarative_base, model_to_dict
+from .session import Session

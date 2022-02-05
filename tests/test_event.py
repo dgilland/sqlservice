@@ -1,14 +1,21 @@
-import sqlalchemy as sa
+import pytest
+from sqlalchemy import Column, Integer, event as sa_event
 
-from sqlservice import event
-
-from .fixtures import Model, parametrize
+from sqlservice import ModelBase, as_declarative, event
 
 
-class EventModel(Model):
+parametrize = pytest.mark.parametrize
+
+
+@as_declarative()
+class EventBase(ModelBase):
+    pass
+
+
+class EventModel(EventBase):
     __tablename__ = "test_events"
 
-    id = sa.Column(sa.types.Integer(), primary_key=True)
+    id = Column(Integer(), primary_key=True)
 
     @event.on_set("id")
     def on_set(self, value, oldvalue, initator):
@@ -23,7 +30,7 @@ class EventModel(Model):
         pass
 
     @event.on_remove("id")
-    def on_remove(self, value, oldvalue, initator):
+    def on_remove(self, value, initator):
         pass
 
     @event.on_init_scalar("id")
@@ -43,35 +50,35 @@ class EventModel(Model):
         pass
 
     @event.before_delete()
-    def before_delete(mapper, connection, self):
+    def before_delete(mapper, connection, self):  # pylint: disable=no-self-argument
         pass
 
     @event.before_insert()
-    def before_insert(mapper, connection, self):
+    def before_insert(mapper, connection, self):  # pylint: disable=no-self-argument
         pass
 
     @event.before_update()
-    def before_update(mapper, connection, self):
+    def before_update(mapper, connection, self):  # pylint: disable=no-self-argument
         pass
 
     @event.before_save()
-    def before_save(mapper, connection, self):
+    def before_save(mapper, connection, self):  # pylint: disable=no-self-argument
         pass
 
     @event.after_delete()
-    def after_delete(mapper, connection, self):
+    def after_delete(mapper, connection, self):  # pylint: disable=no-self-argument
         pass
 
     @event.after_insert()
-    def after_insert(mapper, connection, self):
+    def after_insert(mapper, connection, self):  # pylint: disable=no-self-argument
         pass
 
     @event.after_update()
-    def after_update(mapper, connection, self):
+    def after_update(mapper, connection, self):  # pylint: disable=no-self-argument
         pass
 
     @event.after_save()
-    def after_save(mapper, connection, self):
+    def after_save(mapper, connection, self):  # pylint: disable=no-self-argument
         pass
 
     @event.on_expire()
@@ -88,7 +95,7 @@ class EventModel(Model):
 
 
 @parametrize(
-    "target,event,listener",
+    "target, event, listener",
     [
         (EventModel.id, "set", EventModel.on_set),
         (EventModel.id, "append", EventModel.on_append),
@@ -115,4 +122,4 @@ class EventModel(Model):
 )
 def test_events(target, event, listener):
     """Test that event listeners are properly registered."""
-    assert sa.event.contains(target, event, listener)
+    assert sa_event.contains(target, event, listener)
