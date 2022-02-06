@@ -34,6 +34,7 @@ class DatabaseSettings(Mapping):
     def __init__(
         self,
         uri: str,
+        *,
         autoflush: t.Optional[bool] = None,
         expire_on_commit: t.Optional[bool] = None,
         isolation_level: t.Optional[str] = None,
@@ -43,6 +44,7 @@ class DatabaseSettings(Mapping):
         pool_pre_ping: t.Optional[bool] = None,
         poolclass: t.Optional[t.Type[Pool]] = None,
         max_overflow: t.Optional[int] = None,
+        paramstyle: t.Optional[str] = None,
         encoding: t.Optional[str] = None,
         echo: t.Optional[bool] = None,
         echo_pool: t.Optional[bool] = None,
@@ -59,6 +61,7 @@ class DatabaseSettings(Mapping):
         self.pool_pre_ping = pool_pre_ping
         self.poolclass = poolclass
         self.max_overflow = max_overflow
+        self.paramstyle = paramstyle
         self.encoding = encoding
         self.echo = echo
         self.echo_pool = echo_pool
@@ -78,6 +81,7 @@ class DatabaseSettings(Mapping):
             "pool_pre_ping": self.pool_pre_ping,
             "poolclass": self.poolclass,
             "max_overflow": self.max_overflow,
+            "paramstyle": self.paramstyle,
             **self.engine_options,
         }
         return _omit_none(opts)
@@ -145,12 +149,12 @@ class Database:
             not be called repeatedly in order for database queries to retrieve results. Defaults to
             ``True``.
         expire_on_commit: When ``True`` all instances will be fully expired after each ``commit()``,
-            so that all attribute/object access subsequent to a completed transaction will load from
-            the most recent database state. Defaults to ``True``.
+            so that all attribute/object access after a completed transaction will load from the
+            most recent database state. Defaults to ``True``.
         isolation_level: String parameter interpreted by various dialects in order to affect the
             transaction isolation level of the database connection. The parameter essentially
             accepts some subset of these string arguments: ``"SERIALIZABLE"``,
-            ``"REPEATABLE_READ"``, ``"READ_COMMITTED"``, ``"READ_UNCOMMITTED"`` and
+            ``"REPEATABLE READ"``, ``"READ COMMITTED"``, ``"READ UNCOMMITTED"`` and
             ``"AUTOCOMMIT"``. Behavior here varies per backend, and individual dialects should be
             consulted directly. Defaults to ``None``.
         pool_size: The size of the database pool. Defaults to the engine's default (usually ``5``).
@@ -163,6 +167,9 @@ class Database:
         max_overflow: Controls the number of connections that can be created after the pool reached
             its maximum size. When those additional connections are returned to the pool, they are
             disconnected and discarded.
+        paramstyle: The paramstyle to use when rendering bound parameters. Defaults to ``None``
+            which uses the one recommended by the DBAPI. When given it should be one of ``"qmark"``,
+            ``"numeric"``, ``"named"``, ``"format"``, or ``"pyformat"``,
         encoding: The string encoding used by SQLAlchemy for string encode/decode operations which
             occur within SQLAlchemy, outside of the DBAPI. Defaults to `utf-8`.
         echo: When ``True`` have SQLAlchemy log all SQL statements. Defaults to ``False``.
@@ -187,6 +194,7 @@ class Database:
         pool_pre_ping: t.Optional[bool] = None,
         poolclass: t.Optional[t.Type[Pool]] = None,
         max_overflow: t.Optional[int] = None,
+        paramstyle: t.Optional[str] = None,
         encoding: t.Optional[str] = None,
         echo: t.Optional[bool] = None,
         echo_pool: t.Optional[bool] = None,
@@ -207,6 +215,7 @@ class Database:
             pool_pre_ping=pool_pre_ping,
             poolclass=poolclass,
             max_overflow=max_overflow,
+            paramstyle=paramstyle,
             encoding=encoding,
             echo=echo,
             echo_pool=echo_pool,

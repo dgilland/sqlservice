@@ -266,6 +266,7 @@ def test_database_repr(uri, rep):
         param("pool_pre_ping", True, "engine"),
         param("poolclass", SingletonThreadPool, "engine"),
         param("max_overflow", 5, "engine"),
+        param("paramstyle", "named", "engine"),
         param("encoding", "utf8", "engine"),
         param("echo", True, "engine"),
         param("echo_pool", True, "engine"),
@@ -308,7 +309,7 @@ def test_database_settings__accepts_engine_options_dict():
 
 
 def test_database_settings__len():
-    expected_settings_length = 15
+    expected_settings_length = 16
 
     db = Database("sqlite://")
     assert len(db.settings) == expected_settings_length
