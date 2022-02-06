@@ -46,6 +46,7 @@ class DatabaseSettings(Mapping):
         max_overflow: t.Optional[int] = None,
         paramstyle: t.Optional[str] = None,
         encoding: t.Optional[str] = None,
+        execution_options: t.Optional[t.Dict[str, t.Any]] = None,
         echo: t.Optional[t.Union[bool, str]] = None,
         echo_pool: t.Optional[t.Union[bool, str]] = None,
         engine_options: t.Optional[t.Dict[str, t.Any]] = None,
@@ -63,6 +64,7 @@ class DatabaseSettings(Mapping):
         self.max_overflow = max_overflow
         self.paramstyle = paramstyle
         self.encoding = encoding
+        self.execution_options = execution_options
         self.echo = echo
         self.echo_pool = echo_pool
         self.engine_options = engine_options or {}
@@ -82,6 +84,7 @@ class DatabaseSettings(Mapping):
             "poolclass": self.poolclass,
             "max_overflow": self.max_overflow,
             "paramstyle": self.paramstyle,
+            "execution_options": self.execution_options,
             **self.engine_options,
         }
         return _omit_none(opts)
@@ -172,6 +175,7 @@ class Database:
             ``"numeric"``, ``"named"``, ``"format"``, or ``"pyformat"``,
         encoding: The string encoding used by SQLAlchemy for string encode/decode operations which
             occur within SQLAlchemy, outside of the DBAPI. Defaults to `utf-8`.
+        execution_options: Dictionary of execution options which will be applied to all connections.
         echo: When ``True`` have SQLAlchemy log all SQL statements. When ``"debug"`` the logging
             will include result rows. Defaults to ``False``.
         echo_pool: When ``True`` have SQLAlchemy log all checkouts/checkins of the connection pool.
@@ -198,6 +202,7 @@ class Database:
         max_overflow: t.Optional[int] = None,
         paramstyle: t.Optional[str] = None,
         encoding: t.Optional[str] = None,
+        execution_options: t.Optional[t.Dict[str, t.Any]] = None,
         echo: t.Optional[t.Union[bool, str]] = None,
         echo_pool: t.Optional[t.Union[bool, str]] = None,
         engine_options: t.Optional[t.Dict[str, t.Any]] = None,
@@ -219,6 +224,7 @@ class Database:
             max_overflow=max_overflow,
             paramstyle=paramstyle,
             encoding=encoding,
+            execution_options=execution_options,
             echo=echo,
             echo_pool=echo_pool,
             engine_options=engine_options,
