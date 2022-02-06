@@ -46,8 +46,8 @@ class DatabaseSettings(Mapping):
         max_overflow: t.Optional[int] = None,
         paramstyle: t.Optional[str] = None,
         encoding: t.Optional[str] = None,
-        echo: t.Optional[bool] = None,
-        echo_pool: t.Optional[bool] = None,
+        echo: t.Optional[t.Union[bool, str]] = None,
+        echo_pool: t.Optional[t.Union[bool, str]] = None,
         engine_options: t.Optional[t.Dict[str, t.Any]] = None,
         session_options: t.Optional[t.Dict[str, t.Any]] = None,
     ):
@@ -172,9 +172,11 @@ class Database:
             ``"numeric"``, ``"named"``, ``"format"``, or ``"pyformat"``,
         encoding: The string encoding used by SQLAlchemy for string encode/decode operations which
             occur within SQLAlchemy, outside of the DBAPI. Defaults to `utf-8`.
-        echo: When ``True`` have SQLAlchemy log all SQL statements. Defaults to ``False``.
-        echo_pool: When ``True`` have SQLAlchemy log all log all checkouts/checkins of the
-            connection pool. Defaults to ``False``.
+        echo: When ``True`` have SQLAlchemy log all SQL statements. When ``"debug"`` the logging
+            will include result rows. Defaults to ``False``.
+        echo_pool: When ``True`` have SQLAlchemy log all checkouts/checkins of the connection pool.
+            When ``"debug"`` the logging will include pool checkouts and checkins. Defaults to
+            ``False``.
         engine_options: Additional engine options use when creating the database engine.
         session_options: Additional session options use when creating the database session.
     """
@@ -196,8 +198,8 @@ class Database:
         max_overflow: t.Optional[int] = None,
         paramstyle: t.Optional[str] = None,
         encoding: t.Optional[str] = None,
-        echo: t.Optional[bool] = None,
-        echo_pool: t.Optional[bool] = None,
+        echo: t.Optional[t.Union[bool, str]] = None,
+        echo_pool: t.Optional[t.Union[bool, str]] = None,
         engine_options: t.Optional[t.Dict[str, t.Any]] = None,
         session_options: t.Optional[t.Dict[str, t.Any]] = None,
     ):
