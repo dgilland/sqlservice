@@ -11,6 +11,10 @@ class FakeEventDecorator(event.EventDecorator):
     event_names = ("test",)
 
 
+class FakeMapperEventDecorator(event.MapperEventDecorator):
+    event_names = ("test",)
+
+
 @as_declarative()
 class EventBase(ModelBase):
     pass
@@ -54,35 +58,35 @@ class EventModel(EventBase):
         pass
 
     @event.before_delete()
-    def before_delete(mapper, connection, self):  # pylint: disable=no-self-argument
+    def before_delete(self, connection, mapper):
         pass
 
     @event.before_insert()
-    def before_insert(mapper, connection, self):  # pylint: disable=no-self-argument
+    def before_insert(self, connection, mapper):
         pass
 
     @event.before_update()
-    def before_update(mapper, connection, self):  # pylint: disable=no-self-argument
+    def before_update(self, connection, mapper):
         pass
 
     @event.before_save()
-    def before_save(mapper, connection, self):  # pylint: disable=no-self-argument
+    def before_save(self, connection, mapper):
         pass
 
     @event.after_delete()
-    def after_delete(mapper, connection, self):  # pylint: disable=no-self-argument
+    def after_delete(self, connection, mapper):
         pass
 
     @event.after_insert()
-    def after_insert(mapper, connection, self):  # pylint: disable=no-self-argument
+    def after_insert(self, connection, mapper):
         pass
 
     @event.after_update()
-    def after_update(mapper, connection, self):  # pylint: disable=no-self-argument
+    def after_update(self, connection, mapper):
         pass
 
     @event.after_save()
-    def after_save(mapper, connection, self):  # pylint: disable=no-self-argument
+    def after_save(self, connection, mapper):
         pass
 
     @event.on_expire()
@@ -158,3 +162,16 @@ def test_event_decorator__makes_listener_that_limits_call_args(func, expected_ca
         assert result == all_args[:expected_call_args_count]
     else:
         assert result is None
+
+
+def test_mapper_event_decorator__makes_listener_that_reorders_call_args():
+    def func(a, b, c):
+        return a, b, c
+
+    FakeMapperEventDecorator()(func)
+    listener = func.__events__[0].listener  # pylint: disable=no-member
+
+    args = (1, 2, 3)
+    expected_result = (3, 2, 1)
+    result = listener(*args)
+    assert result == expected_result

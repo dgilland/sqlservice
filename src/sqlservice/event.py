@@ -96,6 +96,19 @@ class AttributeEventDecorator(EventDecorator):
         self.event_kwargs = event_kwargs
 
 
+class MapperEventDecorator(EventDecorator):
+    """Base class for mapper event decorators."""
+
+    def _make_listener(self, func):
+        func = super()._make_listener(func)
+
+        @wraps(func)
+        def _listener(mapper, connection, target):
+            return func(target, connection, mapper)
+
+        return _listener
+
+
 def register(cls: type, dct: dict) -> None:
     """Register events defined on a class during metaclass creation."""
     events: t.List[Event] = []
@@ -172,49 +185,49 @@ class on_dispose_collection(AttributeEventDecorator):
 ##
 
 
-class before_delete(EventDecorator):
+class before_delete(MapperEventDecorator):
     """Event decorator for the ``before_delete`` event."""
 
     event_names = ("before_delete",)
 
 
-class before_insert(EventDecorator):
+class before_insert(MapperEventDecorator):
     """Event decorator for the ``before_insert`` event."""
 
     event_names = ("before_insert",)
 
 
-class before_update(EventDecorator):
+class before_update(MapperEventDecorator):
     """Event decorator for the ``before_update`` event."""
 
     event_names = ("before_update",)
 
 
-class before_save(EventDecorator):
+class before_save(MapperEventDecorator):
     """Event decorator for the ``before_insert`` and ``before_update`` events."""
 
     event_names = ("before_insert", "before_update")
 
 
-class after_delete(EventDecorator):
+class after_delete(MapperEventDecorator):
     """Event decorator for the ``after_delete`` event."""
 
     event_names = ("after_delete",)
 
 
-class after_insert(EventDecorator):
+class after_insert(MapperEventDecorator):
     """Event decorator for the ``after_insert`` event."""
 
     event_names = ("after_insert",)
 
 
-class after_update(EventDecorator):
+class after_update(MapperEventDecorator):
     """Event decorator for the ``after_update`` event."""
 
     event_names = ("after_update",)
 
 
-class after_save(EventDecorator):
+class after_save(MapperEventDecorator):
     """Event decorator for the ``after_insert`` and ``after_update`` events."""
 
     event_names = ("after_insert", "after_update")
