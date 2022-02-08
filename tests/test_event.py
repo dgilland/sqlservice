@@ -7,6 +7,10 @@ from sqlservice import ModelBase, as_declarative, event
 parametrize = pytest.mark.parametrize
 
 
+class FakeEventDecorator(event.EventDecorator):
+    event_names = ("test",)
+
+
 @as_declarative()
 class EventBase(ModelBase):
     pass
@@ -95,31 +99,62 @@ class EventModel(EventBase):
 
 
 @parametrize(
-    "target, event, listener",
+    "target, event_name, listener",
+    # pylint: disable=no-member
     [
-        (EventModel.id, "set", EventModel.on_set),
-        (EventModel.id, "append", EventModel.on_append),
-        (EventModel.id, "remove", EventModel.on_remove),
-        (EventModel.id, "init_scalar", EventModel.on_init_scalar),
-        (EventModel.id, "init_collection", EventModel.on_init_collection),
-        (EventModel.id, "dispose_collection", EventModel.on_dispose_collection),
-        (EventModel.id, "modified", EventModel.on_modified),
-        (EventModel.id, "bulk_replace", EventModel.on_bulk_replace),
-        (EventModel, "before_delete", EventModel.before_delete),
-        (EventModel, "before_insert", EventModel.before_insert),
-        (EventModel, "before_update", EventModel.before_update),
-        (EventModel, "before_insert", EventModel.before_save),
-        (EventModel, "before_update", EventModel.before_save),
-        (EventModel, "after_delete", EventModel.after_delete),
-        (EventModel, "after_insert", EventModel.after_insert),
-        (EventModel, "after_update", EventModel.after_update),
-        (EventModel, "after_insert", EventModel.after_save),
-        (EventModel, "after_update", EventModel.after_save),
-        (EventModel, "expire", EventModel.on_expire),
-        (EventModel, "load", EventModel.on_load),
-        (EventModel, "refresh", EventModel.on_refresh),
+        (EventModel.id, "set", EventModel.on_set.__events__[0].listener),
+        (EventModel.id, "append", EventModel.on_append.__events__[0].listener),
+        (EventModel.id, "remove", EventModel.on_remove.__events__[0].listener),
+        (EventModel.id, "init_scalar", EventModel.on_init_scalar.__events__[0].listener),
+        (EventModel.id, "init_collection", EventModel.on_init_collection.__events__[0].listener),
+        (
+            EventModel.id,
+            "dispose_collection",
+            EventModel.on_dispose_collection.__events__[0].listener,
+        ),
+        (EventModel.id, "modified", EventModel.on_modified.__events__[0].listener),
+        (EventModel.id, "bulk_replace", EventModel.on_bulk_replace.__events__[0].listener),
+        (EventModel, "before_delete", EventModel.before_delete.__events__[0].listener),
+        (EventModel, "before_insert", EventModel.before_insert.__events__[0].listener),
+        (EventModel, "before_update", EventModel.before_update.__events__[0].listener),
+        (EventModel, "before_insert", EventModel.before_save.__events__[0].listener),
+        (EventModel, "before_update", EventModel.before_save.__events__[1].listener),
+        (EventModel, "after_delete", EventModel.after_delete.__events__[0].listener),
+        (EventModel, "after_insert", EventModel.after_insert.__events__[0].listener),
+        (EventModel, "after_update", EventModel.after_update.__events__[0].listener),
+        (EventModel, "after_insert", EventModel.after_save.__events__[0].listener),
+        (EventModel, "after_update", EventModel.after_save.__events__[1].listener),
+        (EventModel, "expire", EventModel.on_expire.__events__[0].listener),
+        (EventModel, "load", EventModel.on_load.__events__[0].listener),
+        (EventModel, "refresh", EventModel.on_refresh.__events__[0].listener),
+    ],
+    # pylint: enable=no-member
+)
+def test_events(target, event_name, listener):
+    """Test that event listeners are properly registered."""
+    assert sa_event.contains(target, event_name, listener)
+
+
+@parametrize(
+    "func, expected_call_args_count",
+    [
+        (lambda: None, 0),
+        (lambda a: (a,), 1),
+        (lambda a, b: (a, b), 2),
+        (lambda a, b, c: (a, b, c), 3),
+        (lambda a, b, c, d: (a, b, c, d), 4),
+        (lambda a, b, c, d, *, e=1, f=2: (a, b, c, d), 4),
+        (lambda *args: args, 10),
     ],
 )
-def test_events(target, event, listener):
-    """Test that event listeners are properly registered."""
-    assert sa_event.contains(target, event, listener)
+def test_event_decorator__makes_listener_that_limits_call_args(func, expected_call_args_count):
+    FakeEventDecorator()(func)
+    listener = func.__events__[0].listener  # pylint: disable=no-member
+
+    all_args = tuple(range(10))
+    result = listener(*all_args)
+
+    if expected_call_args_count > 0:
+        assert result == all_args[:expected_call_args_count]
+    else:
+        assert result is None

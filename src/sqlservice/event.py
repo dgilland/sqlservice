@@ -5,9 +5,17 @@ Event
 The event module with declarative ORM event decorators and event registration.
 """
 
+from functools import wraps
+import inspect
 import typing as t
 
 from sqlalchemy.event import listen
+
+
+POSITIONAL_PARAM_KINDS = (
+    inspect.Parameter.POSITIONAL_ONLY,
+    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+)
 
 
 class Event:
@@ -44,11 +52,39 @@ class EventDecorator:
 
         # Attach event objects to function for register() for find.
         func.__events__.extend(
-            Event(name, self.attribute, func, self.event_kwargs) for name in self.event_names
+            Event(name, self.attribute, self._make_listener(func), self.event_kwargs)
+            for name in self.event_names
         )
 
         # Return function so that it's passed on to sa.event.listen().
         return func
+
+    def _make_listener(self, func):
+        # We want event listeners to work without them having to define all the event callback
+        # arguments. We can inspect the function signature and determine the argument parameters
+        # the function has so that we only pass that number of arguments when the event fires.
+        sig = inspect.signature(func)
+
+        if any(param.kind == inspect.Parameter.VAR_POSITIONAL for param in sig.parameters.values()):
+            # If the function defines var-args (i.e. "*args"), then we can pass all arguments.
+            args_count = None
+        else:
+            # However, if the function does not have var-args, then we need to count the number of
+            # positional arguments defined and only pass that many.
+            positional_params = [
+                param for param in sig.parameters.values() if param.kind in POSITIONAL_PARAM_KINDS
+            ]
+            args_count = len(positional_params)
+
+        # This slice will return all args up to args_count when args_count is an int or all args
+        # when args_count is None.
+        args_slice = slice(args_count)
+
+        @wraps(func)
+        def _listener(*args):
+            return func(*args[args_slice])
+
+        return _listener
 
 
 class AttributeEventDecorator(EventDecorator):
