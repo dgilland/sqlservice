@@ -81,6 +81,7 @@ This is the same as running each linter individually:
 
     inv flake8
     inv pylint
+    inv mypy
 
 
 Test
@@ -90,14 +91,17 @@ To run all unit tests:
 
 ::
 
-    inv unit
+    inv test
 
 
-To run unit tests and builds:
+CI
+++
+
+To run linters, unit tests, and builds:
 
 ::
 
-    inv test
+    inv ci
 
 
 Test on All Supported Python Versions

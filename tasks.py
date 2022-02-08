@@ -100,7 +100,7 @@ def lint(ctx):
 
 
 @task(help={"args": "Override default pytest arguments"})
-def unit(ctx, args=f"{TEST_TARGETS} --cov={PACKAGE_NAME} --flake8 --mypy --pylint"):
+def test(ctx, args=f"{TEST_TARGETS} --cov={PACKAGE_NAME}"):
     """Run unit tests using pytest."""
     tox_env_site_packages_dir = os.getenv("TOX_ENV_SITE_PACKAGES_DIR")
     if tox_env_site_packages_dir:
@@ -112,7 +112,7 @@ def unit(ctx, args=f"{TEST_TARGETS} --cov={PACKAGE_NAME} --flake8 --mypy --pylin
 
 
 @task
-def test(ctx):
+def ci(ctx):
     """Run linters and tests."""
     print("Building package")
     build(ctx)
@@ -124,7 +124,7 @@ def test(ctx):
     lint(ctx)
 
     print("Running unit tests")
-    unit(ctx, args=f"{TEST_TARGETS} --cov={PACKAGE_NAME}")
+    test(ctx, args=f"{TEST_TARGETS} --cov={PACKAGE_NAME}")
 
 
 @task
