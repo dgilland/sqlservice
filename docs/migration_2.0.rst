@@ -1,13 +1,13 @@
 Migrating to v2.0
 =================
 
-Starting with ``v2``, sqlservice has been refactored to implement patterns that are inline with SQLAlchemy's 2.0 Core and ORM usage recommendations.
-
-The following guide will help with the transition from sqlservice ``1.x`` to ``2.0``.
+The sqlservice ``v2`` release represents a major design change with many breaking changes. It has been overhauled to implement the patterns that are recommended by SQLAlchemy's 2.0 Core and ORM usage guidelines. Migrating from sqlservice ``v1`` to ``v2`` will require many changes and possibly some new design pattern implementations. This guide will help with the transition to ``2.0``.
 
 
 New Database Class Replaces SQLClient
 -------------------------------------
+
+**breaking change**
 
 .. code-block:: python
 
@@ -172,24 +172,26 @@ Model Class is Leaner
 
 In sqlservice 1.x, a model could be instantiated/updated using either a single dictionary argument or multiple keyword-arguments. Extra dictionary keys or keyword-arguments not mapped to the class were ignored. This is has changed in sqlservice 2.0:
 
-- ``Model.__init__()`` and ``Model.set()`` (formerly ``Model.update()``) only support keyword-arguments. Passing a dictionary instance is no longer supported.
+- ``Model.__init__()`` and ``Model.set()`` (formerly ``Model.update()``) only support keyword-arguments. Passing a dictionary instance is no longer supported. **breaking change**
 - However, creation of a model using a dictionary can be done using ``Model.from_dict()``.
-- Using extra keyword-arguments or dictionary keys (when using ``Model.from_dict()``) when creating or updating a model will now raise an exception.
+- Using extra keyword-arguments or dictionary keys (when using ``Model.from_dict()``) when creating or updating a model will now raise an exception. **breaking change**
 
 Other breaking changes:
 
-- ``Model.update()`` renamed to ``Model.set()``. ``Model.update()`` is now a classmethod that returns a ``sqlalchemy.Update`` instance for use in query building.
-- ``Model.identity()`` renamed to ``Model.pk()``.
-- ``Model.identity_map()`` removed.
-- Class methods that proxied ``sqlalchemy.orm.Mapper`` attributes have been removed. Use ``sqlalchemy.inspect(MyModel)`` directly instead.
-- The class attribute ``Model.__dict_args__`` as a way to customize the ``Model.to_dict()`` serialization has been removed. Use of a custom serialization implementation or a serialization library is recommended instead.
+- ``Model.update()`` renamed to ``Model.set()``. ``Model.update()`` is now a classmethod that returns a ``sqlalchemy.Update`` instance for use in query building. **breaking change**
+- ``Model.identity()`` renamed to ``Model.pk()``. **breaking change**
+- ``Model.identity_map()`` removed. **breaking change**
+- Class methods that proxied ``sqlalchemy.orm.Mapper`` attributes have been removed. Use ``sqlalchemy.inspect(MyModel)`` directly instead. **breaking change**
+- The class attribute ``Model.__dict_args__`` as a way to customize the ``Model.to_dict()`` serialization has been removed. Use of a custom serialization implementation or a serialization library is recommended instead. **breaking change**
 
 
 Events
 ------
 
-TODO after changes to events module.
+The event decorators have been made easier to use with the following changes:
 
+- Decorated methods no longer require all event callback arguments to be defined in the method signature. For example, if the sqlalchemy event emitter would send 4 arguments, the sqlservice event decrorated method could define just 1 argument in its function signature and not result in an exception.
+- The mapper based events (``before_delete``, ``before_insert``, ``before_update``, ``before_save``, ``after_delete``, ``after_insert``, ``after_update``, and ``after_save``) have their callback argument order reversed so that the first argument is the ``self`` argument of the class. This means that before ``v2``, the callback argument order was ``(mapper, connection, self)`` but in ``v2`` it is ``(self, connection mapper)``. This was done so that the class method defintions would conform to the standard of having ``self`` as the first argument. **breaking change**
 
 New 2.0 Features
 ----------------
