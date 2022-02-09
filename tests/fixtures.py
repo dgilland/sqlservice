@@ -4,11 +4,12 @@ import string
 import typing as t
 
 import pytest
+import pytest_asyncio
 import sqlalchemy as sa
 from sqlalchemy.orm import RelationshipProperty
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from sqlservice import Database, ModelBase, as_declarative
+from sqlservice import AsyncDatabase, Database, ModelBase, as_declarative
 
 
 def unique_id():
@@ -97,6 +98,16 @@ def db() -> t.Generator[Database, None, None]:
     _db.close()
 
 
+@pytest_asyncio.fixture()
+async def async_db() -> t.AsyncGenerator[AsyncDatabase, None]:
+    uri = "sqlite+aiosqlite://"
+    echo = False
+    _db = AsyncDatabase(uri, model_class=Model, echo=echo)
+    await _db.create_all()
+    yield _db
+    await _db.close()
+
+
 @pytest.fixture()
 def filedb(tmp_path: Path) -> t.Generator[Database, None, None]:
     dbpath = tmp_path / "test.db"
@@ -105,6 +116,16 @@ def filedb(tmp_path: Path) -> t.Generator[Database, None, None]:
     _db.create_all()
     yield _db
     _db.close()
+
+
+@pytest_asyncio.fixture()
+async def async_filedb(tmp_path: Path) -> t.AsyncGenerator[AsyncDatabase, None]:
+    dbpath = tmp_path / "test_async.db"
+    uri = f"sqlite+aiosqlite:///{dbpath}"
+    _db = AsyncDatabase(uri, model_class=Model)
+    await _db.create_all()
+    yield _db
+    await _db.close()
 
 
 def random_alpha(n=8):
@@ -133,3 +154,24 @@ def create_users(db: Database, count: int = 3, overrides: t.Optional[dict] = Non
     with db.begin(expire_on_commit=False) as session:
         session.add_all(users)
     return users
+
+
+def create_model_collection() -> dict:
+    @as_declarative()
+    class Model(ModelBase):
+        pass
+
+    class A(Model):
+        __tablename__ = "a"
+        id = sa.Column(sa.types.Integer(), primary_key=True)
+
+    class B(Model):
+        __tablename__ = "b"
+        id = sa.Column(sa.types.Integer(), primary_key=True)
+
+    class C(Model):
+        __tablename__ = "c"
+        id = sa.Column(sa.types.Integer(), primary_key=True)
+
+    models = [A, B, C]
+    return {"model_class": Model, "models": models, "tables": [model.__table__ for model in models]}

@@ -10,6 +10,8 @@ The sqlservice package imports commonly used objects into it's top-level namespa
 .. code-block:: python
 
     from sqlservice import (
+        AsyncDatabase,
+        AsyncSession,
         Database,
         ModelBase,
         ModelMeta,
@@ -24,6 +26,12 @@ The sqlservice package imports commonly used objects into it's top-level namespa
     :members:
 
 .. automodule:: sqlservice.session
+    :members:
+
+.. automodule:: sqlservice.async_database
+    :members:
+
+.. automodule:: sqlservice.async_session
     :members:
 
 .. automodule:: sqlservice.model

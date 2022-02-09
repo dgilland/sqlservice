@@ -1,37 +1,31 @@
 """
-Database
---------
+Async Database
+--------------
 
-The database module provides a unified class interface to SQLAlchemy engine connection and session
-objects.
+The async_database module provides an asyncio version of :class:`sqlservice.database.Database`.
 """
 
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 import typing as t
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
 from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy.pool import Pool
 
+from .async_session import AsyncSession
 from .database_abc import DatabaseABC
 from .database_settings import DatabaseSettings
 from .model import ModelBase, declarative_base
-from .session import Session
 
 
-try:
-    from sqlalchemy.future import Connection, Engine
-except ImportError:  # pragma: no cover
-    from sqlalchemy.engine import Connection, Engine
-
-
-class Database(DatabaseABC):
+class AsyncDatabase(DatabaseABC):
     """
-    Database engine and ORM session management class.
+    Asynchronous Database engine and ORM session management class.
 
     The primary purpose of this class is to provide SQLAlchemy database connections and ORM sessions
-    via a single interface.
+    via a single interface that is compatible with asyncio.
 
     Connections and session are provided using the factory methods:
 
@@ -69,9 +63,9 @@ class Database(DatabaseABC):
             ``Session`` before proceeding. This is a convenience feature so that ``flush()`` need
             not be called repeatedly in order for database queries to retrieve results. Defaults to
             ``True``.
-        expire_on_commit: When ``True`` all instances will be fully expired after each ``commit()``,
-            so that all attribute/object access after a completed transaction will load from the
-            most recent database state. Defaults to ``True``.
+        expire_on_commit: When ``False`` this prevents all instances from expiring after each
+            ``commit()`` so that there will be no implicit I/O as a result of lazy-loading which
+            could cause issues under asyncio. Defaults to ``False``.
         isolation_level: String parameter interpreted by various dialects in order to affect the
             transaction isolation level of the database connection. The parameter essentially
             accepts some subset of these string arguments: ``"SERIALIZABLE"``,
@@ -108,9 +102,9 @@ class Database(DatabaseABC):
         uri: str,
         *,
         model_class: t.Optional[t.Union[t.Type[ModelBase], DeclarativeMeta]] = None,
-        session_class: t.Type[Session] = Session,
+        session_class: t.Type[AsyncSession] = AsyncSession,
         autoflush: t.Optional[bool] = None,
-        expire_on_commit: t.Optional[bool] = None,
+        expire_on_commit: t.Optional[bool] = False,  # expire_on_commit=False for asyncio
         isolation_level: t.Optional[str] = None,
         pool_size: t.Optional[int] = None,
         pool_timeout: t.Optional[t.Union[int, float]] = None,
@@ -153,21 +147,24 @@ class Database(DatabaseABC):
         self.engine = self.create_engine()
         self.sessionmaker = self.create_sessionmaker()
 
-    def create_engine(self) -> Engine:
-        """Return instance of SQLAlchemy engine using database settings."""
-        return create_engine(self.url, future=True, **self.settings.get_engine_options())
+    def create_engine(self) -> AsyncEngine:
+        """Return instance of SQLAlchemy async-engine using database settings."""
+        return create_async_engine(self.url, **self.settings.get_engine_options())
 
-    def create_all(self, **kwargs: t.Any) -> None:
+    async def create_all(self, **kwargs: t.Any) -> None:
         """Create all database schema defined in declarative base class."""
-        self.metadata.create_all(self.engine, **kwargs)
+        async with self.engine.begin() as conn:
+            await conn.run_sync(self.metadata.create_all, **kwargs)
 
-    def drop_all(self, **kwargs: t.Any) -> None:
+    async def drop_all(self, **kwargs: t.Any) -> None:
         """Drop all database schema defined in declarative base class."""
-        self.metadata.drop_all(self.engine, **kwargs)
+        async with self.engine.begin() as conn:
+            await conn.run_sync(self.metadata.drop_all, **kwargs)
 
-    def reflect(self, **kwargs: t.Any) -> None:
+    async def reflect(self, **kwargs: t.Any) -> None:
         """Reflect database schema from database connection."""
-        self.metadata.reflect(self.engine, **kwargs)
+        async with self.engine.begin() as conn:
+            await conn.run_sync(self.metadata.reflect, **kwargs)
 
     def session(
         self,
@@ -175,44 +172,44 @@ class Database(DatabaseABC):
         autoflush: t.Optional[bool] = None,
         expire_on_commit: t.Optional[bool] = None,
         **kwargs: t.Any,
-    ) -> Session:
-        """Return new session instance using database settings."""
+    ) -> AsyncSession:
+        """Return new async-session instance using database settings."""
         if autoflush is not None:
             kwargs["autoflush"] = autoflush
         if expire_on_commit is not None:
             kwargs["expire_on_commit"] = expire_on_commit
         return self.sessionmaker(**kwargs)
 
-    @contextmanager
-    def begin(
+    @asynccontextmanager
+    async def begin(
         self,
         *,
         autoflush: t.Optional[bool] = None,
         expire_on_commit: t.Optional[bool] = None,
         **kwargs: t.Any,
-    ) -> t.Generator[Session, None, None]:
+    ) -> t.AsyncGenerator[AsyncSession, None]:
         """
-        Context manager that begins a new session transaction.
+        Async context manager that begins a new session transaction.
 
         Commit and rollback logic will be handled automatically.
         """
         session = self.session(autoflush=autoflush, expire_on_commit=expire_on_commit, **kwargs)
-        with session.begin():
+        async with session.begin():
             yield session
 
-    def connect(self) -> Connection:
-        """Return new connection instance using database settings."""
+    def connect(self) -> AsyncConnection:
+        """Return new async-connection instance using database settings."""
         return self.engine.connect()
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Close engine connection."""
-        self.engine.dispose()
+        await self.engine.dispose()
 
-    def ping(self) -> bool:
+    async def ping(self) -> bool:
         """Return whether database can be accessed."""
-        with self.connect() as conn:
+        async with self.connect() as conn:
             try:
-                conn.scalar(select(1))
+                await conn.scalar(select(1))
             except DBAPIError as exc:
                 # Catch SQLAlchemy's DBAPIError, which is a wrapper for the DBAPI's exception. It
                 # includes a "connection_invalidated" attribute which specifies if this connection
@@ -223,7 +220,7 @@ class Database(DatabaseABC):
                     # establish a new connection. The disconnect detection here also causes the
                     # whole connection pool to be invalidated so that all stale connections are
                     # discarded.
-                    conn.scalar(select(1))
+                    await conn.scalar(select(1))
                 else:
                     raise
         return True

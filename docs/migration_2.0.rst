@@ -3,6 +3,10 @@ Migrating to v2.0
 
 The sqlservice ``v2`` release represents a major design change with many breaking changes. It has been overhauled to implement the patterns that are recommended by SQLAlchemy's 2.0 Core and ORM usage guidelines. Migrating from sqlservice ``v1`` to ``v2`` will require many changes and possibly some new design pattern implementations. This guide will help with the transition to ``2.0``.
 
+.. seealso::
+
+    Learn more about the new 2.0 style from the `SQLAlchemy 1.4 / 2.0 Tutorial <https://docs.sqlalchemy.org/en/14/tutorial/>`_.
+
 
 New Database Class Replaces SQLClient
 -------------------------------------

@@ -10,7 +10,9 @@ from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.pool import QueuePool, SingletonThreadPool
 
-from sqlservice import Database, ModelBase, Session, as_declarative
+from sqlservice import Database, Session
+
+from .fixtures import create_model_collection
 
 
 parametrize = pytest.mark.parametrize
@@ -22,27 +24,6 @@ def create_engine_mock(scalar: t.Optional[mock.Mock] = None) -> mock.MagicMock:
     if scalar:
         mocked_engine.connect.return_value.__enter__.return_value.scalar = scalar
     return mocked_engine
-
-
-def create_model_collection() -> dict:
-    @as_declarative()
-    class Model(ModelBase):
-        pass
-
-    class A(Model):
-        __tablename__ = "a"
-        id = sa.Column(sa.types.Integer(), primary_key=True)
-
-    class B(Model):
-        __tablename__ = "b"
-        id = sa.Column(sa.types.Integer(), primary_key=True)
-
-    class C(Model):
-        __tablename__ = "c"
-        id = sa.Column(sa.types.Integer(), primary_key=True)
-
-    models = [A, B, C]
-    return {"model_class": Model, "models": models, "tables": [model.__table__ for model in models]}
 
 
 @contextmanager
@@ -95,7 +76,7 @@ def test_database_create_all():
     db.create_all()
 
     with db.connect() as conn:
-        result = conn.execute(sa.text("SELECT name from sqlite_master"))
+        result = conn.execute(sa.text("SELECT name FROM sqlite_master"))
         table_names = result.scalars().all()
 
     assert len(table_names) == len(model_tables)
@@ -112,7 +93,7 @@ def test_database_drop_all():
     conn = db.connect()
     db.create_all()
 
-    count_tables = sa.text("SELECT count(name) from sqlite_master")
+    count_tables = sa.text("SELECT COUNT(name) FROM sqlite_master")
     assert conn.execute(count_tables).scalar_one() == len(model_tables)
     db.drop_all()
     assert conn.execute(count_tables).scalar_one() == 0
@@ -225,7 +206,7 @@ def test_database_close__disposes_engine(filedb: Database):
         ),
     ],
 )
-def test_database_uri(uri, expected_uri):
+def test_database_uri(uri: str, expected_uri: str):
     db = Database(uri)
     assert db.uri == expected_uri
 
@@ -237,7 +218,7 @@ def test_database_uri(uri, expected_uri):
         param("sqlite:///db.db", "db.db"),
     ],
 )
-def test_database_name(uri, expected_name):
+def test_database_name(uri: str, expected_name: t.Optional[str]):
     db = Database(uri)
     assert db.name == expected_name
 
@@ -249,7 +230,7 @@ def test_database_name(uri, expected_name):
         param("sqlite:///db.db", "Database('sqlite:///db.db')"),
     ],
 )
-def test_database_repr(uri, rep):
+def test_database_repr(uri: str, rep: str):
     db = Database(uri)
     assert repr(db) == rep
 
@@ -273,7 +254,7 @@ def test_database_repr(uri, rep):
         param("echo_pool", True, "engine"),
     ],
 )
-def test_database_settings(key, value, kind):
+def test_database_settings(key: str, value: t.Any, kind: str):
     settings = {key: value}
     # NOTE: Using poolclass so that pool_* options can be used with sqlite.
     settings.setdefault("poolclass", QueuePool)
@@ -310,16 +291,5 @@ def test_database_settings__accepts_engine_options_dict():
 
 
 def test_database_settings__len():
-    expected_settings_length = 17
-
     db = Database("sqlite://")
-    assert len(db.settings) == expected_settings_length
-
-    db = Database(
-        "sqlite://",
-        echo=True,
-        autoflush=False,
-        session_options={"expire_on_commit": True},
-        engine_options={"encoding": "utf8"},
-    )
-    assert len(db.settings) == expected_settings_length
+    assert len(db.settings) == len(db.settings.__dict__)
