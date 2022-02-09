@@ -20,7 +20,6 @@ TEST_TARGETS = f"{PACKAGE_SOURCE} tests"
 LINT_TARGETS = f"{TEST_TARGETS} tasks.py"
 EXIT_EXCEPTIONS = (Exit, UnexpectedExit, SystemExit)
 
-
 # Set pyt=True to enable colored output when available.
 run = partial(_run, pty=True)
 
@@ -49,6 +48,8 @@ def docformatter(ctx):
 @task
 def fmt(ctx):
     """Autoformat code and docstrings."""
+    print("Preparing to run formatters: docformatter, isort, black\n")
+
     print("Running docformatter")
     docformatter(ctx)
 
@@ -82,6 +83,8 @@ def lint(ctx):
     """Run linters."""
     linters = {"flake8": flake8, "pylint": pylint, "mypy": mypy}
     failures = []
+
+    print(f"Preparing to run linters: {', '.join(linters)}\n")
 
     for name, linter in linters.items():
         print(f"Running {name}")
