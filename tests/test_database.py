@@ -1,8 +1,8 @@
 from contextlib import contextmanager
 from pathlib import Path
 import typing as t
-from unittest import mock
 
+import mock
 import pytest
 from pytest import param
 import sqlalchemy as sa

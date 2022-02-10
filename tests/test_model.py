@@ -1,6 +1,6 @@
 import typing as t
-from unittest import mock
 
+import mock
 import pytest
 from pytest import param
 from sqlalchemy import MetaData, orm
@@ -129,7 +129,6 @@ def test_model_set():
 
 
 def test_model_update__raises_on_invalid_keywords():
-
     with pytest.raises(TypeError):
         User(invalid=True)
 
