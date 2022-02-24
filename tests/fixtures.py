@@ -156,6 +156,17 @@ def create_users(db: Database, count: int = 3, overrides: t.Optional[dict] = Non
     return users
 
 
+async def async_create_users(
+    async_db: AsyncDatabase, count: int = 3, overrides: t.Optional[dict] = None
+) -> t.List[User]:
+    if overrides is None:
+        overrides = {}
+    users = [User(id=i, **overrides) for i in range(1, count + 1)]
+    async with async_db.begin(expire_on_commit=False) as session:
+        session.add_all(users)
+    return users
+
+
 def create_model_collection() -> dict:
     @as_declarative()
     class Model(ModelBase):

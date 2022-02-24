@@ -11,8 +11,9 @@ Guide
     installation
     migration_2.0
     database
-    async_database
     session
+    async_database
+    async_session
     model
     event
     api

@@ -10,7 +10,7 @@ import typing as t
 
 import sqlalchemy as sa
 from sqlalchemy import orm
-from sqlalchemy.sql import ClauseElement, Executable
+from sqlalchemy.sql import ClauseElement, Executable, Select
 
 from .model import DeclarativeModel
 
@@ -204,7 +204,7 @@ class Session(orm.Session):
             raise TypeError(f"save not supported for object of type {type(model)}")
         return self.save_all([model])[0]
 
-    def save_all(self, models: t.Union[t.Iterable[t.Any], t.Any]) -> t.List[t.Any]:  # noqa: C901
+    def save_all(self, models: t.Union[t.Iterable[t.Any], t.Any]) -> t.List[t.Any]:
         """
         Save `models` into the database using insert, update, or upsert on primary key(s).
 
@@ -240,72 +240,62 @@ class Session(orm.Session):
         if isinstance(models, DeclarativeModel):
             models = [models]
         else:
-            # Cast to list since we may end up modifying the list below and we don't want to mutate
+            # Cast to list since we may end up modifying the list below, and we don't want to mutate
             # passed in arguments.
             models = list(models)
 
         if not models:
-            raise TypeError("save requires at least one object")
+            raise TypeError("save_all requires at least one object")
 
         invalid_types = {type(model) for model in models if not isinstance(model, DeclarativeModel)}
         if invalid_types:
             raise TypeError(f"save_all not supported for objects of types {invalid_types}")
 
-        # Model instances that should follow the "insert" path.
-        insertable = []
+        for model_group, select_models_stmt in iter_mergeable_models_by_class(models):
+            results = self.execute(select_models_stmt).scalars()
+            existing_models_by_pk = {model_pk(model): model for model in results}
 
-        # Model instances that should follow the "update" path.
-        updatable = []
+            for idx, pk, model in model_group:
+                if model not in self and pk in existing_models_by_pk:
+                    transfer_model_pk(existing_models_by_pk[pk], model)
+                    models[idx] = self.merge(model)
 
-        # Model instances that have their primary key(s) set which may already exist in the
-        # database. These models will either be inserted or updated, but some database querying will
-        # be required to make that determination.
-        mergeable: t.Dict[type, list] = defaultdict(list)
-
-        # Use dictionary of primary-keys to keep track of unique primary key values between models
-        # to enforce that all models given must correspond to unique records.
-        primary_keys: t.Dict[type, set] = defaultdict(set)
-
-        # Partition models into `insertable` or `mergeable` buckets.
-        for idx, model in enumerate(models):
-            pk = model_pk(model)
-
-            if any(v is None for v in pk):
-                # Primary key not set so add to the insert list.
-                insertable.append(model)
-            else:
-                model_class = type(model)
-                if pk in primary_keys[model_class]:
-                    raise TypeError(f"save_all duplicate primary-key set for {model_class}: {pk}")
-
-                # Model's primary key is set so it might be mergeable. Keep track of original index
-                # because we'll need to update the `models` list with the merged instance.
-                mergeable[model_class].append((idx, model_pk(model), model))
-                primary_keys[model_class].add(pk)
-
-        # Before we attempt to merge models with existing database records, we want to bulk
-        # fetch all of the potentially mergeable models. Doing so will put those models into the
-        # session registry which means that when we later call `merge()`, there won't be a
-        # database fetch since we've pre-loaded them.
-        for model_class, model_set in mergeable.items():
-            criteria = pk_filter(*(model for *_, model in model_set))
-            stmt = sa.select(model_class).where(criteria)
-            results = self.execute(stmt).scalars()
-            existing = {model_pk(model): model for model in results}
-
-            for idx, pk, model in model_set:
-                if model in self:
-                    updatable.append(model)
-                elif pk in existing:
-                    models[idx] = force_merge(self, existing[pk], model)
-                    updatable.append(models[idx])
-                else:
-                    insertable.append(model)
-
-        self.add_all(insertable)
-        self.add_all(updatable)
+        self.add_all(models)
 
         return models
+
+
+def iter_mergeable_models_by_class(
+    models: t.Iterable[t.Any],
+) -> t.Iterator[t.Tuple[t.List[t.Tuple[int, tuple, t.Any]], Select]]:
+    # Model instances that have their primary key(s) set which may already exist in the
+    # database. These models will either be inserted or updated, but some database querying will
+    # be required to make that determination.
+    mergeable: t.Dict[type, t.List[t.Tuple[int, tuple, t.Any]]] = defaultdict(list)
+
+    # Use dictionary of primary-keys to keep track of unique primary key values between models
+    # to enforce that all models given must correspond to unique records.
+    primary_keys: t.Dict[type, set] = defaultdict(set)
+
+    # Partition models into `insertable` or `mergeable` buckets.
+    for idx, model in enumerate(models):
+        pk = model_pk(model)
+
+        if all(v is not None for v in pk):
+            # Primary key set so add to the mergeable list.
+            model_class = type(model)
+            if pk in primary_keys[model_class]:
+                raise TypeError(f"save_all duplicate primary-key set for {model_class}: {pk}")
+
+            # Model's primary key is set so it might be mergeable. Keep track of original index
+            # because we'll need to update the `models` list with the merged instance.
+            mergeable[model_class].append((idx, model_pk(model), model))
+            primary_keys[model_class].add(pk)
+
+    for model_class, model_group in mergeable.items():
+        criteria = pk_filter(*(model for *_, model in model_group))
+        select_models_stmt = sa.select(model_class).where(criteria)
+        yield model_group, select_models_stmt
 
 
 def model_pk(model: t.Any) -> t.Tuple[t.Any, ...]:
@@ -342,17 +332,13 @@ def pk_filter(*models) -> ClauseElement:
     return sa.or_(*all_pk_filters)
 
 
-def force_merge(
-    session: orm.Session, model: DeclarativeModel, new_model: DeclarativeModel
-) -> DeclarativeModel:
-    """Force merge an existing `model` with a `new_model` by copying the primary key values from
-    `model` to `new_model` before calling ``session.merge(model)``."""
-    mapper: orm.Mapper = sa.inspect(type(model))
+def transfer_model_pk(from_model: t.Any, to_model: t.Any) -> None:
+    """Transfer primary key value from ``parent_model`` to ``child_model``."""
+    mapper: orm.Mapper = sa.inspect(type(from_model))
     attrs_by_col_name = {
         col_attr.expression.name: attr for attr, col_attr in mapper.column_attrs.items()
     }
-    pk_pairs = zip(mapper.primary_key, mapper.primary_key_from_instance(model))
+    pk_pairs = zip(mapper.primary_key, mapper.primary_key_from_instance(from_model))
     for col, val in pk_pairs:
         attr = attrs_by_col_name[col.name]
-        setattr(new_model, attr, val)
-    return session.merge(new_model)
+        setattr(to_model, attr, val)
