@@ -49,6 +49,7 @@ class ModelBase:
     metadata: t.ClassVar[MetaData]
     registry: t.ClassVar[orm.registry]
     __table__: t.Optional[sa.Table]
+    __mapper__: orm.Mapper
 
     def __init__(self, **kwargs: t.Any):
         self.set(**kwargs)
@@ -63,8 +64,7 @@ class ModelBase:
 
     def pk(self) -> t.Tuple[t.Any, ...]:
         """Return primary key identity of model instance."""
-        mapper: orm.Mapper = sa.inspect(type(self))
-        return mapper.primary_key_from_instance(self)
+        return self.__mapper__.primary_key_from_instance(self)
 
     def to_dict(
         self, *, exclude_relationships: bool = False, lazyload: bool = False
@@ -100,8 +100,7 @@ class ModelBase:
 
     def __contains__(self, key: t.Any) -> bool:
         """Return whether `key` is a model column or relationship."""
-        state: orm.state.InstanceState = sa.inspect(self)
-        return key in state.attrs
+        return key in self.__mapper__.attrs
 
     def __repr__(self) -> str:
         """Return representation of model."""
