@@ -9,7 +9,7 @@ Guide
     :maxdepth: 3
 
     installation
-    migration_2.0
+    migrating_to_v2.0
     database
     session
     async_database

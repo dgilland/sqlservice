@@ -143,7 +143,7 @@ Using sqlservice 2.0:
         # before, after, and identity removed
 
 
-Bulk Save Functionality Moved to New Save-All Method
+Bulk Save Functionality Moved to New save_all Method
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Bulk saving of models is now done with ``sqlservice.Session.save_all``.
@@ -183,7 +183,7 @@ In sqlservice 1.x, a model could be instantiated/updated using either a single d
 
 Other breaking changes:
 
-- ``Model.update()`` renamed to ``Model.set()``. ``Model.update()`` is now a classmethod that returns a ``sqlalchemy.Update`` instance for use in query building. **breaking change**
+- ``Model.update()`` renamed to ``Model.set()``. ``Model.update()`` is now a ``classmethod`` that returns a ``sqlalchemy.Update`` instance for use in query building. **breaking change**
 - ``Model.identity()`` renamed to ``Model.pk()``. **breaking change**
 - ``Model.identity_map()`` removed. **breaking change**
 - Class methods that proxied ``sqlalchemy.orm.Mapper`` attributes have been removed. Use ``sqlalchemy.inspect(MyModel)`` directly instead. **breaking change**
@@ -195,10 +195,5 @@ Events
 
 The event decorators have been made easier to use with the following changes:
 
-- Decorated methods no longer require all event callback arguments to be defined in the method signature. For example, if the sqlalchemy event emitter would send 4 arguments, the sqlservice event decrorated method could define just 1 argument in its function signature and not result in an exception.
-- The mapper based events (``before_delete``, ``before_insert``, ``before_update``, ``before_save``, ``after_delete``, ``after_insert``, ``after_update``, and ``after_save``) have their callback argument order reversed so that the first argument is the ``self`` argument of the class. This means that before ``v2``, the callback argument order was ``(mapper, connection, self)`` but in ``v2`` it is ``(self, connection mapper)``. This was done so that the class method defintions would conform to the standard of having ``self`` as the first argument. **breaking change**
-
-New 2.0 Features
-----------------
-
-TODO
+- Decorated methods no longer require all event callback arguments to be defined in the method signature. For example, if the sqlalchemy event emitter would send 4 arguments, the sqlservice event-decorated method could define just 1 argument in its function signature and not cause an exception when called.
+- The mapper based events (``before_delete``, ``before_insert``, ``before_update``, ``before_save``, ``after_delete``, ``after_insert``, ``after_update``, and ``after_save``) have their callback argument order reversed so that the first argument would correspond to the ``self`` argument of the class. This means that before ``v2``, the callback argument order was ``(mapper, connection, self)`` but in ``v2`` it is ``(self, connection, mapper)``. This was done so that the class method definitions would conform to the standard of having ``self`` as the first argument. **breaking change**

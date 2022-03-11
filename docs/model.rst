@@ -85,7 +85,7 @@ Create a new instance from keyword arguments:
 
 .. note::
 
-    Under the hood ``ModelBase.__init__`` calls ``update()`` so anything ``update()`` does, ``__init__`` does too.
+    Under the hood ``ModelBase.__init__`` calls ``ModelBase.set()`` so anything ``set()`` does, ``__init__`` does too.
 
 
 Update an instance using keyword arguments:
@@ -130,7 +130,7 @@ Set relationship and nested relationships:
 
 .. warning::
 
-    Depending on whether you've set up relationship cascades, calling ``update()`` on relationships can result in integrity errors since SQLAlchemy will nullify orphaned relationship models when they are replaced.
+    Depending on whether you've set up relationship cascades, calling ``ModelBase.set()`` on relationships can result in integrity errors since SQLAlchemy will nullify orphaned relationship models when they are replaced.
 
     .. code-block:: python
 
