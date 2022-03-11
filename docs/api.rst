@@ -18,7 +18,6 @@ The sqlservice package imports commonly used objects into it's top-level namespa
         Session,
         as_declarative,
         declarative_base,
-        model_to_dict,
     )
 
 

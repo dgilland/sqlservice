@@ -79,16 +79,16 @@ class ModelBase:
         ``include_relationships=True``. This will nest ``to_dict()`` calls to the relationship
         models.
         """
-        return model_to_dict(self, exclude_relationships=exclude_relationships, lazyload=lazyload)
+        serializer = ModelSerializer(exclude_relationships=exclude_relationships, lazyload=lazyload)
+        return serializer.to_dict(self)
 
     def __iter__(self):
-        """Iterator that yields table columns as strings."""
-        return iter(self.to_dict().items())
-
+        """Iterator that yields the items from ``self.dict().items()``."""
+        yield from self.to_dict().items()
 
     def __repr__(self) -> str:
         """Return representation of model."""
-        data = model_to_dict(self, exclude_relationships=True)
+        data = self.to_dict(exclude_relationships=True)
         values = ", ".join(f"{k}={v!r}" for k, v in data.items())
         return f"{type(self).__name__}({values})"
 
@@ -162,13 +162,6 @@ class ModelSerializer:
 
     def from_iterable(self, ctx: dict, value: t.Iterable) -> list:
         return [self.from_value(ctx, v) for v in value]
-
-
-def model_to_dict(
-    model: ModelBase, *, exclude_relationships: bool = False, lazyload: bool = False
-) -> t.Dict[str, t.Any]:
-    serializer = ModelSerializer(exclude_relationships=exclude_relationships, lazyload=lazyload)
-    return serializer.to_dict(model)
 
 
 def declarative_base(
