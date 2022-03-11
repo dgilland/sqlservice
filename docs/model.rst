@@ -88,14 +88,6 @@ Create a new instance from keyword arguments:
     Under the hood ``ModelBase.__init__`` calls ``update()`` so anything ``update()`` does, ``__init__`` does too.
 
 
-Update using attribute or item setters:
-
-.. code-block:: python
-
-    user.name = "Bob Paulson"
-    user["name"] = "Robert Paulson"
-
-
 Update an instance using keyword arguments:
 
 .. code-block:: python

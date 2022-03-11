@@ -357,45 +357,6 @@ def test_model_iter():
     assert dict(user.__iter__()) == user.to_dict()
 
 
-def test_model_getitem():
-    user = User(id=1, name="n", addresses=[Address()])
-    assert user["id"] == user.id
-    assert user["name"] == user.name
-    assert user["addresses"] == user.addresses
-
-
-def test_model_getitem__raises_attribute_does_not_exist():
-    user = User()
-    with pytest.raises(TypeError):
-        assert user["invalid"]
-
-
-def test_model_setitem():
-    user = User()
-    user["id"] = 1
-    user["name"] = "n"
-    user["addresses"] = [Address()]
-
-    assert user.id == user.id
-    assert user.name == user.name
-    assert user.addresses == user.addresses
-
-
-def test_model_setitem__raises_if_attribute_does_not_exist():
-    user = User()
-    with pytest.raises(TypeError):
-        user["invalid"] = "test"
-
-
-def test_model_contains():
-    user = User()
-
-    assert "id" in user
-    assert "name" in user
-    assert "metadata" not in user
-    assert "__table__" not in user
-
-
 def test_model_repr():
     user = User(id=1, name="n", addresses=[Address()])
     assert repr(user) == "User(id=1, name='n')"

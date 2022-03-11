@@ -179,6 +179,7 @@ In sqlservice 1.x, a model could be instantiated/updated using either a single d
 - ``Model.__init__()`` and ``Model.set()`` (formerly ``Model.update()``) only support keyword-arguments. Passing a dictionary instance is no longer supported. **breaking change**
 - However, creation of a model using a dictionary can be done using ``Model.from_dict()``.
 - Using extra keyword-arguments or dictionary keys (when using ``Model.from_dict()``) when creating or updating a model will now raise an exception. **breaking change**
+- Model is no longer scriptable (i.e. ``model_instance["column_name"]`` is not supported). **breaking change**
 
 Other breaking changes:
 

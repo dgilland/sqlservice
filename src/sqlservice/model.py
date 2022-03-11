@@ -81,26 +81,10 @@ class ModelBase:
         """
         return model_to_dict(self, exclude_relationships=exclude_relationships, lazyload=lazyload)
 
-    def __getitem__(self, key: str) -> t.Any:
-        """Return model attribute using ``instance[key]``."""
-        try:
-            return getattr(self, key)
-        except (AttributeError, TypeError) as exc:
-            raise TypeError(f"{key!r} is not an attribute of {type(self)}") from exc
-
-    def __setitem__(self, key: str, value: t.Any) -> None:
-        """Set model attribute using ``instance[key] = value``."""
-        if not isinstance(key, str) or not hasattr(self, key):
-            raise TypeError(f"{key!r} is not a valid attribute to set on {type(self)}")
-        setattr(self, key, value)
-
     def __iter__(self):
         """Iterator that yields table columns as strings."""
         return iter(self.to_dict().items())
 
-    def __contains__(self, key: t.Any) -> bool:
-        """Return whether `key` is a model column or relationship."""
-        return key in self.__mapper__.attrs
 
     def __repr__(self) -> str:
         """Return representation of model."""
