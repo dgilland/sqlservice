@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession as AsyncSessionBase
 from sqlalchemy.sql import Executable
 
 from .model import DeclarativeModel
-from .session import iter_mergeable_models_by_class, model_pk, transfer_model_pk
+from .session import copy_model_pk, iter_mergeable_models_by_class, model_pk
 
 
 T = t.TypeVar("T")
@@ -258,7 +258,7 @@ class AsyncSession(AsyncSessionBase):
             for idx, pk, model in model_group:
                 # pylint: disable=unsupported-membership-test
                 if model not in self and pk in existing_models_by_pk:
-                    transfer_model_pk(existing_models_by_pk[pk], model)
+                    copy_model_pk(existing_models_by_pk[pk], model)
                     models[idx] = await self.merge(model)
 
         self.add_all(models)  # pylint: disable=no-member

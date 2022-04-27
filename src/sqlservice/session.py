@@ -257,7 +257,7 @@ class Session(orm.Session):
 
             for idx, pk, model in model_group:
                 if model not in self and pk in existing_models_by_pk:
-                    transfer_model_pk(existing_models_by_pk[pk], model)
+                    copy_model_pk(existing_models_by_pk[pk], model)
                     models[idx] = self.merge(model)
 
         self.add_all(models)
@@ -332,7 +332,7 @@ def pk_filter(*models) -> ClauseElement:
     return sa.or_(*all_pk_filters)
 
 
-def transfer_model_pk(from_model: t.Any, to_model: t.Any) -> None:
+def copy_model_pk(from_model: t.Any, to_model: t.Any) -> None:
     """Transfer primary key value from ``parent_model`` to ``child_model``."""
     mapper: orm.Mapper = sa.inspect(type(from_model))
     attrs_by_col_name = {
