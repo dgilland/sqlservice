@@ -11,7 +11,6 @@ import typing as t
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import DBAPIError
-from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy.pool import Pool
 
 from .database_abc import DatabaseABC
@@ -23,7 +22,7 @@ from .session import Session
 try:
     from sqlalchemy.future import Connection, Engine
 except ImportError:  # pragma: no cover
-    from sqlalchemy.engine import Connection, Engine
+    from sqlalchemy.engine import Connection, Engine  # type: ignore
 
 
 class Database(DatabaseABC):
@@ -107,7 +106,7 @@ class Database(DatabaseABC):
         self,
         uri: str,
         *,
-        model_class: t.Optional[t.Union[t.Type[ModelBase], DeclarativeMeta]] = None,
+        model_class: t.Optional[t.Type[ModelBase]] = None,
         session_class: t.Type[Session] = Session,
         autoflush: t.Optional[bool] = None,
         expire_on_commit: t.Optional[bool] = None,

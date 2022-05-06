@@ -64,10 +64,8 @@ class Session(orm.Session):
         if isinstance(result, sa.engine.CursorResult):
             items = result.all()
         else:
-            if (
-                result.raw.context.compiled.compile_state
-                and result.raw.context.compiled.compile_state.multi_row_eager_loaders
-            ):
+            compile_state = result.raw.context.compiled.compile_state
+            if compile_state and compile_state.multi_row_eager_loaders:
                 result = result.unique()
             items = result.scalars().all()
         return items

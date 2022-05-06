@@ -20,13 +20,13 @@ from .model import ModelBase
 try:
     from sqlalchemy.future import Connection, Engine
 except ImportError:  # pragma: no cover
-    from sqlalchemy.engine import Connection, Engine
+    from sqlalchemy.engine import Connection, Engine  # type: ignore
 
 
 class DatabaseABC(ABC):
     settings: DatabaseSettings
     session_class: t.Union[t.Type[Session], t.Type[AsyncSession]]
-    model_class: t.Union[t.Type[ModelBase], DeclarativeMeta]
+    model_class: t.Type[ModelBase]
     engine: t.Union[Engine, AsyncEngine]
 
     @property
@@ -40,7 +40,7 @@ class DatabaseABC(ABC):
         return str(self.url)
 
     @property
-    def name(self) -> str:
+    def name(self) -> t.Optional[str]:
         """Return engine's database name."""
         return self.url.database
 
