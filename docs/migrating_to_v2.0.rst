@@ -1,3 +1,5 @@
+.. _migrating_to_v2.0:
+
 Migrating to v2.0
 =================
 
