@@ -127,7 +127,7 @@ def ci(ctx):
     lint(ctx)
 
     print("Running unit tests")
-    test(ctx, args=f"{TEST_TARGETS} --cov={PACKAGE_NAME}")
+    test(ctx)
 
 
 @task
