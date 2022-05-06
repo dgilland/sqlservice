@@ -2,6 +2,12 @@ Changelog
 =========
 
 
+v2.0.0 (2022-05-06)
+-------------------
+
+The ``v2`` release is a major rewrite of the library with many incompatibilities and breaking changes from `v1`. Please see the ``Migrating to v2.0`` section in the docs for details.
+
+
 v1.3.0 (2021-04-28)
 -------------------
 
