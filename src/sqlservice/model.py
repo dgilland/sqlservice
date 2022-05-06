@@ -195,7 +195,9 @@ def declarative_base(
     if hasattr(cls, "__init__"):
         kwargs.setdefault("constructor", cls.__init__)
 
-    return _declarative_base(cls=cls, metadata=metadata, metaclass=metaclass, **kwargs)
+    return _declarative_base(  # type: ignore
+        cls=cls, metadata=metadata, metaclass=metaclass, **kwargs
+    )
 
 
 def as_declarative(

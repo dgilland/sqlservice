@@ -196,7 +196,7 @@ async def test_async_database_begin__starts_new_transaction(async_db: AsyncDatab
 async def test_async_database_close__disposes_engine(async_filedb: AsyncDatabase):
     with mock_async_db(async_filedb):
         await async_filedb.close()
-        assert async_filedb.engine.dispose.called
+        assert async_filedb.engine.dispose.called  # type: ignore
 
 
 @parametrize(

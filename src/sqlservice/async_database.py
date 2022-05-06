@@ -11,7 +11,6 @@ import typing as t
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, create_async_engine
-from sqlalchemy.orm import DeclarativeMeta
 from sqlalchemy.pool import Pool
 
 from .async_session import AsyncSession
@@ -101,7 +100,7 @@ class AsyncDatabase(DatabaseABC):
         self,
         uri: str,
         *,
-        model_class: t.Optional[t.Union[t.Type[ModelBase], DeclarativeMeta]] = None,
+        model_class: t.Optional[t.Type[ModelBase]] = None,
         session_class: t.Type[AsyncSession] = AsyncSession,
         autoflush: t.Optional[bool] = None,
         expire_on_commit: t.Optional[bool] = False,  # expire_on_commit=False for asyncio

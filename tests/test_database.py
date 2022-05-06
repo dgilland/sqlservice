@@ -192,7 +192,7 @@ def test_database_begin__starts_new_transaction(db: Database):
 def test_database_close__disposes_engine(filedb: Database):
     with mock_db(filedb):
         filedb.close()
-        assert filedb.engine.dispose.called
+        assert filedb.engine.dispose.called  # type: ignore
 
 
 @parametrize(
