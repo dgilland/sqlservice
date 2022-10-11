@@ -21,7 +21,7 @@ from .utils import is_iterable_but_not_string
 NO_VALUE = symbol("NO_VALUE")
 
 
-class DeclarativeModel(metaclass=ABCMeta):
+class DeclarativeModel(metaclass=ABCMeta):  # noqa: B024
     @classmethod
     def __subclasshook__(cls, class_):
         if cls is DeclarativeModel:
