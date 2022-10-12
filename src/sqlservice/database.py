@@ -55,51 +55,6 @@ class Database(DatabaseABC):
         `2.0 style <https://docs.sqlalchemy.org/en/14/glossary.html#term-2.0-style>`_ SQLAlchemy
         API. Learn more at
         `SQLAlchemy 1.4 / 2.0 Tutorial <https://docs.sqlalchemy.org/en/14/tutorial/>`_.
-
-    Args:
-        uri: Database connection URI in RFC 1738 spec format. See
-            https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls.
-
-    Keyword Arguments:
-        model_class: Declarative base class for SQLAlchemy models. If not given, then a default
-            base class will be generated.
-        session_class: Session class to use for session factory.
-        autoflush: When ``True``, all query operations will issue a ``flush()`` call to the
-            ``Session`` before proceeding. This is a convenience feature so that ``flush()`` need
-            not be called repeatedly in order for database queries to retrieve results. Defaults to
-            ``True``.
-        expire_on_commit: When ``True`` all instances will be fully expired after each ``commit()``,
-            so that all attribute/object access after a completed transaction will load from the
-            most recent database state. Defaults to ``True``.
-        isolation_level: String parameter interpreted by various dialects in order to affect the
-            transaction isolation level of the database connection. The parameter essentially
-            accepts some subset of these string arguments: ``"SERIALIZABLE"``,
-            ``"REPEATABLE READ"``, ``"READ COMMITTED"``, ``"READ UNCOMMITTED"`` and
-            ``"AUTOCOMMIT"``. Behavior here varies per backend, and individual dialects should be
-            consulted directly. Defaults to ``None``.
-        pool_size: The size of the database pool. Defaults to the engine's default (usually ``5``).
-        pool_timeout: Specifies the connection timeout for the pool. Defaults to ``10``.
-        pool_recycle: Number of seconds after which a connection is automatically recycled.
-        pool_pre_ping: When ``True` will enable SQLAlchemy's connection pool “pre-ping” feature that
-            tests connections for liveness upon each checkout. Defaults to ``False``.
-        poolclass: A `sqlalchemy.pool.Pool` subclass, which will be used to create a connection pool
-            instance using the connection parameters given in the URL.
-        max_overflow: Controls the number of connections that can be created after the pool reached
-            its maximum size. When those additional connections are returned to the pool, they are
-            disconnected and discarded.
-        paramstyle: The paramstyle to use when rendering bound parameters. Defaults to ``None``
-            which uses the one recommended by the DBAPI. When given it should be one of ``"qmark"``,
-            ``"numeric"``, ``"named"``, ``"format"``, or ``"pyformat"``,
-        encoding: The string encoding used by SQLAlchemy for string encode/decode operations which
-            occur within SQLAlchemy, outside of the DBAPI. Defaults to `utf-8`.
-        execution_options: Dictionary of execution options which will be applied to all connections.
-        echo: When ``True`` have SQLAlchemy log all SQL statements. When ``"debug"`` the logging
-            will include result rows. Defaults to ``False``.
-        echo_pool: When ``True`` have SQLAlchemy log all checkouts/checkins of the connection pool.
-            When ``"debug"`` the logging will include pool checkouts and checkins. Defaults to
-            ``False``.
-        engine_options: Additional engine options use when creating the database engine.
-        session_options: Additional session options use when creating the database session.
     """
 
     def __init__(
@@ -125,6 +80,54 @@ class Database(DatabaseABC):
         engine_options: t.Optional[t.Dict[str, t.Any]] = None,
         session_options: t.Optional[t.Dict[str, t.Any]] = None,
     ):
+        """
+        Args:
+            uri: Database connection URI in RFC 1738 spec format. See
+                https://docs.sqlalchemy.org/en/14/core/engines.html#database-urls.
+
+        Keyword Arguments:
+            model_class: Declarative base class for SQLAlchemy models. If not given, then a default
+                base class will be generated.
+            session_class: Session class to use for session factory.
+            autoflush: When ``True``, all query operations will issue a ``flush()`` call to the
+                ``Session`` before proceeding. This is a convenience feature so that ``flush()``
+                need not be called repeatedly in order for database queries to retrieve results.
+                Defaults to ``True``.
+            expire_on_commit: When ``True`` all instances will be fully expired after each
+                ``commit()``, so that all attribute/object access after a completed transaction will
+                load from the most recent database state. Defaults to ``True``.
+            isolation_level: String parameter interpreted by various dialects in order to affect the
+                transaction isolation level of the database connection. The parameter essentially
+                accepts some subset of these string arguments: ``"SERIALIZABLE"``,
+                ``"REPEATABLE READ"``, ``"READ COMMITTED"``, ``"READ UNCOMMITTED"`` and
+                ``"AUTOCOMMIT"``. Behavior here varies per backend, and individual dialects should
+                be consulted directly. Defaults to ``None``.
+            pool_size: The size of the database pool. Defaults to the engine's default
+                (usually ``5``).
+            pool_timeout: Specifies the connection timeout for the pool. Defaults to ``10``.
+            pool_recycle: Number of seconds after which a connection is automatically recycled.
+            pool_pre_ping: When ``True` will enable SQLAlchemy's connection pool “pre-ping” feature
+                that tests connections for liveness upon each checkout. Defaults to ``False``.
+            poolclass: A `sqlalchemy.pool.Pool` subclass, which will be used to create a connection
+                pool instance using the connection parameters given in the URL.
+            max_overflow: Controls the number of connections that can be created after the pool
+                reached its maximum size. When those additional connections are returned to the
+                pool, they are disconnected and discarded.
+            paramstyle: The paramstyle to use when rendering bound parameters. Defaults to ``None``
+                which uses the one recommended by the DBAPI. When given it should be one of
+                ``"qmark"``, ``"numeric"``, ``"named"``, ``"format"``, or ``"pyformat"``,
+            encoding: The string encoding used by SQLAlchemy for string encode/decode operations
+                which occur within SQLAlchemy, outside of the DBAPI. Defaults to `utf-8`.
+            execution_options: Dictionary of execution options which will be applied to all
+                connections.
+            echo: When ``True`` have SQLAlchemy log all SQL statements. When ``"debug"`` the logging
+                will include result rows. Defaults to ``False``.
+            echo_pool: When ``True`` have SQLAlchemy log all checkouts/checkins of the connection
+                pool. When ``"debug"`` the logging will include pool checkouts and checkins.
+                Defaults to ``False``.
+            engine_options: Additional engine options use when creating the database engine.
+            session_options: Additional session options use when creating the database session.
+        """
         if model_class is None:
             model_class = declarative_base()
 
