@@ -26,10 +26,9 @@ Features
 
 This library is meant to enhance your usage of SQLAlchemy. SQLAlchemy is great and this library tries to build upon that by providing useful abstractions on top of it.
 
-- Database client that helps manage an ORM scoped session.
+- Sync and asyncio database clients to manage ORM sessions with enhanced session classes.
 - Base class for a declarative ORM Model that makes updating model columns and relationships easier and converting to a dictionary a breeze.
 - Decorator-based event register for SQLAlchemy ORM events that can be used at the model class level. No need to register the event handler outside of the class definition.
-- An application-side nestable transaction context-manager that helps implement pseudo-subtransactions for those that want implicit transaction demarcation, i.e. session autocommit, without using session subtransactions.
 - And more!
 
 
@@ -37,7 +36,7 @@ Requirements
 ------------
 
 - Python >= 3.7
-- `SQLAlchemy <http://www.sqlalchemy.org/>`_ >= 1.0.0
+- `SQLAlchemy <http://www.sqlalchemy.org/>`_ >= 1.4.12
 
 
 Quickstart
@@ -48,7 +47,7 @@ First, install using pip:
 
 ::
 
-    pip3 install sqlservice
+    pip install sqlservice
 
 
 Then, define some ORM models:
@@ -75,7 +74,7 @@ Then, define some ORM models:
         roles = orm.relation("UserRole")
 
         @event.on_set("phone", retval=True)
-        def on_set_phone(self, value, oldvalue, initator):
+        def on_set_phone(self, value):
             # Strip non-numeric characters from phone number.
             return re.sub("[^0-9]", "", value)
 
@@ -91,24 +90,23 @@ Next, configure the database client:
 
 .. code-block:: python
 
-    from sqlservice import SQLClient
+    from sqlservice import AsyncDatabase, Database
 
-    config = {
-        "SQL_DATABASE_URI": "sqlite:///db.sql",
-        "SQL_ISOLATION_LEVEL": "SERIALIZABLE",
-        "SQL_ECHO": True,
-        "SQL_ECHO_POOL": False,
-        "SQL_CONVERT_UNICODE": True,
-        "SQL_POOL_SIZE": 5,
-        "SQL_POOL_TIMEOUT": 30,
-        "SQL_POOL_RECYCLE": 3600,
-        "SQL_MAX_OVERFLOW": 10,
-        "SQL_AUTOCOMMIT": False,
-        "SQL_AUTOFLUSH": True,
-        "SQL_EXPIRE_ON_COMMIT": True
-    }
+    db = Database(
+        "sqlite:///db.sql",
+        model_class=Model,
+        isolation_level="SERIALIZABLE",
+        echo=True,
+        echo_pool=False,
+        pool_size=5,
+        pool_timeout=30,
+        pool_recycle=3600,
+        max_overflow=10,
+        autoflush=True,
+    )
 
-    db = SQLClient(config, model_class=Model)
+    # Same options as above are supported but will default to compatibility with SQLAlchemy asyncio mode.
+    async_db = AsyncDatabase("sqlite:///db.sql", model_class=Model)
 
 
 Prepare the database by creating all tables:
@@ -116,6 +114,7 @@ Prepare the database by creating all tables:
 .. code-block:: python
 
     db.create_all()
+    await async_db.create_all()
 
 
 Finally (whew!), start interacting with the database.
@@ -124,17 +123,22 @@ Insert a new record in the database:
 
 .. code-block:: python
 
-    data = {'name': 'Jenny', 'email': 'jenny@example.com', 'phone': '555-867-5309'}
-    user = db.User.save(data)
+    user = User(name='Jenny', email=jenny@example.com, phone='555-867-5309')
+    with db.begin() as session:
+        session.save(user)
+
+    async with db.begin() as session:
+        await session.save(user)
 
 
 Fetch records:
 
 .. code-block:: python
 
-    assert user is db.User.get(data.id)
-    assert user is db.User.find_one(id=user.id)
-    assert user is db.User.find(User.id == user.id)[0]
+    session = db.session()
+    assert user is session.get(User, user.id)
+    assert user is session.first(User.select())
+    assert user is session.all(User.select().where(User.id == user.id)[0]
 
 
 Serialize to a ``dict``:
@@ -156,34 +160,21 @@ Update the record and save:
 .. code-block:: python
 
     user.phone = '222-867-5309'
-    db.User.save(user)
+    with db.begin() as session:
+        session.save(user)
+
+    async with async_db.begin() as session:
+        await session.save(user)
 
 
 Upsert on primary key automatically:
 
 .. code-block:: python
 
-    assert user is db.User(
-        {
-            "id": 1,
-            "name": "Jenny",
-            "email": "jenny@example.com",
-            "phone": "5558675309"
-        }
-    )
-
-
-Destroy the model record:
-
-.. code-block:: python
-
-    db.User.destroy(user)
-    # OR db.User.destroy([user])
-    # OR db.User.destroy(user.id)
-    # OR db.User.destroy([user.id])
-    # OR db.User.destroy(dict(user))
-    # OR db.User.destroy([dict(user)])
-
+    other_user = User(id=1, name="Jenny", email="jenny123@example.com", phone="5558675309")
+    with db.begin() as session:
+        session.save(other_user)
+    assert user is other_user
 
 For more details, please see the full documentation at http://sqlservice.readthedocs.io.
 
