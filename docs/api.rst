@@ -32,6 +32,7 @@ The sqlservice package imports commonly used objects into it's top-level namespa
 
 .. automodule:: sqlservice.async_session
     :members:
+    :exclude-members: sync_session
 
 .. automodule:: sqlservice.model
     :members:
