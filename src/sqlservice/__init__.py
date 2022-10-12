@@ -1,6 +1,6 @@
 """The sqlservice package."""
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 from . import event
 from .async_database import AsyncDatabase
