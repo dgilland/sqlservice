@@ -16,15 +16,12 @@
 import os
 import sys
 
-
 sys.path.insert(0, os.path.abspath(".."))
 
 # -- Project information -----------------------------------------------------
 
 from email import message_from_string
-
 from pkg_resources import get_distribution
-
 
 dist = get_distribution("sqlservice")
 
@@ -36,7 +33,7 @@ else:
 project = pkg_info["Name"]
 author = pkg_info["Author"]
 description = pkg_info["Summary"]
-copyright = "{{ cookiecutter.year }}, " + author
+copyright = "2016, " + author
 
 # The short X.Y version
 version = pkg_info["Version"]
@@ -96,21 +93,7 @@ todo_include_todos = False
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-# on_rtd is whether we are on readthedocs.org, this line of code grabbed from
-# docs.readthedocs.org.
-on_rtd = os.environ.get("READTHEDOCS", None) == "True"
-
-if on_rtd:
-    html_theme = "default"
-else:
-    import sphinx_rtd_theme
-
-    html_theme = "sphinx_rtd_theme"
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-
-    def setup(app):
-        app.add_css_file("theme_override.css")
-
+html_theme = "furo"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -121,7 +104,7 @@ else:
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+# html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -185,6 +168,5 @@ texinfo_documents = [
         "Miscellaneous",
     ),
 ]
-
 
 # -- Extension configuration -------------------------------------------------
