@@ -30,8 +30,7 @@ class Event:
 
 class EventDecorator:
     """Base class for event decorators that attaches metadata to function object so that
-    :func:`register` can find the event definition.
-    """
+    :func:`register` can find the event definition."""
 
     event_names: t.Tuple[str, ...] = ()
 
