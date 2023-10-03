@@ -41,8 +41,8 @@ From here you can use ``Model`` as the base class for your ORM models.
         name = Column(types.String(100))
         email = Column(types.String(100))
 
-        about = orm.relation("UserAbout", uselist=False)
-        devices = orm.relation("UserDevice")
+        about = orm.relationship("UserAbout", uselist=False)
+        devices = orm.relationship("UserDevice")
 
 
     class UserAbout(Model):
@@ -60,7 +60,7 @@ From here you can use ``Model`` as the base class for your ORM models.
         user_id = Column(types.Integer(), ForeignKey("user.id"), nullable=False)
         name = Column(types.String(100))
 
-        keys = orm.relation("UserDeviceKey")
+        keys = orm.relationship("UserDeviceKey")
 
 
     class UserDeviceKey(Model):

@@ -36,7 +36,7 @@ Requirements
 ------------
 
 - Python >= 3.7
-- `SQLAlchemy <http://www.sqlalchemy.org/>`_ >= 1.4.12
+- `SQLAlchemy <http://www.sqlalchemy.org/>`_ >= 2.0
 
 
 Quickstart
@@ -55,8 +55,10 @@ Then, define some ORM models:
 .. code-block:: python
 
     import re
+    import typing as t
 
-    from sqlalchemy import Column, ForeignKey, orm, types
+    from sqlalchemy import ForeignKey, orm, types
+    from sqlalchemy.orm import Mapped, mapped_column
 
     from sqlservice import declarative_base, event
 
@@ -66,24 +68,25 @@ Then, define some ORM models:
     class User(Model):
         __tablename__ = "user"
 
-        id = Column(types.Integer(), primary_key=True)
-        name = Column(types.String(100))
-        email = Column(types.String(100))
-        phone = Column(types.String(10))
+        id: Mapped[int] = mapped_column(types.Integer(), primary_key=True)
+        name: Mapped[t.Optional[str]] = mapped_column(types.String(100))
+        email: Mapped[t.Optional[str]] = mapped_column(types.String(100))
+        phone: Mapped[t.Optional[str]] = mapped_column(types.String(10))
 
-        roles = orm.relation("UserRole")
+        roles: Mapped[t.List["UserRole"]] = orm.relationshipship("UserRole")
 
         @event.on_set("phone", retval=True)
         def on_set_phone(self, value):
             # Strip non-numeric characters from phone number.
             return re.sub("[^0-9]", "", value)
 
+
     class UserRole(Model):
         __tablename__ = "user_role"
 
-        id = Column(types.Integer(), primary_key=True)
-        user_id = Column(types.Integer(), ForeignKey("user.id"), nullable=False)
-        role = Column(types.String(25), nullable=False)
+        id: Mapped[int] = mapped_column(types.Integer(), primary_key=True)
+        user_id: Mapped[int] = mapped_column(types.Integer(), ForeignKey("user.id"), nullable=False)
+        role: Mapped[str] = mapped_column(types.String(25), nullable=False)
 
 
 Next, configure the database client:
