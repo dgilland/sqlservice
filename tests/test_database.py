@@ -41,7 +41,7 @@ def test_database_ping__returns_true_on_success(filedb: Database):
 
 def test_database_ping__retries_on_invalidated_connection(filedb: Database):
     mocked_scalar = mock.Mock(
-        side_effect=[DBAPIError(None, None, None, connection_invalidated=True), 1]
+        side_effect=[DBAPIError(None, None, Exception(), connection_invalidated=True), 1]
     )
     mocked_engine = create_engine_mock(scalar=mocked_scalar)
 
@@ -50,7 +50,7 @@ def test_database_ping__retries_on_invalidated_connection(filedb: Database):
 
 
 def test_database_ping__raises_exception_on_failure(db: Database):
-    mocked_scalar = mock.Mock(side_effect=DBAPIError(None, None, None))
+    mocked_scalar = mock.Mock(side_effect=DBAPIError(None, None, Exception()))
     mocked_engine = create_engine_mock(scalar=mocked_scalar)
 
     with mock_db(db, engine=mocked_engine):
@@ -59,7 +59,9 @@ def test_database_ping__raises_exception_on_failure(db: Database):
 
 
 def test_database_ping__raises_when_invalidated_connection_retry_fails(db: Database):
-    mocked_scalar = mock.Mock(side_effect=DBAPIError(None, None, None, connection_invalidated=True))
+    mocked_scalar = mock.Mock(
+        side_effect=DBAPIError(None, None, Exception(), connection_invalidated=True)
+    )
     mocked_engine = create_engine_mock(scalar=mocked_scalar)
 
     with mock_db(db, engine=mocked_engine):
@@ -249,7 +251,6 @@ def test_database_repr(uri: str, rep: str):
         param("max_overflow", 5, "engine"),
         param("paramstyle", "named", "engine"),
         param("execution_options", {}, "engine"),
-        param("encoding", "utf8", "engine"),
         param("echo", True, "engine"),
         param("echo_pool", True, "engine"),
     ],
@@ -283,7 +284,7 @@ def test_database_settings__accepts_session_options_dict():
 
 def test_database_settings__accepts_engine_options_dict():
     engine_options = {"echo": True}
-    other_options = {"encoding": "utf8", "echo": False}
+    other_options = {"echo": False, "echo_pool": True}
     expected_options = {**other_options, **engine_options}
 
     db = Database("sqlite://", engine_options=engine_options, **other_options)

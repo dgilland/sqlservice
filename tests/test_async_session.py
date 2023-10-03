@@ -3,6 +3,7 @@ import typing as t
 import pytest
 from pytest import param
 import sqlalchemy as sa
+from sqlalchemy import func
 from sqlalchemy.exc import MultipleResultsFound, NoResultFound
 from sqlalchemy.orm import joinedload
 
@@ -10,6 +11,9 @@ from sqlservice import AsyncDatabase
 
 from .fixtures import Address, Group, User, async_create_users
 
+
+# Make pylint happy.
+func: t.Callable  # type: ignore
 
 parametrize = pytest.mark.parametrize
 
@@ -33,7 +37,7 @@ async def test_session_all__uniquifies_joinedload_results(async_db: AsyncDatabas
     async with async_db.begin() as session:
         session.add_all(users)
 
-    stmt = sa.select(User).options(joinedload(User.addresses))
+    stmt = sa.select(User).options(joinedload(User.addresses))  # type: ignore
     async with async_db.session() as session:
         results = await session.all(stmt)
         assert len(results) == len(users)
@@ -54,8 +58,9 @@ async def test_session_all__returns_all_rows_from_non_orm_query(async_db: AsyncD
             inactive_user = inactive_users_by_id.get(user.id)
             assert inactive_user
 
+            user_mapping = user._mapping
             for key, value in dict(inactive_user).items():
-                assert user[key] == value
+                assert user_mapping[key] == value
 
 
 async def test_session_first__returns_first_result_or_none(async_db: AsyncDatabase):
@@ -80,6 +85,7 @@ async def test_session_first__returns_first_result_or_none_from_non_orm_query(
             sa.text("SELECT * FROM users WHERE active = :active ORDER BY id"),
             params={"active": True},
         )
+        assert result is not None
         assert not isinstance(result, User)
         assert result.id == first_user.id
         assert result.name == first_user.name
@@ -116,6 +122,7 @@ async def test_session_one__returns_one_row_or_raises_from_non_orm_query(async_d
         result = await session.one(
             sa.text("SELECT * FROM users WHERE id = :id"), params={"id": user.id}
         )
+        assert result is not None
         assert not isinstance(result, User)
         assert result.id == user.id
         assert result.name == user.name
@@ -154,6 +161,7 @@ async def test_session_one_or_none__returns_one_row_or_none_or_raises(async_db: 
         result = await session.one_or_none(
             sa.text("SELECT * FROM users WHERE id = :id"), params={"id": user.id}
         )
+        assert result is not None
         assert not isinstance(result, User)
         assert result.id == user.id
         assert result.name == user.name
@@ -180,7 +188,7 @@ async def test_session_save__does_not_commit(async_db: AsyncDatabase):
         await session.save(User())
 
     async with async_db.session() as session:
-        select_count = sa.select(sa.func.count(User.id))
+        select_count = sa.select(func.count(User.id))
         assert await session.one(select_count) == 0
 
 
@@ -193,7 +201,7 @@ async def test_session_save__inserts_new_with_pk(async_db: AsyncDatabase):
     assert user.name == "n"
 
     async with async_db.session() as session:
-        select_count = sa.select(sa.func.count(User.id))
+        select_count = sa.select(func.count(User.id))
         assert await session.one(select_count) == 1
 
 
@@ -206,7 +214,7 @@ async def test_session_save__inserts_new_without_pk(async_db: AsyncDatabase):
     assert user.name == "n"
 
     async with async_db.session() as session:
-        select_count = sa.select(sa.func.count(User.id))
+        select_count = sa.select(func.count(User.id))
         assert await session.one(select_count) == 1
 
 
@@ -223,7 +231,7 @@ async def test_session_save__updates_existing(async_db: AsyncDatabase):
     assert new_user.name == "n"
 
     async with async_db.session() as session:
-        select_count = sa.select(sa.func.count(User.id))
+        select_count = sa.select(func.count(User.id))
         assert await session.one(select_count) == 1
 
 
@@ -233,12 +241,12 @@ async def test_session_save__updates_existing_in_same_session(async_db: AsyncDat
         session.add(user)
         await session.commit()
 
-        user.name = "n"
+        user.name = "n"  # type: ignore
         await session.save(user)
         await session.commit()
 
     async with async_db.session() as session:
-        select_count = sa.select(sa.func.count(User.id))
+        select_count = sa.select(func.count(User.id))
         assert await session.one(select_count) == 1
 
 
@@ -269,7 +277,7 @@ async def test_session_save_all__returns_list(async_db: AsyncDatabase):
         assert result == users
 
     async with async_db.session() as session:
-        select_count = sa.select(sa.func.count(User.id))
+        select_count = sa.select(func.count(User.id))
         assert await session.one(select_count) == len(users)
 
 
@@ -281,7 +289,7 @@ async def test_session_save_all__accepts_single_model_and_returns_list(async_db:
         assert result == [user]
 
     async with async_db.session() as session:
-        select_count = sa.select(sa.func.count(User.id))
+        select_count = sa.select(func.count(User.id))
         assert await session.one(select_count) == 1
 
 
@@ -304,10 +312,10 @@ async def test_session_save_all__inserts_and_updates_multiple_types(async_db: As
         await session.save_all(all_models)
 
     async with async_db.session() as session:
-        count_users = sa.select(sa.func.count(User.id))
+        count_users = sa.select(func.count(User.id))
         assert await session.one(count_users) == len(all_users)
 
-        count_groups = sa.select(sa.func.count(Group.id))
+        count_groups = sa.select(func.count(Group.id))
         assert await session.one(count_groups) == len(all_groups)
 
 

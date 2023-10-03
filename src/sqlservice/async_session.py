@@ -34,7 +34,7 @@ class AsyncSession(AsyncSessionBase):
         ] = None,
         execution_options: t.Optional[t.Mapping[str, t.Any]] = None,
         bind_arguments: t.Optional[t.Mapping[str, t.Any]] = None,
-    ) -> t.List[t.Any]:
+    ) -> t.Sequence[t.Union[sa.Row[t.Any], t.Any]]:
         """
         Return list of objects from execution of `statement`.
 
@@ -59,15 +59,16 @@ class AsyncSession(AsyncSessionBase):
                 to the ``Session.get_bind`` method.
         """
         result = await self.execute(
-            statement, params, execution_options=execution_options, bind_arguments=bind_arguments
+            statement,
+            params,
+            execution_options=execution_options,  # type: ignore
+            bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
             items = result.all()
         else:
-            if (
-                result.raw.context.compiled.compile_state
-                and result.raw.context.compiled.compile_state.multi_row_eager_loaders
-            ):
+            compile_state = result.raw.context.compiled.compile_state  # type: ignore
+            if compile_state and compile_state.multi_row_eager_loaders:
                 result = result.unique()
             items = result.scalars().all()
         return items
@@ -80,7 +81,7 @@ class AsyncSession(AsyncSessionBase):
         ] = None,
         execution_options: t.Optional[t.Mapping[str, t.Any]] = None,
         bind_arguments: t.Optional[t.Mapping[str, t.Any]] = None,
-    ) -> t.Optional[t.Any]:
+    ) -> t.Optional[t.Union[sa.Row[t.Any], t.Any]]:
         """
         Return first result of `statement` or ``None`` if no results.
 
@@ -102,7 +103,10 @@ class AsyncSession(AsyncSessionBase):
                 to the ``Session.get_bind`` method.
         """
         result = await self.execute(
-            statement, params, execution_options=execution_options, bind_arguments=bind_arguments
+            statement,
+            params,
+            execution_options=execution_options,  # type: ignore
+            bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
             item = result.first()
@@ -118,7 +122,7 @@ class AsyncSession(AsyncSessionBase):
         ] = None,
         execution_options: t.Optional[t.Mapping[str, t.Any]] = None,
         bind_arguments: t.Optional[t.Mapping[str, t.Any]] = None,
-    ) -> t.Any:
+    ) -> t.Union[sa.Row[t.Any], t.Any]:
         """
         Return exactly one result or raise an exception.
 
@@ -140,7 +144,10 @@ class AsyncSession(AsyncSessionBase):
                 to the ``Session.get_bind`` method.
         """
         result = await self.execute(
-            statement, params, execution_options=execution_options, bind_arguments=bind_arguments
+            statement,
+            params,
+            execution_options=execution_options,  # type: ignore
+            bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
             item = result.one()
@@ -156,7 +163,7 @@ class AsyncSession(AsyncSessionBase):
         ] = None,
         execution_options: t.Optional[t.Mapping[str, t.Any]] = None,
         bind_arguments: t.Optional[t.Mapping[str, t.Any]] = None,
-    ) -> t.Optional[t.Any]:
+    ) -> t.Optional[t.Union[sa.Row[t.Any], t.Any]]:
         """
         Return exactly one result or ``None`` if no results or raise if more than one result.
 
@@ -178,7 +185,10 @@ class AsyncSession(AsyncSessionBase):
                 to the ``Session.get_bind`` method.
         """
         result = await self.execute(
-            statement, params, execution_options=execution_options, bind_arguments=bind_arguments
+            statement,
+            params,
+            execution_options=execution_options,  # type: ignore
+            bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
             item = result.one_or_none()

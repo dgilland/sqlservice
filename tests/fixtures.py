@@ -1,3 +1,4 @@
+# mypy: disable-error-code="var-annotated"
 from pathlib import Path
 import random
 import string
@@ -7,9 +8,16 @@ import pytest
 import pytest_asyncio
 import sqlalchemy as sa
 from sqlalchemy.orm import RelationshipProperty
-from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from sqlservice import AsyncDatabase, Database, ModelBase, as_declarative
+
+
+try:
+    from sqlalchemy.orm.collections import attribute_keyed_dict
+except ImportError:
+    from sqlalchemy.orm.collections import (  # type: ignore
+        attribute_mapped_collection as attribute_keyed_dict,
+    )
 
 
 def unique_id():
@@ -77,7 +85,7 @@ class Item(Model):
     id = sa.Column(sa.Integer(), primary_key=True)
     user_id = sa.Column(sa.Integer(), sa.ForeignKey("users.id"), nullable=False)
 
-    notes = RelationshipProperty("Note", collection_class=attribute_mapped_collection("keyword"))
+    notes = RelationshipProperty("Note", collection_class=attribute_keyed_dict("keyword"))
 
 
 class Note(Model):

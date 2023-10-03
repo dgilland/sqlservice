@@ -30,7 +30,6 @@ class DatabaseSettings(Mapping):
         poolclass: t.Optional[t.Type[Pool]] = None,
         max_overflow: t.Optional[int] = None,
         paramstyle: t.Optional[str] = None,
-        encoding: t.Optional[str] = None,
         execution_options: t.Optional[t.Dict[str, t.Any]] = None,
         echo: t.Optional[t.Union[bool, str]] = None,
         echo_pool: t.Optional[t.Union[bool, str]] = None,
@@ -49,7 +48,6 @@ class DatabaseSettings(Mapping):
         self.poolclass = poolclass
         self.max_overflow = max_overflow
         self.paramstyle = paramstyle
-        self.encoding = encoding
         self.execution_options = execution_options
         self.echo = echo
         self.echo_pool = echo_pool
@@ -61,7 +59,6 @@ class DatabaseSettings(Mapping):
         opts = {
             "echo": self.echo,
             "echo_pool": self.echo_pool,
-            "encoding": self.encoding,
             "isolation_level": self.isolation_level,
             "pool_size": self.pool_size,
             "pool_timeout": self.pool_timeout,

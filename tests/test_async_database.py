@@ -41,7 +41,7 @@ async def test_async_database_ping__returns_true_on_success(async_filedb: AsyncD
 
 async def test_async_database_ping__retries_on_invalidated_connection(async_filedb: AsyncDatabase):
     mocked_scalar = mock.AsyncMock(
-        side_effect=[DBAPIError(None, None, None, connection_invalidated=True), 1]
+        side_effect=[DBAPIError(None, None, Exception(), connection_invalidated=True), 1]
     )
     mocked_engine = create_async_engine_mock(scalar=mocked_scalar)
 
@@ -50,7 +50,7 @@ async def test_async_database_ping__retries_on_invalidated_connection(async_file
 
 
 async def test_async_database_ping__raises_exception_on_failure(async_db: AsyncDatabase):
-    mocked_scalar = mock.AsyncMock(side_effect=DBAPIError(None, None, None))
+    mocked_scalar = mock.AsyncMock(side_effect=DBAPIError(None, None, Exception()))
     mocked_engine = create_async_engine_mock(scalar=mocked_scalar)
 
     with mock_async_db(async_db, engine=mocked_engine):
@@ -62,7 +62,7 @@ async def test_async_database_ping__raises_when_invalidated_connection_retry_fai
     async_db: AsyncDatabase,
 ):
     mocked_scalar = mock.AsyncMock(
-        side_effect=DBAPIError(None, None, None, connection_invalidated=True)
+        side_effect=DBAPIError(None, None, Exception(), connection_invalidated=True)
     )
     mocked_engine = create_async_engine_mock(scalar=mocked_scalar)
 
@@ -253,7 +253,6 @@ def test_async_database_repr(uri: str, rep: str):
         param("max_overflow", 5, "engine"),
         param("paramstyle", "named", "engine"),
         param("execution_options", {}, "engine"),
-        param("encoding", "utf8", "engine"),
         param("echo", True, "engine"),
         param("echo_pool", True, "engine"),
     ],
@@ -289,7 +288,7 @@ def test_async_database_settings__accepts_session_options_dict():
 
 def test_async_database_settings__accepts_engine_options_dict():
     engine_options = {"echo": True}
-    other_options = {"encoding": "utf8", "echo": False}
+    other_options = {"echo": False, "echo_pool": True}
     expected_options = {**other_options, **engine_options}
 
     async_db = AsyncDatabase("sqlite+aiosqlite://", engine_options=engine_options, **other_options)

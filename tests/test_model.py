@@ -200,7 +200,7 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
         param(
             User(id=1, name="n", addresses=[Address(addr="a")]),
             {},
-            [orm.joinedload(User.addresses)],
+            [orm.joinedload(User.addresses)],  # type: ignore
             {
                 "id": 1,
                 "name": "n",

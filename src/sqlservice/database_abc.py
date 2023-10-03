@@ -59,7 +59,7 @@ class DatabaseABC(ABC):
     def models(self) -> t.Dict[str, DeclarativeMeta]:
         """Return dictionary of ORM model classes indexed by class' module path."""
         return {
-            f"{mapper.class_.__module__}.{mapper.class_.__name__}": mapper.class_
+            f"{mapper.class_.__module__}.{mapper.class_.__name__}": mapper.class_  # type: ignore
             for mapper in self.model_class.registry.mappers
         }
 
@@ -69,7 +69,7 @@ class DatabaseABC(ABC):
     def create_sessionmaker(self) -> sessionmaker:
         """Return instance of SQLAlchemy sessionmaker using database settings."""
         return sessionmaker(
-            self.engine,
+            self.engine,  # type: ignore
             class_=self.session_class,
             future=True,
             **self.settings.get_session_options(),

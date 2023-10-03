@@ -145,10 +145,13 @@ class ModelSerializer:
         data = {}
         for key in fields:
             loaded_value = state.attrs[key].loaded_value
-            if loaded_value is NO_VALUE and self.lazyload:
+
+            if (
+                loaded_value is NO_VALUE or loaded_value is orm.LoaderCallableStatus.NO_VALUE
+            ) and self.lazyload:
                 loaded_value = state.attrs[key].value
 
-            if loaded_value is NO_VALUE or (
+            if (loaded_value is NO_VALUE or loaded_value is orm.LoaderCallableStatus.NO_VALUE) or (
                 isinstance(loaded_value, DeclarativeModel) and loaded_value in ctx["seen"]
             ):
                 continue

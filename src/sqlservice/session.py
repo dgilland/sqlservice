@@ -10,7 +10,7 @@ import typing as t
 
 import sqlalchemy as sa
 from sqlalchemy import orm
-from sqlalchemy.sql import ClauseElement, Executable, Select
+from sqlalchemy.sql import ColumnElement, Executable, Select
 
 from .model import DeclarativeModel
 
@@ -34,7 +34,7 @@ class Session(orm.Session):
         ] = None,
         execution_options: t.Optional[t.Mapping[str, t.Any]] = None,
         bind_arguments: t.Optional[t.Mapping[str, t.Any]] = None,
-    ) -> t.List[t.Any]:
+    ) -> t.Sequence[t.Union[sa.Row[t.Any], t.Any]]:
         """
         Return list of objects from execution of `statement`.
 
@@ -59,12 +59,15 @@ class Session(orm.Session):
                 to the ``Session.get_bind`` method.
         """
         result = self.execute(
-            statement, params, execution_options=execution_options, bind_arguments=bind_arguments
+            statement,
+            params,
+            execution_options=execution_options,  # type: ignore
+            bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
             items = result.all()
         else:
-            compile_state = result.raw.context.compiled.compile_state
+            compile_state = result.raw.context.compiled.compile_state  # type: ignore
             if compile_state and compile_state.multi_row_eager_loaders:
                 result = result.unique()
             items = result.scalars().all()
@@ -78,7 +81,7 @@ class Session(orm.Session):
         ] = None,
         execution_options: t.Optional[t.Mapping[str, t.Any]] = None,
         bind_arguments: t.Optional[t.Mapping[str, t.Any]] = None,
-    ) -> t.Optional[t.Any]:
+    ) -> t.Optional[t.Union[sa.Row[t.Any], t.Any]]:
         """
         Return first result of `statement` or ``None`` if no results.
 
@@ -100,7 +103,10 @@ class Session(orm.Session):
                 to the ``Session.get_bind`` method.
         """
         result = self.execute(
-            statement, params, execution_options=execution_options, bind_arguments=bind_arguments
+            statement,
+            params,
+            execution_options=execution_options,  # type: ignore
+            bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
             item = result.first()
@@ -116,7 +122,7 @@ class Session(orm.Session):
         ] = None,
         execution_options: t.Optional[t.Mapping[str, t.Any]] = None,
         bind_arguments: t.Optional[t.Mapping[str, t.Any]] = None,
-    ) -> t.Any:
+    ) -> t.Union[sa.Row[t.Any], t.Any]:
         """
         Return exactly one result or raise an exception.
 
@@ -138,7 +144,10 @@ class Session(orm.Session):
                 to the ``Session.get_bind`` method.
         """
         result = self.execute(
-            statement, params, execution_options=execution_options, bind_arguments=bind_arguments
+            statement,
+            params,
+            execution_options=execution_options,  # type: ignore
+            bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
             item = result.one()
@@ -154,7 +163,7 @@ class Session(orm.Session):
         ] = None,
         execution_options: t.Optional[t.Mapping[str, t.Any]] = None,
         bind_arguments: t.Optional[t.Mapping[str, t.Any]] = None,
-    ) -> t.Optional[t.Any]:
+    ) -> t.Optional[t.Union[sa.Row[t.Any], t.Any]]:
         """
         Return exactly one result or ``None`` if no results or raise if more than one result.
 
@@ -176,7 +185,10 @@ class Session(orm.Session):
                 to the ``Session.get_bind`` method.
         """
         result = self.execute(
-            statement, params, execution_options=execution_options, bind_arguments=bind_arguments
+            statement,
+            params,
+            execution_options=execution_options,  # type: ignore
+            bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
             item = result.one_or_none()
@@ -302,7 +314,7 @@ def model_pk(model: t.Any) -> t.Tuple[t.Any, ...]:
     return mapper.primary_key_from_instance(model)
 
 
-def pk_filter(*models) -> ClauseElement:
+def pk_filter(*models) -> ColumnElement[bool]:
     """
     Return SQL filter expression over primary-key values of given models.
 
@@ -334,7 +346,8 @@ def copy_model_pk(from_model: t.Any, to_model: t.Any) -> None:
     """Transfer primary key value from ``parent_model`` to ``child_model``."""
     mapper: orm.Mapper = sa.inspect(type(from_model))
     attrs_by_col_name = {
-        col_attr.expression.name: attr for attr, col_attr in mapper.column_attrs.items()
+        col_attr.expression.name: attr  # type: ignore
+        for attr, col_attr in mapper.column_attrs.items()
     }
     pk_pairs = zip(mapper.primary_key, mapper.primary_key_from_instance(from_model))
     for col, val in pk_pairs:

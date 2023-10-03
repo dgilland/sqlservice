@@ -57,6 +57,8 @@ class Database(DatabaseABC):
         `SQLAlchemy 1.4 / 2.0 Tutorial <https://docs.sqlalchemy.org/en/14/tutorial/>`_.
     """
 
+    engine: Engine
+
     def __init__(
         self,
         uri: str,
@@ -73,7 +75,6 @@ class Database(DatabaseABC):
         poolclass: t.Optional[t.Type[Pool]] = None,
         max_overflow: t.Optional[int] = None,
         paramstyle: t.Optional[str] = None,
-        encoding: t.Optional[str] = None,
         execution_options: t.Optional[t.Dict[str, t.Any]] = None,
         echo: t.Optional[t.Union[bool, str]] = None,
         echo_pool: t.Optional[t.Union[bool, str]] = None,
@@ -116,8 +117,6 @@ class Database(DatabaseABC):
             paramstyle: The paramstyle to use when rendering bound parameters. Defaults to ``None``
                 which uses the one recommended by the DBAPI. When given it should be one of
                 ``"qmark"``, ``"numeric"``, ``"named"``, ``"format"``, or ``"pyformat"``,
-            encoding: The string encoding used by SQLAlchemy for string encode/decode operations
-                which occur within SQLAlchemy, outside of the DBAPI. Defaults to `utf-8`.
             execution_options: Dictionary of execution options which will be applied to all
                 connections.
             echo: When ``True`` have SQLAlchemy log all SQL statements. When ``"debug"`` the logging
@@ -143,7 +142,6 @@ class Database(DatabaseABC):
             poolclass=poolclass,
             max_overflow=max_overflow,
             paramstyle=paramstyle,
-            encoding=encoding,
             execution_options=execution_options,
             echo=echo,
             echo_pool=echo_pool,
