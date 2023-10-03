@@ -47,7 +47,7 @@ Engine
 
 Nothing fancy here. The :attr:`sqlservice.database.Database.engine`` is created using ``sqlalchemy.create_engine`` under the hood using the database settings provided. Typically, the engine won't be used directly. Instead, database connections and sessions can be created using these methods:
 
-- :meth:`sqlservice.database.Database.connect` - Returns an instance of ``sqlalchemy.future.Connection``
+- :meth:`sqlservice.database.Database.connect` - Returns an instance of ``sqlalchemy.Connection``
 - :meth:`sqlservice.database.Database.session` - Returns an instance of :class:`sqlservice.session.Session`` which is a subclass of ``sqlalchemy.orm.Session``
 - :meth:`sqlservice.database.Database.begin` - Begins a transaction and returns an instance of :class:`sqlservice.session.Session``
 

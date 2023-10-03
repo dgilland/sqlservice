@@ -10,6 +10,7 @@ from contextlib import contextmanager
 import typing as t
 
 from sqlalchemy import create_engine, select
+from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.pool import Pool
 
@@ -17,12 +18,6 @@ from .database_abc import DatabaseABC
 from .database_settings import DatabaseSettings
 from .model import ModelBase, declarative_base
 from .session import Session
-
-
-try:
-    from sqlalchemy.future import Connection, Engine
-except ImportError:  # pragma: no cover
-    from sqlalchemy.engine import Connection, Engine  # type: ignore
 
 
 class Database(DatabaseABC):

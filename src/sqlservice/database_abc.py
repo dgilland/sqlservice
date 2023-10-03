@@ -9,18 +9,12 @@ from abc import ABC, abstractmethod
 import typing as t
 
 from sqlalchemy import MetaData, Table
-from sqlalchemy.engine import URL
+from sqlalchemy.engine import URL, Connection, Engine
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine, AsyncSession
 from sqlalchemy.orm import DeclarativeMeta, Session, sessionmaker
 
 from .database_settings import DatabaseSettings
 from .model import ModelBase
-
-
-try:
-    from sqlalchemy.future import Connection, Engine
-except ImportError:  # pragma: no cover
-    from sqlalchemy.engine import Connection, Engine  # type: ignore
 
 
 class DatabaseABC(ABC):
