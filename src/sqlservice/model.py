@@ -10,15 +10,11 @@ import typing as t
 
 import sqlalchemy as sa
 from sqlalchemy import MetaData, orm
-from sqlalchemy.orm import DeclarativeMeta, declarative_base as _declarative_base
+from sqlalchemy.orm import NO_VALUE, DeclarativeMeta, declarative_base as _declarative_base
 from sqlalchemy.sql import Delete, Insert, Select, Update
-from sqlalchemy.util.langhelpers import symbol
 
 from . import event
 from .utils import is_iterable_but_not_string
-
-
-NO_VALUE = symbol("NO_VALUE")
 
 
 class DeclarativeModel(metaclass=ABCMeta):  # noqa: B024
