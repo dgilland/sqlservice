@@ -1,4 +1,3 @@
-# mypy: disable-error-code="var-annotated"
 from pathlib import Path
 import random
 import string
@@ -7,7 +6,7 @@ import typing as t
 import pytest
 import pytest_asyncio
 import sqlalchemy as sa
-from sqlalchemy.orm import RelationshipProperty
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from sqlservice import AsyncDatabase, Database, ModelBase, as_declarative
 
@@ -40,60 +39,66 @@ class Model(ModelBase):
 class User(Model):
     __tablename__ = "users"
 
-    id = sa.Column(sa.Integer(), primary_key=True)
-    name = sa.Column(sa.String())
-    active = sa.Column(sa.Boolean(), default=True)
+    id: Mapped[int] = mapped_column(sa.Integer(), primary_key=True)
+    name: Mapped[t.Optional[str]] = mapped_column(sa.String())
+    active: Mapped[bool] = mapped_column(sa.Boolean(), default=True)
 
-    addresses = RelationshipProperty("Address", back_populates="user")
-    group_memberships = RelationshipProperty("GroupMembership", back_populates="user")
-    items = RelationshipProperty("Item")
+    addresses: Mapped[t.List["Address"]] = relationship("Address", back_populates="user")
+    group_memberships: Mapped[t.List["GroupMembership"]] = relationship(
+        "GroupMembership", back_populates="user"
+    )
+    items: Mapped[t.List["GroupMembership"]] = relationship("Item")
 
 
 class Address(Model):
     __tablename__ = "addresses"
 
-    id = sa.Column(sa.Integer(), primary_key=True)
-    user_id = sa.Column(sa.Integer(), sa.ForeignKey("users.id"), nullable=False)
-    addr = sa.Column(sa.String())
-    zip_code = sa.Column(sa.String())
+    id: Mapped[int] = mapped_column(sa.Integer(), primary_key=True)
+    user_id: Mapped[int] = mapped_column(sa.Integer(), sa.ForeignKey("users.id"), nullable=False)
+    addr: Mapped[t.Optional[str]] = mapped_column(sa.String())
+    zip_code: Mapped[t.Optional[str]] = mapped_column(sa.String())
 
-    user = RelationshipProperty("User", back_populates="addresses")
+    user: Mapped[User] = relationship("User", back_populates="addresses")
 
 
 class Group(Model):
     __tablename__ = "groups"
 
-    id = sa.Column(sa.types.Integer(), primary_key=True)
-    name = sa.Column(sa.types.String(), unique=True)
+    id: Mapped[int] = mapped_column(sa.types.Integer(), primary_key=True)
+    name: Mapped[str] = mapped_column(sa.types.String(), unique=True)
 
-    memberships = RelationshipProperty("GroupMembership", back_populates="group")
+    memberships: Mapped[t.List["GroupMembership"]] = relationship(
+        "GroupMembership", back_populates="group"
+    )
 
 
 class GroupMembership(Model):
     __tablename__ = "group_memberships"
 
-    group_id = sa.Column(sa.Integer(), sa.ForeignKey("groups.id"), primary_key=True)
-    user_id = sa.Column(sa.Integer(), sa.ForeignKey("users.id"), primary_key=True)
+    group_id = mapped_column(sa.Integer(), sa.ForeignKey("groups.id"), primary_key=True)
+    user_id = mapped_column(sa.Integer(), sa.ForeignKey("users.id"), primary_key=True)
 
-    user = RelationshipProperty("User", back_populates="group_memberships")
-    group = RelationshipProperty("Group", back_populates="memberships")
+    user: Mapped[User] = relationship("User", back_populates="group_memberships")
+    group: Mapped[Group] = relationship("Group", back_populates="memberships")
 
 
 class Item(Model):
     __tablename__ = "items"
 
-    id = sa.Column(sa.Integer(), primary_key=True)
-    user_id = sa.Column(sa.Integer(), sa.ForeignKey("users.id"), nullable=False)
+    id: Mapped[int] = mapped_column(sa.Integer(), primary_key=True)
+    user_id: Mapped[int] = mapped_column(sa.Integer(), sa.ForeignKey("users.id"), nullable=False)
 
-    notes = RelationshipProperty("Note", collection_class=attribute_keyed_dict("keyword"))
+    notes: Mapped[t.List["Note"]] = relationship(
+        "Note", collection_class=attribute_keyed_dict("keyword")
+    )
 
 
 class Note(Model):
     __tablename__ = "notes"
 
-    id = sa.Column(sa.Integer(), primary_key=True)
-    item_id = sa.Column(sa.Integer(), sa.ForeignKey("items.id"), nullable=False)
-    keyword = sa.Column(sa.String())
+    id: Mapped[int] = mapped_column(sa.Integer(), primary_key=True)
+    item_id: Mapped[int] = mapped_column(sa.Integer(), sa.ForeignKey("items.id"), nullable=False)
+    keyword: Mapped[str] = mapped_column(sa.String())
 
 
 @pytest.fixture()
