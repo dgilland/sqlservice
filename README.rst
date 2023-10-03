@@ -183,7 +183,7 @@ For more details, please see the full documentation at http://sqlservice.readthe
 .. |version| image:: http://img.shields.io/pypi/v/sqlservice.svg?style=flat-square
     :target: https://pypi.python.org/pypi/sqlservice/
 
-.. |build| image:: https://img.shields.io/github/workflow/status/dgilland/sqlservice/Main/master?style=flat-square
+.. |build| image:: https://img.shields.io/github/actions/workflow/status/dgilland/sqlservice/main.yml?branch=master&style=flat-square
     :target: https://github.com/dgilland/sqlservice/actions
 
 .. |coveralls| image:: http://img.shields.io/coveralls/dgilland/sqlservice/master.svg?style=flat-square
