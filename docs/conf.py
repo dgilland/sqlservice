@@ -12,23 +12,15 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(".."))
 
 # -- Project information -----------------------------------------------------
 
-from email import message_from_string
-from pkg_resources import get_distribution
+try:
+    import importlib.metadata as importlib_metadata
+except ImportError:  # Python 3.7
+    import importlib_metadata
 
-dist = get_distribution("sqlservice")
-
-if hasattr(dist, "_parsed_pkg_info"):
-    pkg_info = dict(dist._parsed_pkg_info)
-else:
-    pkg_info = dict(message_from_string("\n".join(dist._get_metadata("PKG-INFO"))))
+pkg_info = importlib_metadata.metadata("sqlservice")
 
 project = pkg_info["Name"]
 author = pkg_info["Author"]
@@ -39,6 +31,7 @@ copyright = "2016, " + author
 version = pkg_info["Version"]
 # The full version, including alpha/beta/rc tags
 release = version
+
 
 # -- General configuration ---------------------------------------------------
 
@@ -88,6 +81,7 @@ pygments_style = "sphinx"
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
 
+
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -122,22 +116,24 @@ html_theme = "furo"
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + "doc"
 
+
 # -- Options for LaTeX output ------------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    # 'papersize': 'letterpaper',
+    #'papersize': 'letterpaper',
     # The font size ('10pt', '11pt' or '12pt').
     #
-    # 'pointsize': '10pt',
+    #'pointsize': '10pt',
     # Additional stuff for the LaTeX preamble.
     #
-    # 'preamble': '',
+    #'preamble': '',
     # Latex figure (float) alignment
     #
-    # 'figure_align': 'htbp',
+    #'figure_align': 'htbp',
 }
+
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
@@ -146,11 +142,13 @@ latex_documents = [
     (master_doc, project + ".tex", project + " Documentation", author, "manual"),
 ]
 
+
 # -- Options for manual page output ------------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [(master_doc, project, project + " Documentation", [author], 1)]
+
 
 # -- Options for Texinfo output ----------------------------------------------
 
@@ -168,5 +166,6 @@ texinfo_documents = [
         "Miscellaneous",
     ),
 ]
+
 
 # -- Extension configuration -------------------------------------------------
