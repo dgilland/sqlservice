@@ -11,6 +11,7 @@ from sqlalchemy.sql import Executable
 
 from .model import DeclarativeModel
 from .session import copy_model_pk, iter_mergeable_models_by_class, model_pk
+from .utils import maybe_apply_unique_filtering
 
 
 T = t.TypeVar("T")
@@ -65,11 +66,11 @@ class AsyncSession(AsyncSessionBase):
             bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
+            # Non-ORM model query.
             items = result.all()
         else:
-            compile_state = result.raw.context.compiled.compile_state  # type: ignore
-            if compile_state and compile_state.multi_row_eager_loaders:
-                result = result.unique()
+            # ORM model query.
+            result = maybe_apply_unique_filtering(result)
             items = result.scalars().all()
         return items
 
@@ -109,8 +110,11 @@ class AsyncSession(AsyncSessionBase):
             bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
+            # Non-ORM model query.
             item = result.first()
         else:
+            # ORM model query.
+            result = maybe_apply_unique_filtering(result)
             item = result.scalar()
         return item
 
@@ -150,8 +154,11 @@ class AsyncSession(AsyncSessionBase):
             bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
+            # Non-ORM model query.
             item = result.one()
         else:
+            # ORM model query.
+            result = maybe_apply_unique_filtering(result)
             item = result.scalar_one()
         return item
 
@@ -191,8 +198,11 @@ class AsyncSession(AsyncSessionBase):
             bind_arguments=bind_arguments,  # type: ignore
         )
         if isinstance(result, sa.engine.CursorResult):
+            # Non-ORM model query.
             item = result.one_or_none()
         else:
+            # ORM model query.
+            result = maybe_apply_unique_filtering(result)
             item = result.scalar_one_or_none()
         return item
 
@@ -262,9 +272,11 @@ class AsyncSession(AsyncSessionBase):
             raise TypeError(f"save_all not supported for objects of types {invalid_types}")
 
         for model_group, select_models_stmt in iter_mergeable_models_by_class(models):
-            results = (await self.execute(select_models_stmt)).scalars()
-            existing_models_by_pk = {model_pk(model): model for model in results}
+            result = await self.execute(select_models_stmt)
+            result = maybe_apply_unique_filtering(result)
+            items = result.scalars()
 
+            existing_models_by_pk = {model_pk(model): model for model in items}
             for idx, pk, model in model_group:
                 # pylint: disable=unsupported-membership-test
                 if model not in self and pk in existing_models_by_pk:

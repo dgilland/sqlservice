@@ -74,10 +74,7 @@ def test_as_declarative__can_override_defaults():
 def test_model_select():
     expr = User.select()
     assert isinstance(expr, Select)
-    if hasattr(expr, "get_final_froms"):
-        froms = expr.get_final_froms()
-    else:
-        froms = expr.froms
+    froms = expr.get_final_froms()
     assert froms == [User.__table__]
 
 
