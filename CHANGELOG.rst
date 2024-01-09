@@ -2,6 +2,11 @@ Changelog
 =========
 
 
+- Fix bug in Session/AsynSession methods ``first()``, ``one()``, ``one_or_none()``, ``save()``, and ``save_all()`` that would result in ``sqlalchemy.exc.InvalidRequestError`` due to ``unique()`` not being applied to the results.
+- Add support for Python 3.11 and 3.12.
+- Drop support for SQLAlchemy < 2.0. (**breaking change**)
+
+
 v2.0.1 (2022-10-11)
 -------------------
 
