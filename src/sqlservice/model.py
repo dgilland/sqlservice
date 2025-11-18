@@ -63,7 +63,11 @@ class ModelBase:
         return self.__mapper__.primary_key_from_instance(self)
 
     def to_dict(
-        self, *, exclude_relationships: bool = False, lazyload: bool = False
+        self,
+        *,
+        exclude_relationships: bool = False,
+        lazyload: bool = False,
+        max_depth: t.Optional[int] = None,
     ) -> t.Dict[str, t.Any]:
         """
         Serialize ORM loaded data to dictionary.
@@ -74,8 +78,13 @@ class ModelBase:
         By default, only table columns will be included. To include relationship fields, set
         ``include_relationships=True``. This will nest ``to_dict()`` calls to the relationship
         models.
+
+        ``max_depth``: Maximum depth for nested relationships. ``None`` means unlimited.
+        ``0`` = no relationships, ``1`` = one level, etc.
         """
-        serializer = ModelSerializer(exclude_relationships=exclude_relationships, lazyload=lazyload)
+        serializer = ModelSerializer(
+            exclude_relationships=exclude_relationships, lazyload=lazyload, max_depth=max_depth
+        )
         return serializer.to_dict(self)
 
     def __iter__(self):
@@ -110,12 +119,19 @@ class ModelBase:
 
 
 class ModelSerializer:
-    def __init__(self, *, exclude_relationships: bool = False, lazyload: bool = False):
+    def __init__(
+        self,
+        *,
+        exclude_relationships: bool = False,
+        lazyload: bool = False,
+        max_depth: t.Optional[int] = None,
+    ):
         self.exclude_relationships = exclude_relationships
         self.lazyload = lazyload
+        self.max_depth = max_depth
 
     def to_dict(self, model: ModelBase) -> t.Dict[str, t.Any]:
-        ctx: t.Dict[str, t.Any] = {"seen": set()}
+        ctx: t.Dict[str, t.Any] = {"seen": set(), "cache": {}, "depth": 0}
         return self.from_value(ctx, model)
 
     def from_value(self, ctx: dict, value: t.Any) -> t.Any:
@@ -129,16 +145,35 @@ class ModelSerializer:
 
     def from_model(self, ctx: dict, value: t.Any) -> t.Dict[str, t.Any]:
         ctx.setdefault("seen", set())
+        ctx.setdefault("cache", {})
+        ctx.setdefault("depth", 0)
+
+        # Return the cached data if the model has already been seen
+        if value in ctx["seen"]:
+            # Return the cached data to break the cycle
+            return ctx["cache"][id(value)].copy()
+
+        # Add the model to the seen and path
         ctx["seen"].add(value)
+
+        data: t.Dict[str, t.Any] = {}
+        ctx["cache"][id(value)] = data
 
         state: orm.state.InstanceState = sa.inspect(value)
         mapper: orm.Mapper = sa.inspect(type(value))
 
+        current_depth = ctx["depth"]
+        include_relationships = not self.exclude_relationships
+
+        # If max_depth is set, and the current depth is greater than or equal to max_depth,
+        # exclude relationships
+        if self.max_depth is not None and current_depth >= self.max_depth:
+            include_relationships = False
+
         fields = mapper.columns.keys()
-        if not self.exclude_relationships:
+        if include_relationships:
             fields += mapper.relationships.keys()
 
-        data = {}
         for key in fields:
             loaded_value = state.attrs[key].loaded_value
 
@@ -152,7 +187,14 @@ class ModelSerializer:
             ):
                 continue
 
+            is_relationship = key in mapper.relationships.keys()
+            if is_relationship:
+                ctx["depth"] += 1
+
             data[key] = self.from_value(ctx, loaded_value)
+
+            if is_relationship:
+                ctx["depth"] -= 1
 
         return data
 
