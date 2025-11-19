@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from contextlib import contextmanager
 from pathlib import Path
 import typing as t
@@ -69,12 +70,14 @@ def test_database_ping__raises_when_invalidated_connection_retry_fails(db: Datab
             db.ping()
 
 
-def test_database_create_all():
+def test_database_create_all(request: pytest.FixtureRequest):
     model_collection = create_model_collection()
     model_class = model_collection["model_class"]
     model_tables = model_collection["tables"]
 
     db = Database("sqlite://", model_class=model_class)
+    request.addfinalizer(lambda: db.close())
+
     db.create_all()
 
     with db.connect() as conn:
@@ -86,22 +89,24 @@ def test_database_create_all():
         assert table_name in db.tables
 
 
-def test_database_drop_all():
+def test_database_drop_all(request: pytest.FixtureRequest):
     model_collection = create_model_collection()
     model_class = model_collection["model_class"]
     model_tables = model_collection["tables"]
 
     db = Database("sqlite://", model_class=model_class)
-    conn = db.connect()
-    db.create_all()
+    request.addfinalizer(lambda: db.close())
 
-    count_tables = sa.text("SELECT COUNT(name) FROM sqlite_master")
-    assert conn.execute(count_tables).scalar_one() == len(model_tables)
-    db.drop_all()
-    assert conn.execute(count_tables).scalar_one() == 0
+    with db.connect() as conn:
+        db.create_all()
+
+        count_tables = sa.text("SELECT COUNT(name) FROM sqlite_master")
+        assert conn.execute(count_tables).scalar_one() == len(model_tables)
+        db.drop_all()
+        assert conn.execute(count_tables).scalar_one() == 0
 
 
-def test_database_reflect(tmp_path: Path):
+def test_database_reflect(request: pytest.FixtureRequest, tmp_path: Path):
     db_file = tmp_path / "reflect.db"
     uri = f"sqlite:///{db_file}"
 
@@ -109,8 +114,13 @@ def test_database_reflect(tmp_path: Path):
     model_class = model_collection["model_class"]
     model_tables = model_collection["tables"]
 
-    Database(uri, model_class=model_class).create_all()
+    source_db = Database(uri, model_class=model_class)
+    request.addfinalizer(lambda: source_db.close())
+    source_db.create_all()
+
     db = Database(uri)
+    request.addfinalizer(lambda: db.close())
+
     assert len(db.tables) == 0
 
     db.reflect()
@@ -122,12 +132,14 @@ def test_database_reflect(tmp_path: Path):
         assert table_name in model_tables_by_name
 
 
-def test_database_tables():
+def test_database_tables(request: pytest.FixtureRequest):
     model_collection = create_model_collection()
     model_class = model_collection["model_class"]
     model_tables = model_collection["tables"]
 
     db = Database("sqlite://", model_class=model_class)
+    request.addfinalizer(lambda: db.close())
+
     assert len(db.tables) == len(model_tables)
 
     for table_name, table in db.tables.items():
@@ -136,12 +148,14 @@ def test_database_tables():
         assert model_table.name == table_name
 
 
-def test_database_models():
+def test_database_models(request: pytest.FixtureRequest):
     model_collection = create_model_collection()
     model_class = model_collection["model_class"]
     models = model_collection["models"]
 
     db = Database("sqlite://", model_class=model_class)
+    request.addfinalizer(lambda: db.close())
+
     assert len(db.models) == len(models)
 
     for _model_name, model in db.models.items():
@@ -149,12 +163,15 @@ def test_database_models():
         assert model is orig_model
 
 
-def test_database_session__returns_new_session_object(db: Database):
+def test_database_session__returns_new_session_object(request: pytest.FixtureRequest, db: Database):
     session = db.session()
+    request.addfinalizer(lambda: session.close())
+
     assert isinstance(session, Session)
     assert not session.in_transaction()
 
     other_session = db.session()
+    request.addfinalizer(lambda: other_session.close())
     assert other_session is not session
 
 
@@ -169,17 +186,18 @@ def test_database_session__returns_new_session_object(db: Database):
 def test_database_session__can_override_default_options(
     db: Database, option, default_value, override_value
 ):
-    session = db.session()
-    option_value = getattr(session, option)
-    assert (
-        option_value == default_value
-    ), f"Expected session.{option} to be {default_value!r}, not {option_value!r}"
+    with db.session() as session:
+        option_value = getattr(session, option)
+        assert (
+            option_value == default_value
+        ), f"Expected session.{option} to be {default_value!r}, not {option_value!r}"
 
-    session = db.session(**{option: override_value})
-    option_value = getattr(session, option)
-    assert (
-        option_value == override_value
-    ), f"Expected session.{option} to be {override_value!r}, not {option_value!r}"
+    with db.session() as session:
+        session = db.session(**{option: override_value})
+        option_value = getattr(session, option)
+        assert (
+            option_value == override_value
+        ), f"Expected session.{option} to be {override_value!r}, not {option_value!r}"
 
 
 def test_database_begin__starts_new_transaction(db: Database):
@@ -273,24 +291,27 @@ def test_database_settings(key: str, value: t.Any, kind: str):
         raise RuntimeError(f"kind must be one of 'session' or 'engine', not {kind!r}")
 
 
-def test_database_settings__accepts_session_options_dict():
+def test_database_settings__accepts_session_options_dict(request: pytest.FixtureRequest):
     session_options = {"autoflush": False}
-    other_options = {"expire_on_commit": True, "autoflush": True}
+    other_options: Mapping = {"expire_on_commit": True, "autoflush": True}
     expected_options = {**other_options, **session_options}
 
     db = Database("sqlite://", session_options=session_options, **other_options)
+    request.addfinalizer(lambda: db.close())
     assert db.settings.get_session_options() == expected_options
 
 
-def test_database_settings__accepts_engine_options_dict():
+def test_database_settings__accepts_engine_options_dict(request: pytest.FixtureRequest):
     engine_options = {"echo": True}
-    other_options = {"echo": False, "echo_pool": True}
+    other_options: Mapping = {"echo": False, "echo_pool": True}
     expected_options = {**other_options, **engine_options}
 
     db = Database("sqlite://", engine_options=engine_options, **other_options)
+    request.addfinalizer(lambda: db.close())
     assert db.settings.get_engine_options() == expected_options
 
 
-def test_database_settings__len():
+def test_database_settings__len(request: pytest.FixtureRequest):
     db = Database("sqlite://")
+    request.addfinalizer(lambda: db.close())
     assert len(db.settings) == len(db.settings.__dict__)

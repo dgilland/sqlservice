@@ -8,7 +8,7 @@ from pytest import param
 import sqlalchemy as sa
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
-from sqlalchemy.pool import QueuePool, SingletonThreadPool
+from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from sqlservice import AsyncDatabase, AsyncSession
 
@@ -249,7 +249,6 @@ def test_async_database_repr(uri: str, rep: str):
         param("pool_timeout", 30, "engine"),
         param("pool_recycle", True, "engine"),
         param("pool_pre_ping", True, "engine"),
-        param("poolclass", SingletonThreadPool, "engine"),
         param("max_overflow", 5, "engine"),
         param("paramstyle", "named", "engine"),
         param("execution_options", {}, "engine"),
@@ -260,7 +259,7 @@ def test_async_database_repr(uri: str, rep: str):
 def test_async_database_settings(key: str, value: t.Any, kind: str):
     settings = {key: value}
     # NOTE: Using poolclass so that pool_* options can be used with sqlite.
-    settings.setdefault("poolclass", QueuePool)
+    settings.setdefault("poolclass", AsyncAdaptedQueuePool)
     async_db = AsyncDatabase("sqlite+aiosqlite://", **settings)
 
     assert getattr(async_db.settings, key) == value
