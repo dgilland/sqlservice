@@ -339,7 +339,7 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                 created_by_user=User(id=1, name="n"),
                 updated_by_user=User(id=2, name="n"),
             ),
-            {"lazyload": True, "max_depth": 1},
+            {"lazyload": True, "exclude_nested_relationships": True},
             [],
             {
                 "id": 1,
@@ -358,7 +358,7 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                 created_by_user=User(id=1, name="n"),
                 updated_by_user=User(id=2, name="n"),
             ),
-            {"lazyload": True, "max_depth": 2},
+            {"lazyload": True, "include_nested_relationships": True},
             [],
             {
                 "id": 1,

@@ -67,7 +67,8 @@ class ModelBase:
         *,
         exclude_relationships: bool = False,
         lazyload: bool = False,
-        max_depth: t.Optional[int] = None,
+        exclude_nested_relationships: bool = False,
+        include_nested_relationships: bool = False,
     ) -> t.Dict[str, t.Any]:
         """
         Serialize ORM loaded data to dictionary.
@@ -79,11 +80,14 @@ class ModelBase:
         ``include_relationships=True``. This will nest ``to_dict()`` calls to the relationship
         models.
 
-        ``max_depth``: Maximum depth for nested relationships. ``None`` means unlimited.
-        ``0`` = no relationships, ``1`` = one level, etc.
+        ``exclude_nested_relationships``: Exclude nested relationships. Defaults to ``False``.
+        ``include_nested_relationships``: Include nested relationships. Defaults to ``False``.
         """
         serializer = ModelSerializer(
-            exclude_relationships=exclude_relationships, lazyload=lazyload, max_depth=max_depth
+            exclude_relationships=exclude_relationships,
+            lazyload=lazyload,
+            exclude_nested_relationships=exclude_nested_relationships,
+            include_nested_relationships=include_nested_relationships,
         )
         return serializer.to_dict(self)
 
@@ -124,11 +128,13 @@ class ModelSerializer:
         *,
         exclude_relationships: bool = False,
         lazyload: bool = False,
-        max_depth: t.Optional[int] = None,
+        exclude_nested_relationships: bool = False,
+        include_nested_relationships: bool = False,
     ):
         self.exclude_relationships = exclude_relationships
         self.lazyload = lazyload
-        self.max_depth = max_depth
+        self.exclude_nested_relationships = exclude_nested_relationships
+        self.include_nested_relationships = include_nested_relationships
 
     def to_dict(self, model: ModelBase) -> t.Dict[str, t.Any]:
         ctx: t.Dict[str, t.Any] = {"seen": set(), "cache": {}, "depth": 0}
@@ -165,10 +171,11 @@ class ModelSerializer:
         current_depth = ctx["depth"]
         include_relationships = not self.exclude_relationships
 
-        # If max_depth is set, and the current depth is greater than or equal to max_depth,
-        # exclude relationships
-        if self.max_depth is not None and current_depth >= self.max_depth:
-            include_relationships = False
+        if current_depth > 0:
+            if self.include_nested_relationships:
+                include_relationships = True
+            elif self.exclude_nested_relationships:
+                include_relationships = False
 
         fields = mapper.columns.keys()
         if include_relationships:
