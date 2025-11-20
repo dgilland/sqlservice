@@ -67,7 +67,6 @@ class ModelBase:
         *,
         exclude_relationships: bool = False,
         lazyload: bool = False,
-        exclude_nested_relationships: bool = False,
         include_nested_relationships: bool = False,
     ) -> t.Dict[str, t.Any]:
         """
@@ -76,17 +75,14 @@ class ModelBase:
         Only the loaded data, i.e. data previously fetched from the database, will be serialized.
         Lazy-loaded columns and relationships will be excluded to avoid extra database queries.
 
-        By default, only table columns will be included. To include relationship fields, set
-        ``include_relationships=True``. This will nest ``to_dict()`` calls to the relationship
-        models.
+        By default, only table columns will be included. To exclude relationships, set
+        ``exclude_relationships=True``.
 
-        ``exclude_nested_relationships``: Exclude nested relationships. Defaults to ``False``.
-        ``include_nested_relationships``: Include nested relationships. Defaults to ``False``.
+        To include nested relationships, set ``include_nested_relationships=True``.
         """
         serializer = ModelSerializer(
             exclude_relationships=exclude_relationships,
             lazyload=lazyload,
-            exclude_nested_relationships=exclude_nested_relationships,
             include_nested_relationships=include_nested_relationships,
         )
         return serializer.to_dict(self)
@@ -128,12 +124,10 @@ class ModelSerializer:
         *,
         exclude_relationships: bool = False,
         lazyload: bool = False,
-        exclude_nested_relationships: bool = False,
         include_nested_relationships: bool = False,
     ):
         self.exclude_relationships = exclude_relationships
         self.lazyload = lazyload
-        self.exclude_nested_relationships = exclude_nested_relationships
         self.include_nested_relationships = include_nested_relationships
 
     def to_dict(self, model: ModelBase) -> t.Dict[str, t.Any]:
@@ -172,10 +166,7 @@ class ModelSerializer:
         include_relationships = not self.exclude_relationships
 
         if current_depth > 0:
-            if self.include_nested_relationships:
-                include_relationships = True
-            elif self.exclude_nested_relationships:
-                include_relationships = False
+            include_relationships = self.include_nested_relationships
 
         fields = mapper.columns.keys()
         if include_relationships:

@@ -247,7 +247,7 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                     GroupMembership(group=Group(name="g2")),
                 ],
             ),
-            {},
+            {"include_nested_relationships": True},
             [orm.joinedload("*")],
             {
                 "id": 1,
@@ -286,7 +286,7 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                     )
                 ],
             ),
-            {"lazyload": True},
+            {"lazyload": True, "include_nested_relationships": True},
             [orm.lazyload("*")],
             {
                 "id": 1,
@@ -339,7 +339,7 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                 created_by_user=User(id=1, name="n"),
                 updated_by_user=User(id=2, name="n"),
             ),
-            {"lazyload": True, "exclude_nested_relationships": True},
+            {"lazyload": True},
             [],
             {
                 "id": 1,
@@ -349,7 +349,24 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                 "created_by_user": {"id": 1, "name": "n", "active": True},
                 "updated_by_user": {"id": 2, "name": "n", "active": True},
             },
-            id="circular_reference_lazy_loaded",
+            id="exclude_nested_relationships_lazy_loaded_with_circular_reference",
+        ),
+        param(
+            Book(
+                id=1,
+                title="t",
+                created_by_user=User(id=1, name="n"),
+                updated_by_user=User(id=2, name="n"),
+            ),
+            {},
+            [],
+            {
+                "id": 1,
+                "title": "t",
+                "created_by": 1,
+                "updated_by": 2,
+            },
+            id="exclude_nested_relationships_with_circular_reference",
         ),
         param(
             Book(
@@ -405,7 +422,7 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                     ],
                 },
             },
-            id="circular_reference_lazy_loaded_with_max_depth",
+            id="include_nested_relationships_lazy_loaded_with_circular_reference",
         ),
     ],
 )
