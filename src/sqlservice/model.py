@@ -75,13 +75,13 @@ class ModelBase:
         Only the loaded data, i.e. data previously fetched from the database, will be serialized.
         Lazy-loaded columns and relationships will be excluded to avoid extra database queries.
 
-        By default, table columns and relationships will be included while nested relationships
-        will be excluded. To exclude relationships, set ``exclude_relationships=True``. To
-        include nested relationships, set ``include_nested_relationships=True``.
+        By default, table columns and relationships will be included while nested relationships will
+        be excluded. To exclude relationships, set ``exclude_relationships=True``. To include nested
+        relationships, set ``include_nested_relationships=True``.
         """
         serializer = ModelSerializer(
-            exclude_relationships=exclude_relationships,
             lazyload=lazyload,
+            exclude_relationships=exclude_relationships,
             include_nested_relationships=include_nested_relationships,
         )
         return serializer.to_dict(self)
