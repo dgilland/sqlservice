@@ -65,8 +65,8 @@ class ModelBase:
     def to_dict(
         self,
         *,
-        exclude_relationships: bool = False,
         lazyload: bool = False,
+        exclude_relationships: bool = False,
         include_nested_relationships: bool = False,
     ) -> t.Dict[str, t.Any]:
         """
@@ -75,10 +75,9 @@ class ModelBase:
         Only the loaded data, i.e. data previously fetched from the database, will be serialized.
         Lazy-loaded columns and relationships will be excluded to avoid extra database queries.
 
-        By default, only table columns will be included. To exclude relationships, set
-        ``exclude_relationships=True``.
-
-        To include nested relationships, set ``include_nested_relationships=True``.
+        By default, table columns and relationships will be included while nested relationships
+        will be excluded. To exclude relationships, set ``exclude_relationships=True``. To
+        include nested relationships, set ``include_nested_relationships=True``.
         """
         serializer = ModelSerializer(
             exclude_relationships=exclude_relationships,
@@ -122,12 +121,12 @@ class ModelSerializer:
     def __init__(
         self,
         *,
-        exclude_relationships: bool = False,
         lazyload: bool = False,
+        exclude_relationships: bool = False,
         include_nested_relationships: bool = False,
     ):
-        self.exclude_relationships = exclude_relationships
         self.lazyload = lazyload
+        self.exclude_relationships = exclude_relationships
         self.include_nested_relationships = include_nested_relationships
 
     def to_dict(self, model: ModelBase) -> t.Dict[str, t.Any]:
