@@ -63,7 +63,11 @@ class ModelBase:
         return self.__mapper__.primary_key_from_instance(self)
 
     def to_dict(
-        self, *, exclude_relationships: bool = False, lazyload: bool = False
+        self,
+        *,
+        lazyload: bool = False,
+        exclude_relationships: bool = False,
+        include_nested_relationships: bool = False,
     ) -> t.Dict[str, t.Any]:
         """
         Serialize ORM loaded data to dictionary.
@@ -71,11 +75,15 @@ class ModelBase:
         Only the loaded data, i.e. data previously fetched from the database, will be serialized.
         Lazy-loaded columns and relationships will be excluded to avoid extra database queries.
 
-        By default, only table columns will be included. To include relationship fields, set
-        ``include_relationships=True``. This will nest ``to_dict()`` calls to the relationship
-        models.
+        By default, table columns and relationships will be included while nested relationships
+        will be excluded. To exclude relationships, set ``exclude_relationships=True``. To
+        include nested relationships, set ``include_nested_relationships=True``.
         """
-        serializer = ModelSerializer(exclude_relationships=exclude_relationships, lazyload=lazyload)
+        serializer = ModelSerializer(
+            exclude_relationships=exclude_relationships,
+            lazyload=lazyload,
+            include_nested_relationships=include_nested_relationships,
+        )
         return serializer.to_dict(self)
 
     def __iter__(self):
@@ -110,12 +118,19 @@ class ModelBase:
 
 
 class ModelSerializer:
-    def __init__(self, *, exclude_relationships: bool = False, lazyload: bool = False):
-        self.exclude_relationships = exclude_relationships
+    def __init__(
+        self,
+        *,
+        lazyload: bool = False,
+        exclude_relationships: bool = False,
+        include_nested_relationships: bool = False,
+    ):
         self.lazyload = lazyload
+        self.exclude_relationships = exclude_relationships
+        self.include_nested_relationships = include_nested_relationships
 
     def to_dict(self, model: ModelBase) -> t.Dict[str, t.Any]:
-        ctx: t.Dict[str, t.Any] = {"seen": set()}
+        ctx: t.Dict[str, t.Any] = {"seen": set(), "cache": {}, "depth": 0}
         return self.from_value(ctx, model)
 
     def from_value(self, ctx: dict, value: t.Any) -> t.Any:
@@ -129,16 +144,33 @@ class ModelSerializer:
 
     def from_model(self, ctx: dict, value: t.Any) -> t.Dict[str, t.Any]:
         ctx.setdefault("seen", set())
+        ctx.setdefault("cache", {})
+        ctx.setdefault("depth", 0)
+
+        # Return the cached data if the model has already been seen
+        if value in ctx["seen"]:
+            # Return the cached data to break the cycle
+            return ctx["cache"][id(value)].copy()
+
+        # Add the model to the seen and path
         ctx["seen"].add(value)
+
+        data: t.Dict[str, t.Any] = {}
+        ctx["cache"][id(value)] = data
 
         state: orm.state.InstanceState = sa.inspect(value)
         mapper: orm.Mapper = sa.inspect(type(value))
 
+        current_depth = ctx["depth"]
+        include_relationships = not self.exclude_relationships
+
+        if current_depth > 0:
+            include_relationships = self.include_nested_relationships
+
         fields = mapper.columns.keys()
-        if not self.exclude_relationships:
+        if include_relationships:
             fields += mapper.relationships.keys()
 
-        data = {}
         for key in fields:
             loaded_value = state.attrs[key].loaded_value
 
@@ -152,7 +184,14 @@ class ModelSerializer:
             ):
                 continue
 
+            is_relationship = key in mapper.relationships.keys()
+            if is_relationship:
+                ctx["depth"] += 1
+
             data[key] = self.from_value(ctx, loaded_value)
+
+            if is_relationship:
+                ctx["depth"] -= 1
 
         return data
 

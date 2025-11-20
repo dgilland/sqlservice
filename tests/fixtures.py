@@ -36,6 +36,21 @@ class Model(ModelBase):
     pass
 
 
+class Book(Model):
+    __tablename__ = "books"
+
+    id: Mapped[int] = mapped_column(sa.Integer(), primary_key=True)
+    title: Mapped[str] = mapped_column(sa.String())
+    created_by: Mapped[int] = mapped_column(sa.Integer(), sa.ForeignKey("users.id"), nullable=False)
+    created_by_user: Mapped["User"] = relationship(
+        "User", foreign_keys=[created_by], back_populates="created_books"
+    )
+    updated_by: Mapped[int] = mapped_column(sa.Integer(), sa.ForeignKey("users.id"), nullable=False)
+    updated_by_user: Mapped["User"] = relationship(
+        "User", foreign_keys=[updated_by], back_populates="updated_books"
+    )
+
+
 class User(Model):
     __tablename__ = "users"
 
@@ -48,6 +63,12 @@ class User(Model):
         "GroupMembership", back_populates="user"
     )
     items: Mapped[t.List["GroupMembership"]] = relationship("Item")
+    created_books: Mapped[t.List["Book"]] = relationship(
+        "Book", foreign_keys=[Book.created_by], back_populates="created_by_user"
+    )
+    updated_books: Mapped[t.List["Book"]] = relationship(
+        "Book", foreign_keys=[Book.updated_by], back_populates="updated_by_user"
+    )
 
 
 class Address(Model):

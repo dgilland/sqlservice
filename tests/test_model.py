@@ -9,7 +9,7 @@ from sqlalchemy.sql import Delete, Insert, Select, Update
 
 from sqlservice import Database, ModelBase, ModelMeta, as_declarative, declarative_base
 
-from .fixtures import Address, Group, GroupMembership, Item, Note, User
+from .fixtures import Address, Book, Group, GroupMembership, Item, Note, User
 
 
 parametrize = pytest.mark.parametrize
@@ -217,6 +217,8 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                 "addresses": [{"id": 1, "user_id": 1, "addr": "a", "zip_code": "1"}],
                 "group_memberships": [],
                 "items": [],
+                "created_books": [],
+                "updated_books": [],
             },
             id="1:M_all_loaded_include_relationships",
         ),
@@ -245,7 +247,7 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                     GroupMembership(group=Group(name="g2")),
                 ],
             ),
-            {},
+            {"include_nested_relationships": True},
             [orm.joinedload("*")],
             {
                 "id": 1,
@@ -260,6 +262,8 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                     {"group_id": 2, "user_id": 1, "group": {"id": 2, "name": "g2"}},
                 ],
                 "items": [],
+                "created_books": [],
+                "updated_books": [],
             },
             id="nested_relationships_all_loaded",
         ),
@@ -282,7 +286,7 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                     )
                 ],
             ),
-            {"lazyload": True},
+            {"lazyload": True, "include_nested_relationships": True},
             [orm.lazyload("*")],
             {
                 "id": 1,
@@ -323,8 +327,102 @@ def test_model_to_dict__with_non_persisted_model(model: ModelBase, args: dict, e
                         },
                     }
                 ],
+                "created_books": [],
+                "updated_books": [],
             },
             id="nested_relationships_lazy_loaded",
+        ),
+        param(
+            Book(
+                id=1,
+                title="t",
+                created_by_user=User(id=1, name="n"),
+                updated_by_user=User(id=2, name="n"),
+            ),
+            {"lazyload": True},
+            [],
+            {
+                "id": 1,
+                "title": "t",
+                "created_by": 1,
+                "updated_by": 2,
+                "created_by_user": {"id": 1, "name": "n", "active": True},
+                "updated_by_user": {"id": 2, "name": "n", "active": True},
+            },
+            id="exclude_nested_relationships_lazy_loaded_with_circular_reference",
+        ),
+        param(
+            Book(
+                id=1,
+                title="t",
+                created_by_user=User(id=1, name="n"),
+                updated_by_user=User(id=2, name="n"),
+            ),
+            {},
+            [],
+            {
+                "id": 1,
+                "title": "t",
+                "created_by": 1,
+                "updated_by": 2,
+            },
+            id="exclude_nested_relationships_with_circular_reference",
+        ),
+        param(
+            Book(
+                id=1,
+                title="t",
+                created_by_user=User(id=1, name="n"),
+                updated_by_user=User(id=2, name="n"),
+            ),
+            {"lazyload": True, "include_nested_relationships": True},
+            [],
+            {
+                "id": 1,
+                "title": "t",
+                "created_by": 1,
+                "updated_by": 2,
+                "created_by_user": {
+                    "id": 1,
+                    "name": "n",
+                    "active": True,
+                    "addresses": [],
+                    "group_memberships": [],
+                    "items": [],
+                    "created_books": [{"id": 1, "title": "t", "created_by": 1, "updated_by": 2}],
+                    "updated_books": [],
+                },
+                "updated_by_user": {
+                    "id": 2,
+                    "name": "n",
+                    "active": True,
+                    "addresses": [],
+                    "group_memberships": [],
+                    "items": [],
+                    "created_books": [],
+                    "updated_books": [
+                        {
+                            "id": 1,
+                            "title": "t",
+                            "created_by": 1,
+                            "updated_by": 2,
+                            "created_by_user": {
+                                "id": 1,
+                                "name": "n",
+                                "active": True,
+                                "addresses": [],
+                                "group_memberships": [],
+                                "items": [],
+                                "created_books": [
+                                    {"id": 1, "title": "t", "created_by": 1, "updated_by": 2}
+                                ],
+                                "updated_books": [],
+                            },
+                        }
+                    ],
+                },
+            },
+            id="include_nested_relationships_lazy_loaded_with_circular_reference",
         ),
     ],
 )
