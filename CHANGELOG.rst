@@ -2,6 +2,9 @@ Changelog
 =========
 
 
+v3.1.0 (2025-11-20)
+-------------------
+
 - Fix bug in ``Model.to_dict()`` where relationship fields may not get populated when multiple relationships reference the same model. Thanks bharadwajyarlagadda_!
 - Add support for Python 3.13.
 - Drop support for Python 3.7.
